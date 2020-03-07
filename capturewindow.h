@@ -103,11 +103,15 @@ public:
 
     // Панель 1
     CursorPanel *panel1();
-    void transformMenu(cv::Mat &acvMat);
+    bool transformMenu1(cv::Mat &acvMatRet);
+    bool transformSubNavMenu1(cv::Mat &acvMatRet);
     bool checkContour(std::vector< cv::Point > &acvVecPointCont, cv::Mat &cvMatOut);
     bool findLeftPoint(std::vector< std::vector< cv::Point > > &acvVecPointCont, cv::Mat &cvMatOut, cv::Point &acvpRight, cv::Point &acvpLeft);
     bool checkApproximRect(const cv::Rect acRectSrs, const cv::Rect acRectCurCMP, int anDelta);
     void getRectsInContour(std::vector< std::vector< cv::Point > > &acvVecPointCont, std::vector<cv::Rect> &vecRects);
+    void getRectsOfPatternMenu1(std::vector< std::vector< cv::Point > > &acvVecPointCont, std::vector<cv::Rect> &vecRects, std::vector<cv::Rect> &vecRectsShort);
+    void getRectsOfPatternMenu1SubNav(std::vector< std::vector< cv::Point > > &acvVecPointCont, std::vector<cv::Rect> &vecRects);
+    bool getLeftAndUpInVecRects(const std::vector<cv::Rect> &vecRects, int &nXLeft, int &nYUp);
     cv::Rect getRectInContour(std::vector< cv::Point > &acvVecPoint);
     cv::Mat makeBinHeadMenu(cv::Mat &aMatWord, cv::Rect aRectCursor);
     cv::Mat parsBinLineNavList(cv::Mat &aMatList, cv::Rect aRectCursor);

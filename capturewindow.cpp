@@ -5,7 +5,10 @@
 #define     MIN_COEFF_FOR_FIND              0.99
 #define     MIN_COEFF_FOR_FIND_POINT        0.7
 
-#define CURSOR_DELTA     6
+#define     CUR_MENU_MIN_SCALAR             cv::Scalar(0, 106, 203)
+#define     CUR_MENU_MAX_SCALAR             cv::Scalar(255, 255, 255)
+
+#define CURSOR_DELTA     10
 
 
 void CaptureWindow::my_mouse_callback(int event, int x, int y, int flags, void *param) {
@@ -20,7 +23,7 @@ CaptureWindow::CaptureWindow(std::map<std::string, ImageROI> *ap_dataSet, int x,
     m_nXOffset(x),
     m_nYOffset(y),
     minScalar(cv::Scalar(0, 100, 100)),
-    maxScalar(cv::Scalar(255, 255, 255)),
+    maxScalar(cv::Scalar(255, 255, 0)),
     maxContours(50)
 {
     mp_dataSet = ap_dataSet;
@@ -82,8 +85,8 @@ void CaptureWindow::update()
     showRoi();
 
 
-
-//    tests();
+//    subPanel1Nav();
+//    menuDocking();
 //    panel1();
 
 
@@ -397,43 +400,89 @@ double CaptureWindow::getCoeffImageInRect(std::string asImageROI, cv::Rect acvRe
 
 CursorPanel *CaptureWindow::panel1()
 {
-    cv::Mat tmp(win.size().height, win.size().width, win.depth(), win.channels());
-    cv::resize(win, tmp, tmp.size(), 0, 0, cv::INTER_LINEAR);
-    transformMenu(tmp);
-    cv::Mat dst;
-    cv::Mat bin(dst.size(), CV_8U, 1);
-    tmp(cv::Rect(170, 150, tmp.size().width - 700, tmp.size().height - 250)).copyTo(dst);
-    dst(cv::Rect(3, 100, 1020, 685)).copyTo(dst);
 
+    cv::Mat dst;
+    if(!transformMenu1(dst)) {
+//        qDebug() << "panel1 hide";
+        return &m_cursorPan;
+    }
+//    qDebug() << "ok disabled_panel1";
+
+//    cv::Mat transformMat, dst;                   // трансформир
+//    cv::Mat binPrep(transformMat.size(), CV_8U, 1);
+//    tmp(cv::Rect(50, 100, tmp.size().width - 665, tmp.size().height - 150)).copyTo(transformMat);
+////    dstPrep(cv::Rect(LEFT_BORDER_PAN1, UP_BORDER_PAN1, 1020, 685)).copyTo(dstPrep2);
+
+//    cv::inRange(transformMat, cv::Scalar(0, 93, 200), cv::Scalar(100, 255, 255), binPrep);
+
+//    std::vector< std::vector< cv::Point> > contoursSrc;
+//    std::vector< cv::Vec4i > hierarchy;
+//    cv::findContours(binPrep, contoursSrc, cv::noArray(), cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+//    std::vector<cv::Rect> vecRects;
+//    std::vector<cv::Rect> vecRectsShort;
+//    getRectsOfPaternMenu1(contoursSrc, vecRects, vecRectsShort);
+//    int x1, y2;
+//    if(!getLeftAndUpInVecRects(vecRects, x1, y2)) {
+//        qDebug() << "menut out of range menu1";
+//        return &m_cursorPan;
+//    }
+//    if(vecRectsShort.empty()) {
+//        qDebug() << "not show rect head menu1";
+//        return &m_cursorPan;
+//    }
+//    qDebug() <<  y2;
+//    for(size_t i = 0; i < vecRectsShort.size(); i++) {
+//        cv::rectangle(transformMat, vecRectsShort[i], cv::Scalar(0xFF, 0x0, 0x0));
+////        printRect(vecRectsShort[i]);
+//    }
+
+//    cv::Rect rectToCut(x1, y2 - PANEL_1_Y_SEEK, PANEL_1_WIDTH, PANEL_1_HEIGHT);
+//    printRect(rectToCut);
+//    printMat(transformMat);
+//    if(rectToCut.height + rectToCut.y >= 930 || rectToCut.width + rectToCut.x >= 1250) {
+//        qDebug() << "menut out of range menu1";
+//        return &m_cursorPan;
+//    }
+//    transformMat(rectToCut).copyTo(dst);
+
+    cv::Mat bin;
     cv::inRange(dst, cv::Scalar(0, 93, 200), cv::Scalar(100, 255, 255), bin);
 
     std::vector< std::vector< cv::Point> > contoursSrc;
-    std::vector< std::vector< cv::Point> > contMoreLength;
     std::vector< cv::Vec4i > hierarchy;
     cv::findContours(bin, contoursSrc, cv::noArray(), cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
+
     std::vector<cv::Rect> vecRects;
+//    std::vector<cv::Rect> vecRectsShort;
+//    getRectsOfPaternMenu1(contoursSrc, vecRects, vecRectsShort);
     getRectsInContour(contoursSrc, vecRects);
 
     for(size_t i = 0; i < vecRects.size(); i++) {
         cv::rectangle(dst, vecRects[i], cv::Scalar(0xFF, 0x0, 0x0));
+//        printRect(vecRectsShort[i]);
     }
     determinCursorHeader(vecRects, dst);
     determinCursorBody(vecRects, dst);
 
 
         myOCREng->Clear();
-    //    myOCREng->End();
         myOCRRus->Clear();
-    //    myOCRRus->End();
 
     imshow("win2", bin);
     imshow("win3", dst);
     return &m_cursorPan;
 }
 
-void CaptureWindow::transformMenu(cv::Mat &acvMat)
+bool CaptureWindow::transformMenu1(cv::Mat &acvMatRet)
 {
+#define PANEL_1_WIDTH       1020
+#define PANEL_1_HEIGHT      680
+#define PANEL_1_Y_SEEK      50
+    cv::Mat tmp(win.size().height, win.size().width, win.depth(), win.channels());
+    cv::resize(win, tmp, tmp.size(), 0, 0, cv::INTER_LINEAR);
+
 //    int centerX = USING_WIDTH / 2;
 //    int centerY = USING_HEIGHT / 2;
 //    double angle = -3.47;
@@ -443,24 +492,127 @@ void CaptureWindow::transformMenu(cv::Mat &acvMat)
     cv::Point2f srcTri[4], dstQuad[4];
     srcTri[0].x = 0;
     srcTri[0].y = 0;
-    srcTri[1].x = acvMat.size().width - 1;
+    srcTri[1].x = tmp.size().width - 1;
     srcTri[1].y = 0;
     srcTri[2].x = 0;
-    srcTri[2].y = acvMat.size().height - 1;
-    srcTri[3].x = acvMat.size().width - 1;
-    srcTri[3].y = acvMat.size().height - 1;
+    srcTri[2].y = tmp.size().height - 1;
+    srcTri[3].x = tmp.size().width - 1;
+    srcTri[3].y = tmp.size().height - 1;
 
 
     dstQuad[0].x = 0;  //Top left
     dstQuad[0].y = 0;
-    dstQuad[1].x = acvMat.size().width - 1;  //Top right
+    dstQuad[1].x = tmp.size().width - 1;  //Top right
     dstQuad[1].y = -45;
     dstQuad[2].x = -65;  //Bottom left
-    dstQuad[2].y = acvMat.size().height;
-    dstQuad[3].x = acvMat.size().width - 30;  //Bottom right
-    dstQuad[3].y = acvMat.size().height + 315;
+    dstQuad[2].y = tmp.size().height;
+    dstQuad[3].x = tmp.size().width - 30;  //Bottom right
+    dstQuad[3].y = tmp.size().height + 315;
     cv::Mat warp_matrix = cv::getPerspectiveTransform(srcTri, dstQuad);
-    cv::warpPerspective(acvMat, acvMat, warp_matrix, acvMat.size());
+    cv::warpPerspective(tmp, tmp, warp_matrix, tmp.size());
+
+
+
+    cv::Mat transformMat, dst;                   // трансформир
+    cv::Mat binPrep(transformMat.size(), CV_8U, 1);
+    tmp(cv::Rect(50, 100, tmp.size().width - 665, tmp.size().height - 150)).copyTo(transformMat);
+    cv::inRange(transformMat, cv::Scalar(0, 93, 200), cv::Scalar(100, 255, 255), binPrep);
+    std::vector< std::vector< cv::Point> > contoursSrc;
+    std::vector< cv::Vec4i > hierarchy;
+    cv::findContours(binPrep, contoursSrc, cv::noArray(), cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    std::vector<cv::Rect> vecRects;
+    std::vector<cv::Rect> vecRectsShort;
+    getRectsOfPatternMenu1(contoursSrc, vecRects, vecRectsShort);
+    int x1, y2;
+    if(!getLeftAndUpInVecRects(vecRects, x1, y2)) {
+        return false;
+    }
+    if(vecRectsShort.empty()) {
+        return false;
+    }
+    cv::Rect rectToCut(x1, y2 - PANEL_1_Y_SEEK, PANEL_1_WIDTH, PANEL_1_HEIGHT);
+    if(rectToCut.height + rectToCut.y >= 930 || rectToCut.width + rectToCut.x >= 1250) {
+        return false;
+    }
+    transformMat(rectToCut).copyTo(dst);
+
+//    imshow("win2", binPrep);
+//    imshow("win3", dst);
+    acvMatRet = dst;
+    return true;
+}
+
+
+bool CaptureWindow::transformSubNavMenu1(cv::Mat &acvMatRet)
+{
+#define PANEL_1_WIDTH_SUBNAV       119
+#define PANEL_1_HEIGHT_SUBNAV      65
+    cv::Mat tmp(win.size().height, win.size().width, win.depth(), win.channels());
+    cv::resize(win, tmp, tmp.size(), 0, 0, cv::INTER_LINEAR);
+
+//    int centerX = USING_WIDTH / 2;
+//    int centerY = USING_HEIGHT / 2;
+//    double angle = -3.47;
+//    cv::Mat rot_mat = cv::getRotationMatrix2D(cv::Point(centerX, centerY), angle, 1);
+//    cv::warpAffine(acvMat, acvMat, rot_mat, acvMat.size(), cv::INTER_CUBIC);
+
+    cv::Point2f srcTri[4], dstQuad[4];
+    srcTri[0].x = 0;
+    srcTri[0].y = 0;
+    srcTri[1].x = tmp.size().width - 1;
+    srcTri[1].y = 0;
+    srcTri[2].x = 0;
+    srcTri[2].y = tmp.size().height - 1;
+    srcTri[3].x = tmp.size().width - 1;
+    srcTri[3].y = tmp.size().height - 1;
+
+
+    dstQuad[0].x = 0;  //Top left
+    dstQuad[0].y = 0;
+    dstQuad[1].x = tmp.size().width - 1;  //Top right
+    dstQuad[1].y = -45;
+    dstQuad[2].x = -65;  //Bottom left
+    dstQuad[2].y = tmp.size().height;
+    dstQuad[3].x = tmp.size().width - 30;  //Bottom right
+    dstQuad[3].y = tmp.size().height + 315;
+    cv::Mat warp_matrix = cv::getPerspectiveTransform(srcTri, dstQuad);
+    cv::warpPerspective(tmp, tmp, warp_matrix, tmp.size());
+
+
+
+    cv::Mat transformMat, dst;                   // трансформир
+    cv::Mat binPrep(transformMat.size(), CV_8U, 1);
+    tmp(cv::Rect(250, 550, tmp.size().width - 865, tmp.size().height - 550)).copyTo(transformMat);
+    cv::inRange(transformMat, cv::Scalar(0, 93, 200), cv::Scalar(100, 255, 255), binPrep);
+    std::vector< std::vector< cv::Point> > contoursSrc;
+    std::vector< cv::Vec4i > hierarchy;
+    cv::findContours(binPrep, contoursSrc, cv::noArray(), cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    std::vector<cv::Rect> vecRects;
+    getRectsOfPatternMenu1SubNav(contoursSrc, vecRects);
+    for(size_t i = 0; i < vecRects.size(); i++) {
+        cv::rectangle(transformMat, vecRects[i], cv::Scalar(0xFF, 0x0, 0x0));
+    }
+
+    int x1, y2;
+    if(!getLeftAndUpInVecRects(vecRects, x1, y2)) {
+//        imshow("win2", binPrep);
+//        imshow("win3", transformMat);
+        return false;
+    }
+    cv::Rect rectToCut(x1, y2, PANEL_1_WIDTH_SUBNAV, PANEL_1_HEIGHT_SUBNAV);
+//    printRect(rectToCut);
+//    printMat(transformMat);
+    if(rectToCut.height + rectToCut.y >= 530 || rectToCut.width + rectToCut.x >= 1055) {
+//        imshow("win2", binPrep);x
+//        imshow("win3", transformMat);
+        return false;
+    }
+    transformMat(rectToCut).copyTo(dst);
+
+//    imshow("win2", binPrep);
+//    imshow("win3", dst);
+    acvMatRet = dst;
+    return true;
 }
 
 void CaptureWindow::addDrawRect(cv::Rect acvRect)
@@ -897,6 +1049,7 @@ bool CaptureWindow::checkApproximRect(const cv::Rect acRectSrs, const cv::Rect a
 
 void CaptureWindow::getRectsInContour(std::vector<std::vector<cv::Point> > &acvVecPointCont, std::vector<cv::Rect> &vecRects)
 {
+    vecRects.clear();
     for(size_t j = 0; j < acvVecPointCont.size(); j++) {
         std::vector<cv::Point> vectmp = acvVecPointCont[j];
         if(vectmp.size() < 3)
@@ -926,6 +1079,111 @@ void CaptureWindow::getRectsInContour(std::vector<std::vector<cv::Point> > &acvV
             continue;
         vecRects.push_back(rectTmp);
     }
+}
+
+void CaptureWindow::getRectsOfPatternMenu1(std::vector<std::vector<cv::Point> > &acvVecPointCont, std::vector<cv::Rect> &vecRects, std::vector<cv::Rect> &vecRectsShort)
+{
+    vecRectsShort.clear();
+    vecRects.clear();
+    for(size_t j = 0; j < acvVecPointCont.size(); j++) {
+        std::vector<cv::Point> vectmp = acvVecPointCont[j];
+        if(vectmp.size() < 3)
+            continue;
+        cv::Point min_x;
+        min_x.x = USING_WIDTH;
+        cv::Point max_x;
+        max_x.x = 0;
+        cv::Point min_y;
+        min_y.y = USING_HEIGHT;
+        cv::Point max_y;
+        max_y.y = 0;
+        for(size_t i = 0; i < vectmp.size(); i++) {
+            if(acvVecPointCont[j][i].x < min_x.x)
+                min_x = acvVecPointCont[j][i];
+            if(acvVecPointCont[j][i].x > max_x.x)
+                max_x = acvVecPointCont[j][i];
+            if(acvVecPointCont[j][i].y < min_y.y)
+                min_y = acvVecPointCont[j][i];
+            if(acvVecPointCont[j][i].y > max_y.y)
+                max_y = acvVecPointCont[j][i];
+        }
+        cv::Rect rectTmp = cv::Rect(min_x.x, min_y.y, max_x.x - min_x.x, max_y.y - min_y.y);
+        if(rectTmp.width < 500) {
+            if(rectTmp.height < 30)
+                continue;
+            if(rectTmp.width > 260)
+                continue;
+            if(rectTmp.width < 200)
+                continue;
+            if(rectTmp.y > 400)
+                continue;
+            vecRectsShort.push_back(rectTmp);
+        } else {
+            if(rectTmp.height > 35)
+                continue;
+            if(rectTmp.y > 350)
+                continue;
+            if(rectTmp.y < 50)
+                continue;
+            vecRects.push_back(rectTmp);
+        }
+    }
+}
+
+void CaptureWindow::getRectsOfPatternMenu1SubNav(std::vector<std::vector<cv::Point> > &acvVecPointCont, std::vector<cv::Rect> &vecRects)
+{
+    vecRects.clear();
+    for(size_t j = 0; j < acvVecPointCont.size(); j++) {
+        std::vector<cv::Point> vectmp = acvVecPointCont[j];
+        if(vectmp.size() < 3)
+            continue;
+        cv::Point min_x;
+        min_x.x = USING_WIDTH;
+        cv::Point max_x;
+        max_x.x = 0;
+        cv::Point min_y;
+        min_y.y = USING_HEIGHT;
+        cv::Point max_y;
+        max_y.y = 0;
+        for(size_t i = 0; i < vectmp.size(); i++) {
+            if(acvVecPointCont[j][i].x < min_x.x)
+                min_x = acvVecPointCont[j][i];
+            if(acvVecPointCont[j][i].x > max_x.x)
+                max_x = acvVecPointCont[j][i];
+            if(acvVecPointCont[j][i].y < min_y.y)
+                min_y = acvVecPointCont[j][i];
+            if(acvVecPointCont[j][i].y > max_y.y)
+                max_y = acvVecPointCont[j][i];
+        }
+        cv::Rect rectTmp = cv::Rect(min_x.x, min_y.y, max_x.x - min_x.x, max_y.y - min_y.y);
+        if(rectTmp.height < 40)
+            continue;
+        if(rectTmp.height > 80)
+            continue;
+        if(rectTmp.width > 140)
+            continue;
+        if(rectTmp.width < 80)
+            continue;
+        vecRects.push_back(rectTmp);
+    }
+}
+
+bool CaptureWindow::getLeftAndUpInVecRects(const std::vector<cv::Rect> &vecRects, int &nXLeft, int &nYUp)
+{
+    nXLeft = USING_WIDTH;
+    nYUp = USING_HEIGHT;
+    for(size_t i = 0; i < vecRects.size(); i++) {
+        if(vecRects[i].x < nXLeft)
+            nXLeft = vecRects[i].x;
+        if(vecRects[i].y < nYUp)
+            nYUp = vecRects[i].y;
+    }
+
+    if(nXLeft == USING_WIDTH)
+        return false;
+    if(nYUp == USING_HEIGHT)
+        return false;
+    return true;
 }
 
 cv::Rect CaptureWindow::getRectInContour(std::vector<cv::Point> &acvVecPoint)
@@ -960,7 +1218,7 @@ cv::Mat CaptureWindow::makeBinHeadMenu(cv::Mat &aMatWord, cv::Rect aRectCursor)
 
     cv::Mat bin(matCursor.size(), CV_8U, 1);
 
-    cv::inRange(matCursor, minScalar, maxScalar, bin);
+    cv::inRange(matCursor, CUR_MENU_MIN_SCALAR, CUR_MENU_MAX_SCALAR, bin);
 
 //    std::vector< std::vector< cv::Point> > contoursSrc;
 //    std::vector< std::vector< cv::Point> > contMoreLength;
@@ -1012,8 +1270,8 @@ cv::Mat CaptureWindow::makeBinHeadMenu(cv::Mat &aMatWord, cv::Rect aRectCursor)
 //    cv::inRange(cur, minScalar, maxScalar, bin2);
 //    cv::Mat res(bin2.size(), CV_8U, 3);
 //    bin2(cv::Rect(0, 0, bin2.size().width, bin2.size().height)).copyTo(res);
-//    cv::imshow("win4", bin);
-//    cv::imshow("win5", matCursor);
+    cv::imshow("win4", bin);
+    cv::imshow("win5", matCursor);
     return bin;
 }
 
@@ -1024,7 +1282,7 @@ cv::Mat CaptureWindow::parsBinLineNavList(cv::Mat &aMatList, cv::Rect aRectCurso
 
     cv::Mat bin(matCursor.size(), CV_8U, 1);
 
-    cv::inRange(matCursor, minScalar, maxScalar, bin);
+    cv::inRange(matCursor, CUR_MENU_MIN_SCALAR, CUR_MENU_MAX_SCALAR, bin);
     cv::Mat tmpMat;
     cv::cvtColor(bin, tmpMat, cv::COLOR_GRAY2BGR);
     cv::Point point;
@@ -1056,8 +1314,9 @@ cv::Mat CaptureWindow::parsBinLineNavList(cv::Mat &aMatList, cv::Rect aRectCurso
     matCursor(cv::Rect(cutXLeft, 0, cutXRight - cutXLeft, matCursor.size().height)).copyTo(cutMat);
     cv::Mat binCut(matCursor.size(), CV_8U, 1);
 
-    cv::inRange(cutMat, minScalar, maxScalar, binCut);
-    cv::imshow("win5", binCut);
+    cv::inRange(cutMat, CUR_MENU_MIN_SCALAR, CUR_MENU_MAX_SCALAR, binCut);
+    cv::imshow("win4", binCut);
+    cv::imshow("win5", matCursor);
     return binCut;
 //    return cv::Mat();
 }
@@ -1067,15 +1326,18 @@ void CaptureWindow::determinCursorHeader(std::vector<cv::Rect> &vecRects, cv::Ma
     m_cursorPan.rectHeader.y = USING_HEIGHT;
     m_cursorPan.headerActive = false;
 
-#define CURSOR_DELTA_HEADER     5
 #define CURSOR_Y_HEADER         5
-#define CURSOR_WIDTH_HEADER     38
+#define CURSOR_WIDTH_HEADER     229
+#define CURSOR_HEIGHT_HEADER     37
 
     for(std::vector<cv::Rect>::iterator it = vecRects.begin(); it != vecRects.end(); it++) {
-        if(it->y >              CURSOR_Y_HEADER - CURSOR_DELTA_HEADER
-                && it->y <      CURSOR_Y_HEADER + CURSOR_DELTA_HEADER
-                && it->height > CURSOR_WIDTH_HEADER - CURSOR_DELTA_HEADER
-                && it->height < CURSOR_WIDTH_HEADER + CURSOR_DELTA_HEADER)
+//                    qDebug() << "Head:" << it->x << it->y << it->width << it->height;
+        if(it->y >              CURSOR_Y_HEADER - CURSOR_DELTA
+                && it->y <      CURSOR_Y_HEADER + CURSOR_DELTA
+                && it->width > CURSOR_WIDTH_HEADER - CURSOR_DELTA
+                && it->width < CURSOR_WIDTH_HEADER + CURSOR_DELTA
+                && it->height < CURSOR_HEIGHT_HEADER + CURSOR_DELTA
+                && it->height > CURSOR_HEIGHT_HEADER - CURSOR_DELTA)
         {
                 m_cursorPan.rectHeader = cv::Rect(it->x + 1, it->y + 1, it->width - 2, it->height - 2);
                 m_cursorPan.headerActive = true;
@@ -1105,8 +1367,8 @@ void CaptureWindow::determinCursorBody(std::vector<cv::Rect> &vecRects, cv::Mat 
 
 #define CURSOR_X_MIDDLE_NAV     128
 #define CURSOR_WIDTH_MIDDLE_NAV 98
-#define CURSOR_X_RIGHT_NAV      231
-#define CURSOR_WIDTH_RIGHT_NAV  764
+#define CURSOR_X_RIGHT_NAV      220
+#define CURSOR_WIDTH_RIGHT_NAV  740
 
 #define CURSOR_Y_LEFT_NAV_FILT  210
 #define CURSOR_Y_LEFT_NAV_XFILT 277
@@ -1152,8 +1414,6 @@ void CaptureWindow::determinCursorBody(std::vector<cv::Rect> &vecRects, cv::Mat 
                     m_cursorPan.rectBody = *it;
                     m_cursorPan.bodyActive = true;
                     cv::Mat cutMat = parsBinLineNavList(aMatDst, m_cursorPan.rectBody);
-//                    cv::Mat binColor = makeBinHeadMenu(cutMat, m_cursorPan.rectBody);
-//                    emit signalSaveImageForDebug(cutMat);
                     myOCREng->SetImage( (uchar*)cutMat.data, cutMat.size().width, cutMat.size().height, cutMat.channels(), cutMat.step1());
                     myOCREng->Recognize(nullptr);
                     m_cursorPan.sBodyName = myOCREng->GetUTF8Text();
@@ -1161,6 +1421,12 @@ void CaptureWindow::determinCursorBody(std::vector<cv::Rect> &vecRects, cv::Mat 
                         m_cursorPan.sBodyName = "not recognized";
                     m_cursorPan.sBodyName = m_cursorPan.sBodyName.simplified();
                     m_cursorPan.sBodyName = m_cursorPan.sBodyName.toLower();
+                    if(m_cursorPan.sBodyName.indexOf("<") != -1) {
+                        m_cursorPan.sBodyName.remove(0, m_cursorPan.sBodyName.indexOf("<") + 1);
+                    }
+                    if( m_cursorPan.sBodyName.indexOf(">") != -1) {
+                        m_cursorPan.sBodyName.remove(m_cursorPan.sBodyName.indexOf(">"), m_cursorPan.sBodyName.size() );
+                    }
 
                 }
 //                qDebug() << "ENG:" << m_cursorPan.sBodyName;
@@ -1174,7 +1440,7 @@ void CaptureWindow::determinCursorBody(std::vector<cv::Rect> &vecRects, cv::Mat 
                 if(it->x > CURSOR_X_LEFT_CONT - CURSOR_DELTA
                         &&  it->x < CURSOR_X_LEFT_CONT + CURSOR_DELTA){
                     // Курсор слева в панели Контакты
-                    qDebug() << "left";
+//                    qDebug() << "left";
                     m_cursorPan.rectBody = *it;
                     m_cursorPan.bodyActive = true;
                     cv::Mat cutMat = parsBinLineNavList(aMatDst, m_cursorPan.rectBody);
@@ -1193,7 +1459,7 @@ void CaptureWindow::determinCursorBody(std::vector<cv::Rect> &vecRects, cv::Mat 
                     m_cursorPan.bodyActive = true;
                     m_cursorPan.sBodyName = "req_docking";
 
-                    qDebug() << "right";
+//                    qDebug() << "right";
                 }
             }
         }
@@ -1216,11 +1482,19 @@ std::vector<cv::Rect> CaptureWindow::getRectsBigInContours(cv::Mat &binMat)
 
 CursorPanel *CaptureWindow::subPanel1Nav()
 {
-    cv::Mat tmp;
-    win.copyTo(tmp);
-    transformMenu(tmp);
     cv::Mat dst;
-    tmp(cv::Rect(345, 300, tmp.size().width - 1170, tmp.size().height - 465)).copyTo(dst);
+    if(!transformSubNavMenu1(dst)) {
+        qDebug() << "panel submenu nav hiden";
+        return &m_cursorPan;
+    }
+    qDebug() << "panel submenu nav showwed";
+
+
+//    cv::Mat tmp;
+//    win.copyTo(tmp);
+//    transformMenu1(tmp);
+//    cv::Mat dst;
+//    tmp(cv::Rect(345, 300, tmp.size().width - 1170, tmp.size().height - 465)).copyTo(dst);
 
     cv::Mat bin(dst.size(), CV_8U, 1);
     cv::inRange(dst, cv::Scalar(0, 93, 200), cv::Scalar(100, 255, 255), bin);
@@ -1274,14 +1548,14 @@ void CaptureWindow::determinCursorSubNavList(std::vector<cv::Rect> &vecRects, cv
     m_cursorPan.rectSubNavList.y = -1;
     m_cursorPan.subNavList = false;
 
-#define CURSOR_Y_NAV_SUB_LIST           498
-#define CURSOR_Y_NAV_SUB_LIST_BOTTOM    567
+//#define CURSOR_Y_NAV_SUB_LIST           498
+//#define CURSOR_Y_NAV_SUB_LIST_BOTTOM    567
 
     for(std::vector<cv::Rect>::iterator it = vecRects.begin(); it != vecRects.end(); it++) {
 //        qDebug() << "Body:" << it->x << it->y << it->width << it->height;
-        if(     it->y > CURSOR_Y_NAV_SUB_LIST - CURSOR_DELTA     &&
-                it->y < CURSOR_Y_NAV_SUB_LIST + CURSOR_DELTA)
-        {
+//        if(     it->y > CURSOR_Y_NAV_SUB_LIST - CURSOR_DELTA     &&
+//                it->y < CURSOR_Y_NAV_SUB_LIST + CURSOR_DELTA)
+//        {
             // Значит курсор в положении кнопок управления, верхнее положение
                 m_cursorPan.subNavList = true;
                 m_cursorPan.rectSubNavList = cv::Rect(it->x + 1, it->y + 1, it->width - 2, it->height - 2);
@@ -1302,10 +1576,12 @@ void CaptureWindow::determinCursorSubNavList(std::vector<cv::Rect> &vecRects, cv
                     qDebug() << "missed the mark";
                 cv::imshow("win4", curMat);
                 break;
-        } else if(it->y > CURSOR_Y_NAV_SUB_LIST_BOTTOM - CURSOR_DELTA     &&
-                  it->y < CURSOR_Y_NAV_SUB_LIST_BOTTOM + CURSOR_DELTA) {
-            qDebug() << "Menu previous";
-        }
+//                qDebug() << m_cursorPan.sSubNavName;
+//        }
+//    else if(it->y > CURSOR_Y_NAV_SUB_LIST_BOTTOM - CURSOR_DELTA     &&
+//                  it->y < CURSOR_Y_NAV_SUB_LIST_BOTTOM + CURSOR_DELTA) {
+//            qDebug() << "Menu previous";
+//        }
     }
 }
 
@@ -1315,7 +1591,10 @@ CursorPanel *CaptureWindow::menuDocking()
     cv::Mat dst;
     win(cv::Rect(820, 775, 300, 160)).copyTo(dst);
     cv::Mat bin(dst.size(), CV_8U, 1);
-    cv::inRange(dst, cv::Scalar(0, 100, 100), cv::Scalar(255, 255, 255), bin);
+//    cv::Mat gray(dst.size(), CV_8U, 1);
+    cv::inRange(dst, CUR_MENU_MIN_SCALAR, CUR_MENU_MAX_SCALAR, bin);
+//    cv::cvtColor(dst, gray, CV_BGR2GRAY);
+//    cv::Canny(gray, bin, maxScalar.val[0], maxScalar.val[1], 3);
     std::vector<cv::Rect> vecRects = getRectsBigInContours(bin);
     for(size_t i = 0; i < vecRects.size(); i++) {
         cv::rectangle(dst, vecRects[i], cv::Scalar(0xFF, 0x0, 0x0));

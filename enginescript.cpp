@@ -59,10 +59,18 @@ void EngineScript::engine()
         case RESTOR_GAME:
             break;
         case AICONTROL:
-            m_pControl->next();
+            m_pControl->smallRing();
             break;
         case PUSH_KEY:
             push_key();
+            m_pControl->state = AICONTROL;
+            break;
+        case PRESS_KEY:
+            press_key();
+            m_pControl->state = AICONTROL;
+            break;
+        case RELEASE_KEY:
+            press_key();
             m_pControl->state = AICONTROL;
             break;
         case SEARCH_IMAGE_CONTINUOUS:
@@ -85,6 +93,14 @@ void EngineScript::engine()
         case CLICK_POINT_IMAGE_AFTER_LOOK:
             {
                 cv::Point cvPoint = getPointAfterLookAreaInRect(m_pControl->searchImage, m_pControl->nCount, m_pControl->iStart, m_pControl->iEnd);
+                mouse_move_click(cvPoint);
+                m_pControl->state = AICONTROL;
+            }
+            break;
+        case CLICK_TO_POINT:
+            {
+                cv::Rect rectTmp = mp_dataSet->at(m_pControl->searchImage.toStdString()).rect;
+                cv::Point cvPoint(rectTmp.x + (rectTmp.width / 2), rectTmp.y + (rectTmp.height / 2));
                 mouse_move_click(cvPoint);
                 m_pControl->state = AICONTROL;
             }
@@ -296,6 +312,24 @@ void EngineScript::push_key()
     jMsg["code"] = m_pControl->push_key;
 //    if(i == 2)
 //        qDebug() << "stop";
+    sendDataToSlave(QJsonDocument(jMsg).toJson());
+}
+
+void EngineScript::press_key()
+{
+    QJsonObject jMsg;
+    jMsg["target"] = "keyboard";
+    jMsg["method"] = "press_key";
+    jMsg["code"] = m_pControl->press_key;
+    sendDataToSlave(QJsonDocument(jMsg).toJson());
+}
+
+void EngineScript::release_key()
+{
+    QJsonObject jMsg;
+    jMsg["target"] = "keyboard";
+    jMsg["method"] = "press_key";
+    jMsg["code"] = m_pControl->release_key;
     sendDataToSlave(QJsonDocument(jMsg).toJson());
 }
 

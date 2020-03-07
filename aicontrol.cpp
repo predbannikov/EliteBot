@@ -20,9 +20,10 @@
 
 AIControl::AIControl(QObject *parent) : QObject(parent)
 {
-    m_slistStations << "Celebi City" << "Gabriel Enterprise";
+    m_slistStations << "celebi city" << "gabriel enterprise";
     m_slistCommand << "transport";
-    action = ENABLED_PANEL1;
+    m_sTarget = m_slistStations[0];
+
 }
 
 AIControl::~AIControl()
@@ -30,8 +31,45 @@ AIControl::~AIControl()
 
 }
 
+bool AIControl::smallRing()
+{
+    static enum {BUILD_TRACK, FLY_TO_THE_TARGET,
+                STATE_TEST, WAIT} action = STATE_TEST;
+
+    switch (action) {
+    case BUILD_TRACK:
+        if(makeTrack()) {
+            action = FLY_TO_THE_TARGET;
+        }
+        break;
+    case FLY_TO_THE_TARGET:
+        if(trnasHyperMode()) {
+            qDebug() << "hit the target";
+        }
+        break;
+    case STATE_TEST:
+////        if(enabledPanel1("навигация")) {
+////            qDebug() << "stop";
+////        }
+        bool check;
+        if(test(check)) {
+            qDebug() << "Test success";
+            action = WAIT;
+        }
+        break;
+    case WAIT:
+
+        break;
+    }
+    return false;
+}
+
 void AIControl::next()
 {
+    static enum {ENABLED_PANEL1, WHERE_IAM, GET_THE_GOAL, BUILD_TRACK,
+            FIND_ITEM, ENABLED_HYPER, REQ_DOCKING,
+         MENU_DOCKING_AUTOSTART, WAIT_DOCKING_MENU_SHOW, WAIT_DOCKING_MENU_HIDE, WAIT} action;
+
     switch (action) {
     case ENABLED_PANEL1:
         if(enabledPanel1("контакты"))
@@ -39,12 +77,12 @@ void AIControl::next()
 
         break;
     case REQ_DOCKING:
-        if(caseMenuContact("celebi city"))
+        if(caseMenuContact("celebi city"))          // Запросить стыковку
             action = WAIT_DOCKING_MENU_SHOW;
         break;
     case WAIT_DOCKING_MENU_SHOW: {
             bool menuDock = false;
-            if(waitDockingMenuShow(35000, menuDock)) {
+            if(waitDockingMenuShow(120000, menuDock)) {
                 if(menuDock) {
                     action = MENU_DOCKING_AUTOSTART;
                 } else {
@@ -61,7 +99,7 @@ void AIControl::next()
         break;
     case WAIT_DOCKING_MENU_HIDE: {
             bool menuDock = false;
-            if(waitDockingMenuHide(40000, menuDock)) {
+            if(waitDockingMenuHide(60000, menuDock)) {
                 if(menuDock) {
                     qDebug() << "Взлёт закончен";
                     action = ENABLED_PANEL1;
@@ -90,11 +128,260 @@ void AIControl::next()
     }
 }
 
-QString AIControl::getPathToTarget()
+bool AIControl::test(bool &check)
 {
-    return m_slistStations[0];
+    static enum {PICK_UP_SPEED, WAIT, ENABLED_PANEL_1, CASE_STATION, CASE_MAKE_HYPER_MODE} action;
+
+    switch (action) {
+
+    case PICK_UP_SPEED: {
+        if(pickUpSpeed(8000)) {
+            action = WAIT;
+            qDebug() << "PICK_UP_SPEED";
+        }
+        break;
+    }
+    case WAIT: {
+        if(waitMSec(1000)) {
+            action = ENABLED_PANEL_1;
+            qDebug() << "WAIT";
+        }
+        break;
+    }
+    case ENABLED_PANEL_1:
+        if(enabledPanel1("навигация")) {
+            qDebug() << "ENABLED_PANEL_1";
+            action = CASE_STATION;
+        }
+        break;
+    case CASE_STATION:
+        if(caseStationMenuNav(m_sTarget)) {
+            action = CASE_MAKE_HYPER_MODE;
+        }
+        break;
+    case CASE_MAKE_HYPER_MODE:
+        if(caseSubMenuNav("enable_hypermode")) {
+
+            return true;
+        }
+        break;
+    }
+    return false;
 }
 
+bool AIControl::serviceToRefuel()
+{
+    static enum {CASE_MENUDOCK_SERVICE,
+                CASE_MENUSERVICE_TOFUEL, WAIT_MENUSERVICE} action;
+
+    switch (action) {
+    case CASE_MENUDOCK_SERVICE:
+        if(enabledPanel1("службы космопорта"))
+            action = WAIT_MENUSERVICE;
+        break;
+    case WAIT_MENUSERVICE: {
+            bool menuDock = false;
+            if(waitMenuService(5000, menuDock)) {
+                if(menuDock)  {
+                    action = CASE_MENUSERVICE_TOFUEL;
+                } else {
+                    action = CASE_MENUDOCK_SERVICE;
+                }
+            }
+        }
+        break;
+    case CASE_MENUSERVICE_TOFUEL:
+        if(serviceMenuToFuel()) {
+            return true;
+        }
+        break;
+    }
+    return false;
+}
+
+bool AIControl::makeTrack()
+{
+    static enum {PREP_TRACK, ENABLED_PANEL_1, CASE_STATION, CASE_MAKE_TARGET, DISAPLE_PANEL_1 } action;
+
+    switch (action) {
+    case PREP_TRACK: {
+        int iTarget = m_slistStations.indexOf(m_sTarget);
+        if(iTarget == m_slistStations.size() - 1)
+            iTarget = 0;
+        else
+            iTarget++;
+        m_sTarget = m_slistStations[iTarget];
+        action = ENABLED_PANEL_1;
+        break;
+    }
+    case ENABLED_PANEL_1: {
+        if(enabledPanel1("навигация")) {
+            action = CASE_STATION;
+        }
+        break;
+    }
+    case CASE_STATION: {
+        if(caseStationMenuNav(m_sTarget)) {
+            action = CASE_MAKE_TARGET;
+            qDebug() << "CASE_STATION";
+        }
+        break;
+    }
+    case CASE_MAKE_TARGET: {
+        if(caseSubMenuNav("fix_target")) {
+            action = DISAPLE_PANEL_1;
+            qDebug() << "CASE_MAKE_TARGET";
+        }
+        break;
+    }
+    case DISAPLE_PANEL_1: {
+        if(disabledPanel1()) {
+            action = PREP_TRACK;
+            qDebug() << "DISAPLE_PANEL_1";
+        }
+        return true;
+    }
+
+    }
+    return false;
+}
+
+bool AIControl::trnasHyperMode()
+{
+    static enum {AUTOSTART, PICK_UP_SPEED, WAIT, ENABLED_PANEL_1, CASE_STATION, CASE_MAKE_HYPER_MODE} action;
+
+    switch (action) {
+    case AUTOSTART: {
+        if(takeOffIntoSpace()) {
+            action = PICK_UP_SPEED;
+            qDebug() << "AUTOSTART";
+        }
+        break;
+    }
+    case PICK_UP_SPEED: {
+        if(pickUpSpeed(10000)) {
+            action = WAIT;
+            qDebug() << "PICK_UP_SPEED";
+        }
+        break;
+    }
+    case WAIT: {
+        if(waitMSec(3000)) {
+            action = ENABLED_PANEL_1;
+            qDebug() << "WAIT";
+        }
+        break;
+    }
+    case ENABLED_PANEL_1:
+        if(enabledPanel1("навигация")) {
+            qDebug() << "ENABLED_PANEL_1";
+            action = CASE_STATION;
+        }
+        break;
+    case CASE_STATION:
+        if(caseStationMenuNav(m_sTarget)) {
+            action = CASE_MAKE_HYPER_MODE;
+        }
+        break;
+    case CASE_MAKE_HYPER_MODE:
+        if(caseSubMenuNav("enable_hypermode")) {
+            action = AUTOSTART;
+            return true;
+        } else {
+            qDebug() << "PANIC: AIControl::trnasHyperMode() state not handled";
+
+        }
+        break;
+    }
+    return false;
+}
+
+bool AIControl::pickUpSpeed(int anMSec)
+{
+    static enum {TRANS_1, TRANS_2, TRANS_3} trans ;
+    switch (trans) {
+    case TRANS_1:
+        press_key = "w";
+        state = PRESS_KEY;
+        trans = TRANS_2;
+        break;
+    case TRANS_2:
+        timeWaitMsec = anMSec;
+        timeElapsed.restart();
+        state = WAIT_MSEC;
+        trans = TRANS_3;
+        break;
+    case TRANS_3:
+        release_key = "w";
+        state = RELEASE_KEY;
+        trans = TRANS_1;
+        return true;
+    }
+    return false;
+}
+
+bool AIControl::faceTheTarget()
+{
+
+    return false;
+}
+
+bool AIControl::serviceMenuToFuel()
+{
+    static enum {TRANS_1, TRANS_2, TRANS_3} trans ;
+    switch (trans) {
+    case TRANS_1:
+        qDebug() << "SERVICE MENU: click to fuel";
+        searchImage = "rectServiceFuel";
+        state = CLICK_TO_POINT;
+        trans = TRANS_2;
+        break;
+    case TRANS_2:
+        if(waitMSec(1000)) {
+            trans = TRANS_3;
+        } else {
+            qDebug() << "SERVICE MENU: state not handled";
+        }
+        break;
+    case TRANS_3:
+        qDebug() << "SERVICE MENU: click to exit";
+        searchImage = "rectServiceExit";
+        state = CLICK_TO_POINT;
+        trans = TRANS_1;
+        return true;
+    }
+    return false;
+}
+
+//QString AIControl::getPathToTarget()
+//{
+//    return m_slistStations[0];
+//}
+
+bool AIControl::waitMenuService(int anMSec, bool &abCheck)
+{
+    static enum {TRANS_1, TRANS_2} trans ;
+    switch (trans) {
+    case TRANS_1:
+        check = false;
+        timeElapsed.restart();
+        searchImage = "menuServiceExit";
+        timeWaitMsec = anMSec;
+        nCount = 4;
+        iStart = 12;
+        iEnd = 13;
+        state = SEARCH_IMAGE_CONTINUOUS;
+        trans = TRANS_2;
+        break;
+    case TRANS_2:
+        trans = TRANS_1;
+        abCheck = check;
+        return  true;
+    }
+    return false;
+}
+
+/*
 //void AIControl::where_iam()
 //{
 //    switch (stage) {
@@ -282,6 +569,7 @@ QString AIControl::getPathToTarget()
 //        break;
 //    }
 //}
+*/
 
 bool AIControl::enabledPanel1(QString sName)                // Включение меню с нужным разделом
 {
@@ -297,23 +585,65 @@ bool AIControl::enabledPanel1(QString sName)                // Включени�
         break;
     case TRANS_2:
         if(check) {
+            qDebug() << "RECOGNIZE: "<< cursorPanel->sHeaderName;
             int res = comparisonStr(cursorPanel->sHeaderName, sName);
             if(res <= 1) {
-                qDebug() << "comparisonStr(cursorPanel->sHeaderName, sName)" << cursorPanel->sHeaderName << sName << res;
                 trans = TRANS_1;
                 return true;
             } else {
                 push_key = "e";
-                qDebug() << "push key 'e'";
             }
         } else {
             push_key = "1";
-            qDebug() << "Enabled panel";
+//            qDebug() << "Enabled panel";
         }
         trans = TRANS_1;
         state = PUSH_KEY;
         break;
 
+    }
+    return false;
+}
+
+bool AIControl::disabledPanel1()
+{
+    static enum {TRANS_1} trans ;
+    switch (trans) {
+    case TRANS_1:
+        push_key = "1";
+        state = PUSH_KEY;
+        trans = TRANS_1;
+        return true;
+    }
+}
+
+bool AIControl::takeOffIntoSpace()
+{
+    static enum { MENU_DOCKING_AUTOSTART, WAIT_TAKE_OFF_INFO_SPACE} action;
+    switch (action) {
+
+    case MENU_DOCKING_AUTOSTART:
+        if(caseMenuDocking("menu_docking_autostart")) {
+
+            action = WAIT_TAKE_OFF_INFO_SPACE;
+            qDebug() << "MENU_DOCKING_AUTOSTART";
+        }
+        break;
+    case WAIT_TAKE_OFF_INFO_SPACE: {
+            bool menuDock = false;
+            if(waitDockingMenuHide(100000, menuDock)) {
+                action = MENU_DOCKING_AUTOSTART;
+                qDebug() << "WAIT_TAKE_OFF_INFO_SPACE";
+                if(menuDock) {
+                    qDebug() << "Взлёт закончен";
+                    return true;
+                } else {
+                    qDebug() << "Взлёт не состоялся";
+                    return true;
+                }
+            }
+        }
+        break;
     }
     return false;
 }
@@ -330,8 +660,8 @@ bool AIControl::caseStationMenuNav(QString asStation)
         trans = TRANS_2;
         break;
     case TRANS_2:
-//        qDebug() << cursorPanel->sBodyName;
         if(check) {
+            qDebug() << "RECOGNIZE: "<< cursorPanel->sBodyName << " сравниваем с" << asStation;
             QStringList list = buttonLeftNav.filter(cursorPanel->sBodyName);
             if(list.isEmpty()) {
                 int res = comparisonStr(cursorPanel->sBodyName, asStation);
@@ -340,15 +670,20 @@ bool AIControl::caseStationMenuNav(QString asStation)
                     state = PUSH_KEY;
                     trans = TRANS_1;
                     return true;
-                } else
+                } else {
                     push_key = "s";
-            } else
+                    trans = TRANS_1;
+                    state = PUSH_KEY;
+                }
+            } else {
                 push_key = "d";
+                trans = TRANS_1;
+                state = PUSH_KEY;
+            }
+        } else {
+            qDebug() << "PANIC: AIControl::caseStationMenuNav(QString asStation) state not handled";
             trans = TRANS_1;
             state = PUSH_KEY;
-
-        } else {
-            qDebug() << "PANIC: cursors not found";
         }
         break;
     }
@@ -360,6 +695,7 @@ bool AIControl::caseSubMenuNav(QString sNameSubMenu)
     static enum {TRANS_1, TRANS_2} trans ;
     switch (trans) {
     case TRANS_1:
+        qDebug() << "caseSubMenuNav TRANS_1 msec =" << timeElapsed.elapsed();
         timeWaitMsec = 3000;
         timeElapsed.restart();
         check = false;
@@ -367,21 +703,22 @@ bool AIControl::caseSubMenuNav(QString sNameSubMenu)
         trans = TRANS_2;
         break;
     case TRANS_2:
-        qDebug() << cursorPanel->sBodyName;
         if(check) {
             int res = comparisonStr(cursorPanel->sSubNavName, sNameSubMenu);
             if(res <= 1) {
                 push_key = " ";
                 state = PUSH_KEY;
                 trans = TRANS_1;
-                return true;
-            } else
+                break;
+//                return true;
+            } else {
                 push_key = "d";
-            trans = TRANS_1;
-            state = PUSH_KEY;
+                trans = TRANS_1;
+                state = PUSH_KEY;
+            }
 
         } else {
-            qDebug() << "PANIC: cursors not found";
+            qDebug() << "PANIC: AIControl::caseSubMenuNav(QString sNameSubMenu) not handled state";
         }
         break;
     }
@@ -405,7 +742,7 @@ bool AIControl::caseMenuContact(QString sNameBodyMenu)                          
         trans = TRANS_2;
         break;
     case TRANS_2:
-        qDebug() << cursorPanel->sBodyName;
+        qDebug() << "RECOGNIZE: "<< cursorPanel->sBodyName << " сравниваем с" << sNameBodyMenu;
         if(check) {
             int res = comparisonStr(cursorPanel->sBodyName, sNameBodyMenu);
             if(res <= 1) {
@@ -461,7 +798,7 @@ bool AIControl::caseMenuContact(QString sNameBodyMenu)                          
 
 bool AIControl::caseMenuDocking(QString sNameDockMenu)                                  // Нажать кнопку автостарт
 {
-    static enum {TRANS_1, TRANS_2, TRANS_3, TRANS_4} trans ;
+    static enum {TRANS_1, TRANS_2/*, TRANS_3, TRANS_4*/} trans ;
     switch (trans) {
     case TRANS_1:
         timeWaitMsec = 3000;
@@ -489,20 +826,20 @@ bool AIControl::caseMenuDocking(QString sNameDockMenu)                          
             qDebug() << "PANIC: cursors not found menuDock";
         }
         break;
-    case TRANS_3:
-        timeWaitMsec = 10000;
-        timeElapsed.restart();
-        check = false;
-        state = TRANS_MENU_DOCKING;
-        break;
-    case TRANS_4:
-        if(check) {
-            qDebug() << "PANIC: cursors not found menuDock";
-            trans = TRANS_1;
-        } else {
-            trans = TRANS_1;
-            return true;
-        }
+//    case TRANS_3:
+//        timeWaitMsec = 10000;
+//        timeElapsed.restart();
+//        check = false;
+//        state = TRANS_MENU_DOCKING;
+//        break;
+//    case TRANS_4:
+//        if(check) {
+//            qDebug() << "PANIC: cursors not found menuDock";
+//            trans = TRANS_1;
+//        } else {
+//            trans = TRANS_1;
+//            return true;
+//        }
     }
     return false;
 }

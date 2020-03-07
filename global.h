@@ -12,10 +12,11 @@
 #include <map>
 #include "main.h"
 
-enum SYS_STATE{ RESTOR_GAME, AICONTROL, PUSH_KEY, SEARCH_IMAGE_CONTINUOUS, WHICH_IMAGE_MORE_SIMILAR, CLICK_POINT_IMAGE_AFTER_LOOK,
+enum SYS_STATE{ RESTOR_GAME, AICONTROL, PUSH_KEY, PRESS_KEY, RELEASE_KEY, SEARCH_IMAGE_CONTINUOUS, WHICH_IMAGE_MORE_SIMILAR, CLICK_POINT_IMAGE_AFTER_LOOK,
                 TRANS_MENU_DOCKING,
                 TYPING_TEXT, TRANS_PANEL1, TRANS_BODY_CURSOR, TRANS_SUB_CURSOR, TRANS_MENU_DOCK,
-                WAIT_MSEC};
+                WAIT_MSEC,
+              CLICK_TO_POINT};
 
 
 class StateApplication {
@@ -155,10 +156,11 @@ template<typename P> struct CmpP2
 
 inline int comparisonStr(QString asSrc, QString asCurStr)
 {
-    if(asSrc.left(1) == "<" && asSrc.right(1) == ">")
-    {
-        asSrc.remove(0, 1);
-        asSrc.remove(asSrc.size() - 1, 1);
+    if(asSrc.indexOf("<") != -1) {
+        asSrc.remove(0, asSrc.indexOf("<") + 1);
+    }
+    if( asSrc.indexOf(">") != -1) {
+        asSrc.remove(asSrc.indexOf(">"), asSrc.size() );
     }
     asSrc.replace(" ", "");
     asCurStr.replace(" ", "");
@@ -182,9 +184,26 @@ inline int comparisonStr(QString asSrc, QString asCurStr)
 }
 
 
+static void printRect(cv::Rect _rect)
+{
+    qDebug() << "RECT" << "x=" << _rect.x
+              << " y=" << _rect.y
+              << " width=" << _rect.width
+              << " heigth=" << _rect.height;
+}
+static void printMat(cv::Mat _mat)
+{
+    qDebug() << "MAT" << "rowInBytes=" << _mat.step
+              << " chanals=" << _mat.channels()
+              << " width=" << _mat.cols
+              << " heigth=" << _mat.rows;
+}
+
 /***********************************************************************
  *                          Helper class                               *
  * *********************************************************************/
+
+
 
 
 class Helper {

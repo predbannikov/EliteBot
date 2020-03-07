@@ -42,6 +42,8 @@ private:
     std::map<std::string, ImageROI> *mp_dataSet;
     QList<QJsonObject> m_listScript;
     void push_key();
+    void press_key();
+    void release_key();
     void typingText();
     void mouse_move_click(cv::Point cvPoint);
 
