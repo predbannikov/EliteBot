@@ -4,6 +4,7 @@
 #include <QTcpSocket>
 #include <QJsonObject>
 #include <QThread>
+#include <QRect>
 #include <QJsonDocument>
 #include <QElapsedTimer>
 #include <QScreen>
@@ -27,6 +28,9 @@
 //    QList<QJsonObject> list;
 
 //} StackFunk;
+
+extern QRect m_screen;
+
 
 struct AreaCmp {
     AreaCmp(const std::vector<double>& _areas) : areas(&_areas) {}
@@ -146,7 +150,7 @@ public:
 
 
 
-    CursorPanel *panel1();
+//    CursorPanel *panel1();
     CursorPanel *panel1Header();
     CursorPanel *panel1Body();
     CursorPanel *panelBodyNav();
@@ -164,8 +168,8 @@ public:
     cv::Rect getRectInContour(std::vector< cv::Point > &acvVecPoint);
     cv::Mat makeBinHeadMenu(cv::Mat &aMatWord, cv::Rect aRectCursor);
     cv::Mat parsBinLineNavList(cv::Mat &aMatList, cv::Rect aRectCursor);
-    void determinCursorHeader(std::vector<cv::Rect> &vecRects, cv::Mat &aMatDst);
-    void determinCursorBody(std::vector<cv::Rect> &vecRects, cv::Mat &aMatDst);
+//    void determinCursorHeader(std::vector<cv::Rect> &vecRects, cv::Mat &aMatDst);
+//    void determinCursorBody(std::vector<cv::Rect> &vecRects, cv::Mat &aMatDst);
     std::vector<cv::Rect> getRectsBigInContours(cv::Mat &binMat);
 
     CursorPanel *subPanel1Nav();

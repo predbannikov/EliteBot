@@ -15,7 +15,7 @@ class IOData
 {
     const QString fileNameConfig = "data_config";
     const QString appConfig = "config";
-    const QString appDirName = "autoclicker";
+    const QString appDirName = "cv-bot";
     const QString defaultProjectName = "default";          // Нельзя удалить
     QString defaultScriptName = "project";
     QMap <QString, QJsonArray> m_scripts;

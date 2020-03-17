@@ -3,12 +3,14 @@
 
 #include <QObject>
 #include <QJsonObject>
+#include <QMessageBox>
 #include <QEvent>
 #include "capturewindow.h"
 #include "guiinfo.h"
 #include "global.h"
 #include "iodata.h"
 #include "aicontrol.h"
+
 
 
 
@@ -39,6 +41,7 @@ public:
 
     void engine();
 
+    void initDisplay();
 private:
     std::map<std::string, ImageROI> *mp_dataSet;
     QList<QJsonObject> m_listScript;

@@ -17,7 +17,7 @@ GuiInfo::GuiInfo(IOData *t_ioData, QWidget *parent) : QWidget(parent)
 
 
     sliderMaxContours = new QSlider;
-    sliderMaxContours->setMaximumWidth(USING_WIDTH);
+    sliderMaxContours->setMaximumWidth(m_screen.width());
 //    connect(sliderMaxContours, &QSlider::valueChanged, &GuiInfo::signalSendMaxContourForLength);
     sliderMaxContours->setValue(30);
     connect(sliderMaxContours, &QSlider::valueChanged, [this] (int anValue) {

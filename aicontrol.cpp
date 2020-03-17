@@ -22,7 +22,7 @@ AIControl::AIControl(QObject *parent) : QObject(parent)
 {
     m_slistStations << "celebicity" << "gabrielenterprise";
     m_slistCommand << "transport";
-    m_sTarget = m_slistStations[0];             //  текущую станцию указать
+    m_sTarget = m_slistStations[1];             //  текущую станцию указать
 
 }
 
@@ -35,7 +35,7 @@ bool AIControl::smallRing()
 {
     static enum {BUILD_TRACK, AUTOSTART, PICK_UP_SPEED, FLY_TO_THE_TARGET, AIMING_ON_TARGET, ENABLE_HELP_AIM,
                  WAIT_END_HYPER_MODE, GET_CLOSER, REQ_LANDING, TO_REFUEL,
-                 STATE_TEST, WAIT} action = BUILD_TRACK;
+                 STATE_TEST, WAIT} action = GET_CLOSER;
 
     switch (action) {
     case BUILD_TRACK:

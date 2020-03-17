@@ -6,6 +6,7 @@ Displays::Displays(int x, int y, int width, int height) :
     m_width(width),
     m_height(height)
 {
+
     if(m_height <= 0 || m_width <= 0) {
         QSize _size = qApp->screens()[0]->size();
         size = cv::Size(_size.width(), _size.height());
@@ -80,3 +81,4 @@ cv::Size Displays::getSizeDesktops()
 //    return size;
     return cv::Size();
 }
+

@@ -1,14 +1,23 @@
 #include "enginescript.h"
 
 
+QRect  m_screen;
+
+
 EngineScript::EngineScript(QObject *parent) : QObject(parent)
 {
 
     mp_ioData = new IOData;
     mp_dataSet = mp_ioData->assignpDataSet();
 
-    m_pointOffsetScreen = QPoint(STANDART_FULLHD_WIDTH, -STANDART_FULLHD_HEIGHT);
-    capture = new CaptureWindow(mp_dataSet, STANDART_FULLHD_WIDTH + 1, -STANDART_FULLHD_HEIGHT, USING_WIDTH, USING_HEIGHT, this);
+    initDisplay();
+
+
+
+//    m_pointOffsetScreen = QPoint(STANDART_FULLHD_WIDTH, -STANDART_FULLHD_HEIGHT);
+//    capture = new CaptureWindow(mp_dataSet, STANDART_FUL111LHD_WIDTH + 1, -STANDART_FULLHD_HEIGHT, USING_WIDTH, USING_HEIGHT, this);
+    m_pointOffsetScreen = QPoint( m_screen.x(), m_screen.y());
+    capture = new CaptureWindow(mp_dataSet, m_screen.x(), m_screen.y(), m_screen.width(), m_screen.height(), this);
     m_pControl = new AIControl;
 
     if(mp_ioData->prepWorkPath()) {
@@ -58,20 +67,21 @@ EngineScript::EngineScript(QObject *parent) : QObject(parent)
 void EngineScript::engine()
 {
     m_pControl->state = RESTOR_GAME;
-//    m_pControl->state = DEBUG_STATE;
+    m_pControl->state = DEBUG_STATE;
     while(cycle) {
         switch (m_pControl->state) {
         case DEBUG_STATE:
             break;
         case RESTOR_GAME: {
-            QJsonObject _jMsgToSend;
-            _jMsgToSend["target"] = "mouse";
-            _jMsgToSend["method"] = "move_click";
-            _jMsgToSend["code"] = "BTN_LEFT";
-            _jMsgToSend["x"] = 2100;
-            _jMsgToSend["y"] = -USING_HEIGHT + 150;
-            sendDataToSlave(QJsonDocument(_jMsgToSend).toJson());           // Активировать окно справа сверху
-            _jMsgToSend = QJsonObject();
+            mouse_move_click(cv::Point(100, 100));
+//            QJsonObject _jMsgToSend;
+//            _jMsgToSend["target"] = "mouse";
+//            _jMsgToSend["method"] = "move_click";
+//            _jMsgToSend["code"] = "BTN_LEFT";
+//            _jMsgToSend["x"] = 2100;
+//            _jMsgToSend["y"] = m_screen.height() + 150;
+//            sendDataToSlave(QJsonDocument(_jMsgToSend).toJson());           // Активировать окно справа сверху
+//            _jMsgToSend = QJsonObject();
             QThread::msleep(50);
             m_pControl->state = AICONTROL;
             break;
@@ -606,6 +616,61 @@ void EngineScript::engine()
     }
 }
 
+void EngineScript::initDisplay()
+{
+    QFile configDisplayFile(PATH_CONFIG_DISPLAY);
+    int number = 0;
+    if(!configDisplayFile.exists()) {
+        auto screens = QGuiApplication::screens();
+        for(int i = 0; i < screens.size(); i++) {
+            QMessageBox msgBox;
+            QRect rect = screens[i]->availableGeometry();
+
+            msgBox.move(rect.x() + rect.width() / 2, rect.y() + rect.height() / 2);
+            msgBox.setText("этот монитор используется для игры?");
+            msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::No);
+            int ret = msgBox.exec();
+            if(ret == QMessageBox::Ok) {
+                qDebug() << screens[i]->size() << " " << i+1 << "monitor" << screens[i]->availableSize() << screens[i]->availableGeometry() << screens[i]->availableVirtualSize() << screens[i]->availableVirtualGeometry() ;
+                m_screen = screens[i]->availableGeometry();
+                number = i;
+            }
+        }
+        if(configDisplayFile.open(QFile::WriteOnly | QFile::Text | QFile::Append)) {
+            QJsonObject jObj;
+            jObj["number"] = number;
+            jObj["x"] = m_screen.x();
+            jObj["y"] = m_screen.y();
+            jObj["width"] = m_screen.width();
+            jObj["height"] = m_screen.height();
+            configDisplayFile.write(QJsonDocument(jObj).toJson());
+            configDisplayFile.close();
+
+        } else {
+            qDebug() << "Не удаётся записать конфигурацию дисплея";
+        }
+
+    } else {
+        if(configDisplayFile.open(QFile::ReadOnly | QFile::Text)) {
+            QByteArray _array = configDisplayFile.readAll();
+            QJsonDocument _jdoc = QJsonDocument::fromJson(_array);
+            configDisplayFile.close();
+            QJsonObject jObj = _jdoc.object();
+            number = jObj["number"].toInt();
+            m_screen.setX(jObj["x"].toInt());
+            m_screen.setY(jObj["y"].toInt());
+            m_screen.setWidth(jObj["width"].toInt());
+            m_screen.setHeight(jObj["height"].toInt());
+            qDebug() << number << "monitor" << m_screen;
+
+        } else {
+            qDebug() << "not open file to read data file config";
+        }
+    }
+}
+
+
+
 void EngineScript::setScript(QJsonObject _script)
 {
     script = _script;
@@ -653,14 +718,14 @@ bool EngineScript::srchAreaOnceInPart(QString as_imageROI, int anCount, int anSt
 
 cv::Rect EngineScript::calcRectFromPart(int anXCount, int anYCount, int anXStart, int anYStart, int anXEnd, int anYEnd)
 {
-    int partWidth = USING_WIDTH / anXCount;
-    int partHeight = USING_HEIGHT / anYCount;
+    int partWidth = m_screen.width() / anXCount;
+    int partHeight = m_screen.height() / anYCount;
 
-    if((partWidth + 1) * anXEnd > USING_WIDTH) {
+    if((partWidth + 1) * anXEnd > m_screen.width()) {
         qDebug() << "border right behind limits";
         return cv::Rect();
     }
-    if((partHeight + 1) * anYEnd > USING_HEIGHT) {
+    if((partHeight + 1) * anYEnd > m_screen.height()) {
         qDebug() << "border bottom behind limits";
         return cv::Rect();
     }
@@ -671,8 +736,8 @@ cv::Rect EngineScript::calcRectFromPart(int anXCount, int anYCount, int anXStart
 
 cv::Rect EngineScript::calcRectFromPartOfIndex(int anCount, int aiStart, int aiEnd)
 {
-    int partWidth = USING_WIDTH / anCount;
-    int partHeight = USING_HEIGHT / anCount;
+    int partWidth = m_screen.width() / anCount;
+    int partHeight = m_screen.height() / anCount;
 //    qDebug() << USING_WIDTH - partWidth * anCount << " " << USING_HEIGHT - partHeight * anCount;
     int x1 = 1, y1 = 1, x2 = 0, y2 = 0;
     int i_start = 0;

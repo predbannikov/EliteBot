@@ -22,6 +22,7 @@ public:
     cv::Mat imageFromDisplay(int _format = CV_8UC3);
     cv::Size getSizeDesktops();
 
+
 private:
     int m_x;
     int m_y;

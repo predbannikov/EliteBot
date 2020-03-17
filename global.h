@@ -13,6 +13,14 @@
 #include <map>
 #include "main.h"
 
+#define     PATH_TO_TESSERACT   ".\\tesseract4.1\\tessdata"
+
+#define     M_PI                3.1415926535
+#define     PATH_CONFIG         ".\\config"
+#define     PATH_LOG            ".\\log"
+#define     PATH_CONFIG_DISPLAY ".\\config\\display.json"
+
+
 enum SYS_STATE{ DEBUG_STATE, RESTOR_GAME, AICONTROL, PUSH_KEY, PRESS_KEY, RELEASE_KEY, SEARCH_IMAGE_CONTINUOUS, WHILE_IMAGE_CONTINUOUS, WHICH_IMAGE_MORE_SIMILAR, CLICK_POINT_IMAGE_AFTER_LOOK,
                 TRANS_MENU_DOCKING,
                 TYPING_TEXT, TRANS_PANEL1, TRANS_BODY_CURSOR, TRANS_SUB_CURSOR,
@@ -22,13 +30,16 @@ enum SYS_STATE{ DEBUG_STATE, RESTOR_GAME, AICONTROL, PUSH_KEY, PRESS_KEY, RELEAS
                 APPROACH,
               SET_FRAME_FREQ};
 
-#define M_PI 3.1415926535
 
 
 class StateApplication {
 public:
     bool roi = false;
 };
+
+
+extern QRect  m_screen;
+
 
 const QStringList buttonLeftNav = {"push_filter", "close_push_filter", "push_galaxy_map", "push_system_map"};
 static const QMap<int, QString> sNameMenu1Head = { {0, "навигация"}, {1, "транзакции"}, {2, "контакты"} };
@@ -116,16 +127,16 @@ public:
         int height = getHeight();
 
 
-        if(width+x > USING_WIDTH )
-            width = USING_WIDTH - x;
+        if(width+x > m_screen.width() )
+            width = m_screen.width() - x;
         if(width <= 0) {
-            x = USING_WIDTH - 1;
+            x = m_screen.width() - 1;
             width = 1;
         }
-        if(height+y > USING_HEIGHT)
-            height = USING_HEIGHT - y;
+        if(height+y > m_screen.height())
+            height = m_screen.height() - y;
         if(height <= 0) {
-            y = USING_HEIGHT - 1;
+            y = m_screen.height() - 1;
             height = 1;
         }
 

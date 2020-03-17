@@ -2,15 +2,19 @@
 #include "algorithm"
 #include "qmath.h"
 
+
+
 #define     WAIT_KEY_MSEC                   50
 
 #define     MIN_COEFF_FOR_FIND              0.99
 #define     MIN_COEFF_FOR_FIND_POINT        0.7
 
-#define     CUR_MENU_MIN_SCALAR             cv::Scalar(0, 106, 203)
-#define     CUR_MENU_MAX_SCALAR             cv::Scalar(255, 255, 255)
+//#define     CUR_MENU_MIN_SCALAR             cv::Scalar(0, 106, 203)
+//#define     CUR_MENU_MAX_SCALAR             cv::Scalar(255, 255, 255)
 
 #define     CURSOR_DELTA        10
+
+
 
 
 void CaptureWindow::my_mouse_callback(int event, int x, int y, int flags, void *param) {
@@ -41,8 +45,8 @@ CaptureWindow::CaptureWindow(std::map<std::string, ImageROI> *ap_dataSet, int x,
     cv::namedWindow("win3", cv::WND_PROP_AUTOSIZE );
     cv::moveWindow("win2", 0, -STANDART_FULLHD_HEIGHT);
     cv::moveWindow("win3", 0, 0);
-    cv::moveWindow("win4", USING_WIDTH / 2, 500);
-    cv::moveWindow("win5", USING_WIDTH / 2, 700);
+    cv::moveWindow("win4", m_screen.width() / 2, 500);
+    cv::moveWindow("win5", m_screen.width() / 2, 700);
 
 
 //    storage = cvCreateMemStorage(0);
@@ -61,15 +65,19 @@ CaptureWindow::CaptureWindow(std::map<std::string, ImageROI> *ap_dataSet, int x,
 //    printf("Leptonica version: %s\n", getLeptonicaVersion());
 
 
-    if (myOCREng->Init("F:\\projects\\work\\elite\\tesseract-ocr\\tessdata", "eng")) {
+    if (myOCREng->Init(PATH_TO_TESSERACT, "eng")) {
         fprintf(stderr, "Could not initialize tesseract.\n");
     }
-    if (myOCRRus->Init("F:\\projects\\work\\elite\\tesseract-ocr\\tessdata", "rus")) {
+    if (myOCRRus->Init(PATH_TO_TESSERACT, "rus")) {
         fprintf(stderr, "Could not initialize tesseract.\n");
     }
-    if (myOCRRusDigits->Init("F:\\projects\\work\\elite\\tesseract-ocr\\tessdata", "rus")) {
+    if (myOCRRusDigits->Init(PATH_TO_TESSERACT, "rus")) {
         fprintf(stderr, "Could not initialize tesseract.\n");
     }
+    myOCREng->SetVariable("debug_file", "/dev/null");
+    myOCRRus->SetVariable("debug_file", "/dev/null");
+    myOCRRusDigits->SetVariable("debug_file", "/dev/null");
+
 
 //    qDebug() << myOCREng->GetUTF8Text() << myOCRRus->GetUTF8Text();
     m_cursorPan.sHeaderName ="навигация";
@@ -480,43 +488,43 @@ double CaptureWindow::getCoeffImageInRect(std::string asImageROI, cv::Rect acvRe
     return coeff;
 }
 
-CursorPanel *CaptureWindow::panel1()
-{
+//CursorPanel *CaptureWindow::panel1()
+//{
 
-    cv::Mat dst;
-    if(!transformMenu1(dst)) {
-//        qDebug() << "panel1 hide";
-        return &m_cursorPan;
-    }
+//    cv::Mat dst;
+//    if(!transformMenu1(dst)) {
+////        qDebug() << "panel1 hide";
+//        return &m_cursorPan;
+//    }
 
-    cv::Mat bin;
-    cv::inRange(dst, cv::Scalar(0, 93, 200), cv::Scalar(100, 255, 255), bin);
-//    cv::inRange(dst, minScalar, maxScalar, bin);
+//    cv::Mat bin;
+//    cv::inRange(dst, cv::Scalar(0, 93, 200), cv::Scalar(100, 255, 255), bin);
+////    cv::inRange(dst, minScalar, maxScalar, bin);
 
-    std::vector< std::vector< cv::Point> > contoursSrc;
-    std::vector< cv::Vec4i > hierarchy;
-    cv::findContours(bin, contoursSrc, cv::noArray(), cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+//    std::vector< std::vector< cv::Point> > contoursSrc;
+//    std::vector< cv::Vec4i > hierarchy;
+//    cv::findContours(bin, contoursSrc, cv::noArray(), cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
-    std::vector<cv::Rect> vecRects;
-//    std::vector<cv::Rect> vecRectsShort;
-//    getRectsOfPaternMenu1(contoursSrc, vecRects, vecRectsShort);
-    getRectsInContour(contoursSrc, vecRects);
+//    std::vector<cv::Rect> vecRects;
+////    std::vector<cv::Rect> vecRectsShort;
+////    getRectsOfPaternMenu1(contoursSrc, vecRects, vecRectsShort);
+//    getRectsInContour(contoursSrc, vecRects);
 
-    for(size_t i = 0; i < vecRects.size(); i++) {
-        cv::rectangle(dst, vecRects[i], cv::Scalar(0xFF, 0x0, 0x0));
-//        printRect(vecRectsShort[i]);
-    }
-    determinCursorHeader(vecRects, dst);
-    determinCursorBody(vecRects, dst);
+//    for(size_t i = 0; i < vecRects.size(); i++) {
+//        cv::rectangle(dst, vecRects[i], cv::Scalar(0xFF, 0x0, 0x0));
+////        printRect(vecRectsShort[i]);
+//    }
+//    determinCursorHeader(vecRects, dst);
+//    determinCursorBody(vecRects, dst);
 
 
-    myOCREng->Clear();
-    myOCRRus->Clear();
+//    myOCREng->Clear();
+//    myOCRRus->Clear();
 
-    imshow("win2", bin);
-    imshow("win3", dst);
-    return &m_cursorPan;
-}
+//    imshow("win2", bin);
+//    imshow("win3", dst);
+//    return &m_cursorPan;
+//}
 
 CursorPanel *CaptureWindow::panel1Body()
 {
@@ -534,7 +542,7 @@ CursorPanel *CaptureWindow::panelBodyNav()
 {
     cv::Mat hsv;
     cv::Mat rectMat;
-    win(cv::Rect(100, 100, USING_WIDTH - 500, USING_HEIGHT - 200)).copyTo(rectMat);
+    win(cv::Rect(100, 100, m_screen.width() - 500, m_screen.height() - 200)).copyTo(rectMat);
     cv::cvtColor( rectMat, hsv, CV_BGR2HSV );
     cv::Mat mask;
     cv::inRange(hsv, cv::Scalar(10, 210, 230), cv::Scalar(50, 255, 255), mask);
@@ -720,7 +728,7 @@ CursorPanel *CaptureWindow::panelBodyCont()
 {
     cv::Mat hsv;
     cv::Mat rectMat;
-    win(cv::Rect(100, 100, USING_WIDTH - 500, USING_HEIGHT - 200)).copyTo(rectMat);
+    win(cv::Rect(100, 100, m_screen.width() - 500, m_screen.height() - 200)).copyTo(rectMat);
     cv::cvtColor( rectMat, hsv, CV_BGR2HSV );
     cv::Mat mask;
     cv::inRange(hsv, cv::Scalar(10, 210, 230), cv::Scalar(50, 255, 255), mask);
@@ -814,7 +822,7 @@ CursorPanel *CaptureWindow::panel1Header()
     m_cursorPan.activeHeader = false;
     cv::Mat hsv;
     cv::Mat rectMat;
-    win(cv::Rect(90, 100, USING_WIDTH - 500, USING_HEIGHT - 200)).copyTo(rectMat);
+    win(cv::Rect(100, 100, m_screen.width() - 500, m_screen.height() - 200)).copyTo(rectMat);
     cv::cvtColor( rectMat, hsv, CV_BGR2HSV );
     cv::Mat mask;
     cv::inRange(hsv, cv::Scalar(10, 210, 230), cv::Scalar(50, 255, 255), mask);
@@ -853,6 +861,12 @@ CursorPanel *CaptureWindow::panel1Header()
         rotRect.angle += 90.;
     cv::Mat rMatToWarp = cv::getRotationMatrix2D(rotRect.center, rotRect.angle, 1);
     cv::warpAffine(rotateMat, rotateMat, rMatToWarp, rotateMat.size(), cv::INTER_CUBIC);
+
+//    cv::imshow("win4", mask);
+//    cv::imshow("win2", rotateMat);
+//    return &m_cursorPan;
+
+
     cv::Mat bin;
     cv::Mat rotateHSV;
     cv::cvtColor( rotateMat, rotateHSV, CV_BGR2HSV );
@@ -866,7 +880,7 @@ CursorPanel *CaptureWindow::panel1Header()
 //        qDebug() << "Шаблон прямоугольника header menu не найден, в суб прямоугольнике";
         return &m_cursorPan;
     }
-    cv::drawContours(rectMat, cont, -1, cvGreen, 2);
+//    cv::drawContours(rectMat, cont, -1, cvGreen, 2);
     for(size_t i = 0; i < cont.size(); i++) {
         double area = cv::contourArea(cont[i]);
 
@@ -875,7 +889,15 @@ CursorPanel *CaptureWindow::panel1Header()
 //            cv::drawContours(rotateMat, cont, static_cast<int>(i), cvGreen, 2);
             cv::Rect rectRecognize = cv::boundingRect(cont[i]);
             bin(cv::Rect(rectRecognize.x + 5, rectRecognize.y + 1, rectRecognize.width - 10, rectRecognize.height - 2)).copyTo(matToRcoginze);
+//            myOCRRus->SetVariable("user_defined_dpi", "300");
+//            tesseract::TessBaseAPI tess;
+//                tess.Init(NULL, "eng", tesseract::OEM_DEFAULT);
+//                tess.SetPageSegMode(tesseract::PSM_SINGLE_BLOCK);
+//                tess.SetVariable("tessedit_char_whitelist", "QWERTYUIOPASDFGHJKLZXCVBNM");
             myOCRRus->SetImage( (uchar*)bin.data, bin.size().width, bin.size().height, bin.channels(), bin.step1()); // !!! Почему бин а не matToRcoginze
+//            myOCRRus->SetSourceResolution();
+
+//            myOCRRus->setT
             myOCRRus->Recognize(nullptr);
             m_cursorPan.sHeaderName = myOCRRus->GetUTF8Text();
             if(m_cursorPan.sHeaderName.isEmpty())
@@ -893,12 +915,12 @@ CursorPanel *CaptureWindow::panel1Header()
                 return &m_cursorPan;
             m_cursorPan.activeHeader = true;
 
-//            qDebug() << m_cursorPan.sHeaderName << QString::number(area, 'f', 3);
+            qDebug() << m_cursorPan.sHeaderName ;
 //            cv::imshow("win3", matToRcoginze);
         }
     }
-    cv::imshow("win4", bin);
-    cv::imshow("win2", rectMat);
+//    cv::imshow("win4", bin);
+//    cv::imshow("win2", rectMat);
     return &m_cursorPan;
 }
 
@@ -1232,17 +1254,17 @@ void CaptureWindow::drawRectangles()
 void CaptureWindow::drawLines()
 {
     if(m_bDrawLine) {
-        int partWidth = USING_WIDTH / m_nCountCell;
-        int partHeight = USING_HEIGHT / m_nCountCell;
+        int partWidth = m_screen.width() / m_nCountCell;
+        int partHeight = m_screen.height() / m_nCountCell;
     //    qDebug() << USING_WIDTH - partWidth * anCount << " " << USING_HEIGHT - partHeight * anCount;
         int x1 = 1, y1 = 1, x2 = 0, y2 = 0;
-        while(x1 < USING_WIDTH) {
-            cv::line(win, cv::Point(x1, 0), cv::Point(x1, USING_HEIGHT), cvScalar(0x0, 0xFF, 0x0));
+        while(x1 < m_screen.width()) {
+            cv::line(win, cv::Point(x1, 0), cv::Point(x1, m_screen.height()), cvScalar(0x0, 0xFF, 0x0));
             x1 += partWidth;
         }
 
-        while(y1 < USING_HEIGHT) {
-            cv::line(win, cv::Point(0, y1), cv::Point(USING_WIDTH, y1), cvScalar(0x0, 0xFF, 0x0));
+        while(y1 < m_screen.height()) {
+            cv::line(win, cv::Point(0, y1), cv::Point(m_screen.width(), y1), cvScalar(0x0, 0xFF, 0x0));
             y1 += partHeight;
         }
 
@@ -2013,11 +2035,11 @@ Distance *CaptureWindow::recognizDistance()
 bool CaptureWindow::checkContour(std::vector<cv::Point> &acvVecPointCont, cv::Mat &cvMatOut)
 {
     cv::Point min_x;
-    min_x.x = USING_WIDTH;
+    min_x.x = m_screen.width();
     cv::Point max_x;
     max_x.x = 0;
     cv::Point min_y;
-    min_y.y = USING_HEIGHT;
+    min_y.y = m_screen.height();
     cv::Point max_y;
     max_y.y = 0;
     for(size_t i = 0; i < acvVecPointCont.size(); i++) {
@@ -2102,11 +2124,11 @@ void CaptureWindow::getRectsInContour(std::vector<std::vector<cv::Point> > &acvV
         if(vectmp.size() < 3)
             continue;
         cv::Point min_x;
-        min_x.x = USING_WIDTH;
+        min_x.x = m_screen.width();
         cv::Point max_x;
         max_x.x = 0;
         cv::Point min_y;
-        min_y.y = USING_HEIGHT;
+        min_y.y = m_screen.height();
         cv::Point max_y;
         max_y.y = 0;
         for(size_t i = 0; i < vectmp.size(); i++) {
@@ -2137,11 +2159,11 @@ void CaptureWindow::getRectsOfPatternMenu1(std::vector<std::vector<cv::Point> > 
         if(vectmp.size() < 3)
             continue;
         cv::Point min_x;
-        min_x.x = USING_WIDTH;
+        min_x.x = m_screen.width();
         cv::Point max_x;
         max_x.x = 0;
         cv::Point min_y;
-        min_y.y = USING_HEIGHT;
+        min_y.y = m_screen.height();
         cv::Point max_y;
         max_y.y = 0;
         for(size_t i = 0; i < vectmp.size(); i++) {
@@ -2185,11 +2207,11 @@ void CaptureWindow::getRectsOfPatternMenu1SubNav(std::vector<std::vector<cv::Poi
         if(vectmp.size() < 3)
             continue;
         cv::Point min_x;
-        min_x.x = USING_WIDTH;
+        min_x.x = m_screen.width();
         cv::Point max_x;
         max_x.x = 0;
         cv::Point min_y;
-        min_y.y = USING_HEIGHT;
+        min_y.y = m_screen.height();
         cv::Point max_y;
         max_y.y = 0;
         for(size_t i = 0; i < vectmp.size(); i++) {
@@ -2217,8 +2239,8 @@ void CaptureWindow::getRectsOfPatternMenu1SubNav(std::vector<std::vector<cv::Poi
 
 bool CaptureWindow::getLeftAndUpInVecRects(const std::vector<cv::Rect> &vecRects, int &nXLeft, int &nYUp)
 {
-    nXLeft = USING_WIDTH;
-    nYUp = USING_HEIGHT;
+    nXLeft = m_screen.width();
+    nYUp = m_screen.height();
     for(size_t i = 0; i < vecRects.size(); i++) {
         if(vecRects[i].x < nXLeft)
             nXLeft = vecRects[i].x;
@@ -2226,9 +2248,9 @@ bool CaptureWindow::getLeftAndUpInVecRects(const std::vector<cv::Rect> &vecRects
             nYUp = vecRects[i].y;
     }
 
-    if(nXLeft == USING_WIDTH)
+    if(nXLeft == m_screen.width())
         return false;
-    if(nYUp == USING_HEIGHT)
+    if(nYUp == m_screen.height())
         return false;
     return true;
 }
@@ -2238,11 +2260,11 @@ cv::Rect CaptureWindow::getRectInContour(std::vector<cv::Point> &acvVecPoint)
     if(acvVecPoint.size() < 3)
         return cv::Rect(0, 0, 0, 0);
     cv::Point min_x;
-    min_x.x = USING_WIDTH;
+    min_x.x = m_screen.width();
     cv::Point max_x;
     max_x.x = 0;
     cv::Point min_y;
-    min_y.y = USING_HEIGHT;
+    min_y.y = m_screen.height();
     cv::Point max_y;
     max_y.y = 0;
     for(size_t i = 0; i < acvVecPoint.size(); i++) {
@@ -2265,7 +2287,7 @@ cv::Mat CaptureWindow::makeBinHeadMenu(cv::Mat &aMatWord, cv::Rect aRectCursor)
 
     cv::Mat bin(matCursor.size(), CV_8U, 1);
 
-    cv::inRange(matCursor, CUR_MENU_MIN_SCALAR, CUR_MENU_MAX_SCALAR, bin);
+    cv::inRange(matCursor, cv::Scalar(0, 106, 203), cv::Scalar(255, 255, 255), bin);
 
 //    std::vector< std::vector< cv::Point> > contoursSrc;
 //    std::vector< std::vector< cv::Point> > contMoreLength;
@@ -2329,7 +2351,7 @@ cv::Mat CaptureWindow::parsBinLineNavList(cv::Mat &aMatList, cv::Rect aRectCurso
 
     cv::Mat bin(matCursor.size(), CV_8U, 1);
 
-    cv::inRange(matCursor, CUR_MENU_MIN_SCALAR, CUR_MENU_MAX_SCALAR, bin);
+    cv::inRange(matCursor, cv::Scalar(0, 106, 203), cv::Scalar(255, 255, 255), bin);
     cv::Mat tmpMat;
     cv::cvtColor(bin, tmpMat, cv::COLOR_GRAY2BGR);
     cv::Point point;
@@ -2361,158 +2383,158 @@ cv::Mat CaptureWindow::parsBinLineNavList(cv::Mat &aMatList, cv::Rect aRectCurso
     matCursor(cv::Rect(cutXLeft, 0, cutXRight - cutXLeft, matCursor.size().height)).copyTo(cutMat);
     cv::Mat binCut(matCursor.size(), CV_8U, 1);
 
-    cv::inRange(cutMat, CUR_MENU_MIN_SCALAR, CUR_MENU_MAX_SCALAR, binCut);
+    cv::inRange(cutMat, cv::Scalar(0, 106, 203), cv::Scalar(255, 255, 255), binCut);
     cv::imshow("win4", binCut);
     cv::imshow("win5", matCursor);
     return binCut;
 //    return cv::Mat();
 }
 
-void CaptureWindow::determinCursorHeader(std::vector<cv::Rect> &vecRects, cv::Mat &aMatDst)
-{
-    m_cursorPan.rectHeader.y = USING_HEIGHT;
-    m_cursorPan.activeHeader = false;
+//void CaptureWindow::determinCursorHeader(std::vector<cv::Rect> &vecRects, cv::Mat &aMatDst)
+//{
+//    m_cursorPan.rectHeader.y = m_screen.height();
+//    m_cursorPan.activeHeader = false;
 
-#define CURSOR_Y_HEADER         5
-#define CURSOR_WIDTH_HEADER     229
-#define CURSOR_HEIGHT_HEADER     37
+//#define CURSOR_Y_HEADER         5
+//#define CURSOR_WIDTH_HEADER     229
+//#define CURSOR_HEIGHT_HEADER     37
 
-    for(std::vector<cv::Rect>::iterator it = vecRects.begin(); it != vecRects.end(); it++) {
-//                    qDebug() << "Head:" << it->x << it->y << it->width << it->height;
-        if(it->y >              CURSOR_Y_HEADER - CURSOR_DELTA
-                && it->y <      CURSOR_Y_HEADER + CURSOR_DELTA
-                && it->width > CURSOR_WIDTH_HEADER - CURSOR_DELTA
-                && it->width < CURSOR_WIDTH_HEADER + CURSOR_DELTA
-                && it->height < CURSOR_HEIGHT_HEADER + CURSOR_DELTA
-                && it->height > CURSOR_HEIGHT_HEADER - CURSOR_DELTA)
-        {
-                m_cursorPan.rectHeader = cv::Rect(it->x + 1, it->y + 1, it->width - 2, it->height - 2);
-                m_cursorPan.activeHeader = true;
-                vecRects.erase(it);
-                cv::Mat binColor = makeBinHeadMenu(aMatDst, m_cursorPan.rectHeader);
-                myOCRRus->SetImage( (uchar*)binColor.data, binColor.size().width, binColor.size().height, binColor.channels(), binColor.step1());
-                myOCRRus->Recognize(nullptr);
-                m_cursorPan.sHeaderName = myOCRRus->GetUTF8Text();
-                if(m_cursorPan.sHeaderName.isEmpty())
-                    m_cursorPan.sHeaderName = "not recognized";
-                m_cursorPan.sHeaderName = m_cursorPan.sHeaderName.simplified();
-                m_cursorPan.sHeaderName = m_cursorPan.sHeaderName.toLower();
-//                qDebug() << "RUS:" << m_cursorPan.sHeaderName;
-                break;
-        }
-    }
-}
+//    for(std::vector<cv::Rect>::iterator it = vecRects.begin(); it != vecRects.end(); it++) {
+////                    qDebug() << "Head:" << it->x << it->y << it->width << it->height;
+//        if(it->y >              CURSOR_Y_HEADER - CURSOR_DELTA
+//                && it->y <      CURSOR_Y_HEADER + CURSOR_DELTA
+//                && it->width > CURSOR_WIDTH_HEADER - CURSOR_DELTA
+//                && it->width < CURSOR_WIDTH_HEADER + CURSOR_DELTA
+//                && it->height < CURSOR_HEIGHT_HEADER + CURSOR_DELTA
+//                && it->height > CURSOR_HEIGHT_HEADER - CURSOR_DELTA)
+//        {
+//                m_cursorPan.rectHeader = cv::Rect(it->x + 1, it->y + 1, it->width - 2, it->height - 2);
+//                m_cursorPan.activeHeader = true;
+//                vecRects.erase(it);
+//                cv::Mat binColor = makeBinHeadMenu(aMatDst, m_cursorPan.rectHeader);
+//                myOCRRus->SetImage( (uchar*)binColor.data, binColor.size().width, binColor.size().height, binColor.channels(), binColor.step1());
+//                myOCRRus->Recognize(nullptr);
+//                m_cursorPan.sHeaderName = myOCRRus->GetUTF8Text();
+//                if(m_cursorPan.sHeaderName.isEmpty())
+//                    m_cursorPan.sHeaderName = "not recognized";
+//                m_cursorPan.sHeaderName = m_cursorPan.sHeaderName.simplified();
+//                m_cursorPan.sHeaderName = m_cursorPan.sHeaderName.toLower();
+////                qDebug() << "RUS:" << m_cursorPan.sHeaderName;
+//                break;
+//        }
+//    }
+//}
 
-void CaptureWindow::determinCursorBody(std::vector<cv::Rect> &vecRects, cv::Mat &aMatDst)
-{
-    m_cursorPan.activeBody = false;
-
-
-#define CURSOR_X_LEFT_NAV       5
-#define CURSOR_WIDTH_LEFT_NAV   89
+//void CaptureWindow::determinCursorBody(std::vector<cv::Rect> &vecRects, cv::Mat &aMatDst)
+//{
+//    m_cursorPan.activeBody = false;
 
 
-#define CURSOR_X_MIDDLE_NAV     128
-#define CURSOR_WIDTH_MIDDLE_NAV 98
-#define CURSOR_X_RIGHT_NAV      220
-#define CURSOR_WIDTH_RIGHT_NAV  740
+//#define CURSOR_X_LEFT_NAV       5
+//#define CURSOR_WIDTH_LEFT_NAV   89
 
-#define CURSOR_Y_LEFT_NAV_FILT  210
-#define CURSOR_Y_LEFT_NAV_XFILT 277
-#define CURSOR_Y_LEFT_NAV_G_MAP 490
-#define CURSOR_Y_LEFT_NAV_S_MAP 610
 
-    for(std::vector<cv::Rect>::iterator it = vecRects.begin(); it != vecRects.end(); it++) {
-        if(m_cursorPan.activeHeader) {
-            qDebug() << "Body:" << it->x << it->y << it->width << it->height;
-//            qDebug() << sNameMenu1Head[0] << sNameMenu1Head[1] << sNameMenu1Head[2];
-            if(comparisonStr(m_cursorPan.sHeaderName, sNameMenu1Head[0]) <= 1) {          // Меню навигация
-                if(         it->x > CURSOR_X_LEFT_NAV - CURSOR_DELTA
-                        &&  it->x < CURSOR_X_LEFT_NAV + CURSOR_DELTA
-                        &&  it->width > CURSOR_WIDTH_LEFT_NAV - CURSOR_DELTA
-                        &&  it->width < CURSOR_WIDTH_LEFT_NAV + CURSOR_DELTA) {
-                    // Курсор в панели навигации слева
-                    if(it->y > CURSOR_Y_LEFT_NAV_FILT - CURSOR_DELTA
-                            &&  it->y < CURSOR_Y_LEFT_NAV_FILT + CURSOR_DELTA) {
-                        m_cursorPan.sBodyName = "push_filter";
-                    } else if(it->y > CURSOR_Y_LEFT_NAV_XFILT - CURSOR_DELTA
-                              &&  it->y < CURSOR_Y_LEFT_NAV_XFILT + CURSOR_DELTA) {
-                        m_cursorPan.sBodyName = "close_push_filter";
-                    } else if(it->y > CURSOR_Y_LEFT_NAV_G_MAP - CURSOR_DELTA
-                              &&  it->y < CURSOR_Y_LEFT_NAV_G_MAP + CURSOR_DELTA) {
-                        m_cursorPan.sBodyName = "push_galaxy_map";
-                    } else if(it->y > CURSOR_Y_LEFT_NAV_S_MAP - CURSOR_DELTA
-                              &&  it->y < CURSOR_Y_LEFT_NAV_S_MAP + CURSOR_DELTA) {
-                        m_cursorPan.sBodyName = "push_system_map";
-                    }
-                    m_cursorPan.rectBody = *it;
-                    m_cursorPan.activeBody = true;
-                } else if(it->x > CURSOR_X_MIDDLE_NAV - CURSOR_DELTA
-                          &&  it->x < CURSOR_X_MIDDLE_NAV + CURSOR_DELTA
-                          &&  it->width > CURSOR_WIDTH_MIDDLE_NAV - CURSOR_DELTA
-                          &&  it->width < CURSOR_WIDTH_MIDDLE_NAV + CURSOR_DELTA) {
-                    // Курсор в панели навигации посредине
-//                    qDebug() << "middle cursor";
-                } else if(it->x > CURSOR_X_RIGHT_NAV - CURSOR_DELTA
-                          &&  it->x < CURSOR_X_RIGHT_NAV + CURSOR_DELTA
-                          &&  it->width > CURSOR_WIDTH_RIGHT_NAV - CURSOR_DELTA
-                          &&  it->width < CURSOR_WIDTH_RIGHT_NAV + CURSOR_DELTA) {
-                    // Курсор в панели навигации справа
-                    m_cursorPan.rectBody = *it;
-                    m_cursorPan.activeBody = true;
-                    cv::Mat cutMat = parsBinLineNavList(aMatDst, m_cursorPan.rectBody);
-                    myOCREng->SetImage( (uchar*)cutMat.data, cutMat.size().width, cutMat.size().height, cutMat.channels(), cutMat.step1());
-                    myOCREng->Recognize(nullptr);
-                    m_cursorPan.sBodyName = myOCREng->GetUTF8Text();
-                    if(m_cursorPan.sBodyName.isEmpty())
-                        m_cursorPan.sBodyName = "not recognized";
-                    m_cursorPan.sBodyName = m_cursorPan.sBodyName.simplified();
-                    m_cursorPan.sBodyName = m_cursorPan.sBodyName.toLower();
-                    if(m_cursorPan.sBodyName.indexOf("<") != -1) {
-                        m_cursorPan.sBodyName.remove(0, m_cursorPan.sBodyName.indexOf("<") + 1);
-                    }
-                    if( m_cursorPan.sBodyName.indexOf(">") != -1) {
-                        m_cursorPan.sBodyName.remove(m_cursorPan.sBodyName.indexOf(">"), m_cursorPan.sBodyName.size() );
-                    }
+//#define CURSOR_X_MIDDLE_NAV     128
+//#define CURSOR_WIDTH_MIDDLE_NAV 98
+//#define CURSOR_X_RIGHT_NAV      220
+//#define CURSOR_WIDTH_RIGHT_NAV  740
 
-                }
-//                qDebug() << "ENG:" << m_cursorPan.sBodyName;
+//#define CURSOR_Y_LEFT_NAV_FILT  210
+//#define CURSOR_Y_LEFT_NAV_XFILT 277
+//#define CURSOR_Y_LEFT_NAV_G_MAP 490
+//#define CURSOR_Y_LEFT_NAV_S_MAP 610
 
-            } else if(comparisonStr(m_cursorPan.sHeaderName, sNameMenu1Head[1]) <= 1) {        // меню транзакции
+//    for(std::vector<cv::Rect>::iterator it = vecRects.begin(); it != vecRects.end(); it++) {
+//        if(m_cursorPan.activeHeader) {
+//            qDebug() << "Body:" << it->x << it->y << it->width << it->height;
+////            qDebug() << sNameMenu1Head[0] << sNameMenu1Head[1] << sNameMenu1Head[2];
+//            if(comparisonStr(m_cursorPan.sHeaderName, sNameMenu1Head[0]) <= 1) {          // Меню навигация
+//                if(         it->x > CURSOR_X_LEFT_NAV - CURSOR_DELTA
+//                        &&  it->x < CURSOR_X_LEFT_NAV + CURSOR_DELTA
+//                        &&  it->width > CURSOR_WIDTH_LEFT_NAV - CURSOR_DELTA
+//                        &&  it->width < CURSOR_WIDTH_LEFT_NAV + CURSOR_DELTA) {
+//                    // Курсор в панели навигации слева
+//                    if(it->y > CURSOR_Y_LEFT_NAV_FILT - CURSOR_DELTA
+//                            &&  it->y < CURSOR_Y_LEFT_NAV_FILT + CURSOR_DELTA) {
+//                        m_cursorPan.sBodyName = "push_filter";
+//                    } else if(it->y > CURSOR_Y_LEFT_NAV_XFILT - CURSOR_DELTA
+//                              &&  it->y < CURSOR_Y_LEFT_NAV_XFILT + CURSOR_DELTA) {
+//                        m_cursorPan.sBodyName = "close_push_filter";
+//                    } else if(it->y > CURSOR_Y_LEFT_NAV_G_MAP - CURSOR_DELTA
+//                              &&  it->y < CURSOR_Y_LEFT_NAV_G_MAP + CURSOR_DELTA) {
+//                        m_cursorPan.sBodyName = "push_galaxy_map";
+//                    } else if(it->y > CURSOR_Y_LEFT_NAV_S_MAP - CURSOR_DELTA
+//                              &&  it->y < CURSOR_Y_LEFT_NAV_S_MAP + CURSOR_DELTA) {
+//                        m_cursorPan.sBodyName = "push_system_map";
+//                    }
+//                    m_cursorPan.rectBody = *it;
+//                    m_cursorPan.activeBody = true;
+//                } else if(it->x > CURSOR_X_MIDDLE_NAV - CURSOR_DELTA
+//                          &&  it->x < CURSOR_X_MIDDLE_NAV + CURSOR_DELTA
+//                          &&  it->width > CURSOR_WIDTH_MIDDLE_NAV - CURSOR_DELTA
+//                          &&  it->width < CURSOR_WIDTH_MIDDLE_NAV + CURSOR_DELTA) {
+//                    // Курсор в панели навигации посредине
+////                    qDebug() << "middle cursor";
+//                } else if(it->x > CURSOR_X_RIGHT_NAV - CURSOR_DELTA
+//                          &&  it->x < CURSOR_X_RIGHT_NAV + CURSOR_DELTA
+//                          &&  it->width > CURSOR_WIDTH_RIGHT_NAV - CURSOR_DELTA
+//                          &&  it->width < CURSOR_WIDTH_RIGHT_NAV + CURSOR_DELTA) {
+//                    // Курсор в панели навигации справа
+//                    m_cursorPan.rectBody = *it;
+//                    m_cursorPan.activeBody = true;
+//                    cv::Mat cutMat = parsBinLineNavList(aMatDst, m_cursorPan.rectBody);
+//                    myOCREng->SetImage( (uchar*)cutMat.data, cutMat.size().width, cutMat.size().height, cutMat.channels(), cutMat.step1());
+//                    myOCREng->Recognize(nullptr);
+//                    m_cursorPan.sBodyName = myOCREng->GetUTF8Text();
+//                    if(m_cursorPan.sBodyName.isEmpty())
+//                        m_cursorPan.sBodyName = "not recognized";
+//                    m_cursorPan.sBodyName = m_cursorPan.sBodyName.simplified();
+//                    m_cursorPan.sBodyName = m_cursorPan.sBodyName.toLower();
+//                    if(m_cursorPan.sBodyName.indexOf("<") != -1) {
+//                        m_cursorPan.sBodyName.remove(0, m_cursorPan.sBodyName.indexOf("<") + 1);
+//                    }
+//                    if( m_cursorPan.sBodyName.indexOf(">") != -1) {
+//                        m_cursorPan.sBodyName.remove(m_cursorPan.sBodyName.indexOf(">"), m_cursorPan.sBodyName.size() );
+//                    }
 
-            } else if(comparisonStr(m_cursorPan.sHeaderName, sNameMenu1Head[2]) <= 1) {        // меню контакты
-#define CURSOR_X_LEFT_CONT  6
-#define CURSOR_X_RIGHT_CONT 573
-//                qDebug() << "Body:" << it->x << it->y << it->width << it->height;
-                if(it->x > CURSOR_X_LEFT_CONT - CURSOR_DELTA
-                        &&  it->x < CURSOR_X_LEFT_CONT + CURSOR_DELTA){
-                    // Курсор слева в панели Контакты
-//                    qDebug() << "left";
-                    m_cursorPan.rectBody = *it;
-                    m_cursorPan.activeBody = true;
-                    cv::Mat cutMat = parsBinLineNavList(aMatDst, m_cursorPan.rectBody);
-                    myOCREng->SetImage( (uchar*)cutMat.data, cutMat.size().width, cutMat.size().height, cutMat.channels(), cutMat.step1());
-                    myOCREng->Recognize(nullptr);
-                    m_cursorPan.sBodyName = myOCREng->GetUTF8Text();
-                    if(m_cursorPan.sBodyName.isEmpty())
-                        m_cursorPan.sBodyName = "not recognized";
-                    m_cursorPan.sBodyName = m_cursorPan.sBodyName.simplified();
-                    m_cursorPan.sBodyName = m_cursorPan.sBodyName.toLower();
+//                }
+////                qDebug() << "ENG:" << m_cursorPan.sBodyName;
 
-                }else if(it->x > CURSOR_X_RIGHT_CONT - CURSOR_DELTA
-                            &&  it->x < CURSOR_X_RIGHT_CONT + CURSOR_DELTA){
-                    // Курсор справа в панели Контакты
-                    m_cursorPan.rectBody = *it;
-                    m_cursorPan.activeBody = true;
-                    m_cursorPan.sBodyName = "req_docking";
+//            } else if(comparisonStr(m_cursorPan.sHeaderName, sNameMenu1Head[1]) <= 1) {        // меню транзакции
 
-//                    qDebug() << "right";
-                }
-            }
-        }
+//            } else if(comparisonStr(m_cursorPan.sHeaderName, sNameMenu1Head[2]) <= 1) {        // меню контакты
+//#define CURSOR_X_LEFT_CONT  6
+//#define CURSOR_X_RIGHT_CONT 573
+////                qDebug() << "Body:" << it->x << it->y << it->width << it->height;
+//                if(it->x > CURSOR_X_LEFT_CONT - CURSOR_DELTA
+//                        &&  it->x < CURSOR_X_LEFT_CONT + CURSOR_DELTA){
+//                    // Курсор слева в панели Контакты
+////                    qDebug() << "left";
+//                    m_cursorPan.rectBody = *it;
+//                    m_cursorPan.activeBody = true;
+//                    cv::Mat cutMat = parsBinLineNavList(aMatDst, m_cursorPan.rectBody);
+//                    myOCREng->SetImage( (uchar*)cutMat.data, cutMat.size().width, cutMat.size().height, cutMat.channels(), cutMat.step1());
+//                    myOCREng->Recognize(nullptr);
+//                    m_cursorPan.sBodyName = myOCREng->GetUTF8Text();
+//                    if(m_cursorPan.sBodyName.isEmpty())
+//                        m_cursorPan.sBodyName = "not recognized";
+//                    m_cursorPan.sBodyName = m_cursorPan.sBodyName.simplified();
+//                    m_cursorPan.sBodyName = m_cursorPan.sBodyName.toLower();
 
-    }
-}
+//                }else if(it->x > CURSOR_X_RIGHT_CONT - CURSOR_DELTA
+//                            &&  it->x < CURSOR_X_RIGHT_CONT + CURSOR_DELTA){
+//                    // Курсор справа в панели Контакты
+//                    m_cursorPan.rectBody = *it;
+//                    m_cursorPan.activeBody = true;
+//                    m_cursorPan.sBodyName = "req_docking";
+
+////                    qDebug() << "right";
+//                }
+//            }
+//        }
+
+//    }
+//}
 
 std::vector<cv::Rect> CaptureWindow::getRectsBigInContours(cv::Mat &binMat)
 {
@@ -2694,10 +2716,14 @@ CursorPanel *CaptureWindow::menuDocking()
     m_cursorPan.activeMenuDocking = false;
     cv::Mat hsv;
     cv::Mat dst;
-    win(cv::Rect(820, 805, 310, 130)).copyTo(dst);
+    win(cv::Rect(810, 805, 310, 130)).copyTo(dst);
     cv::cvtColor( dst, hsv, CV_BGR2HSV );
     cv::Mat mask;
     cv::inRange(hsv, cv::Scalar(10, 210, 230), cv::Scalar(50, 255, 255), mask);
+
+//    imshow("win3", mask);
+//    imshow("win2", dst);
+//    return &m_cursorPan;
 
 
 
@@ -2771,7 +2797,7 @@ bool CaptureWindow::blackLessWhite(cv::Mat &aBinMat, int &anWhite, int &anBlack)
 
 void CaptureWindow::getPrepMatsForMenu(cv::Mat &aColorMat, cv::Mat &aMaskMat)
 {
-    win(cv::Rect(100, 100, USING_WIDTH - 500, USING_HEIGHT - 200)).copyTo(aColorMat);
+    win(cv::Rect(100, 100, m_screen.width() - 500, m_screen.height() - 200)).copyTo(aColorMat);
     cv::Mat hsv;
     cv::cvtColor(aColorMat, hsv, CV_BGR2HSV );
     cv::inRange(hsv, cv::Scalar(10, 210, 230), cv::Scalar(50, 255, 255), aMaskMat);
@@ -2848,8 +2874,8 @@ bool CaptureWindow::getContoursIndexSort(cv::Mat &aMaskMat, std::vector<std::vec
 
 cv::Rect CaptureWindow::calcRectFromPartOfIndex(int anCount, int aiStart, int aiEnd)
 {
-    int partWidth = USING_WIDTH / anCount;
-    int partHeight = USING_HEIGHT / anCount;
+    int partWidth = m_screen.width() / anCount;
+    int partHeight = m_screen.height() / anCount;
 //    qDebug() << USING_WIDTH - partWidth * anCount << " " << USING_HEIGHT - partHeight * anCount;
     int x1 = 1, y1 = 1, x2 = 0, y2 = 0;
     int i_start = 0;
