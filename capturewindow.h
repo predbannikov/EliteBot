@@ -21,13 +21,7 @@
 #endif
 #include "main.h"
 
-//typedef struct {
-//    bool toggle = false;
-//    QJsonArray jArray;
-//    int index;
-//    QList<QJsonObject> list;
 
-//} StackFunk;
 
 extern QRect m_screen;
 
@@ -133,10 +127,10 @@ public:
     void drawRectangles();
     void drawLines();
     void drawDataSet();
-    void findImage(cv::Mat _mat);
+//    void findImage(cv::Mat _mat);
     bool findPointRoi(cv::Mat &t_mat, cv::Mat &t_whereFind, cv::Point &t_point, double t_factor = 0.97);
     bool findRectRoi(cv::Mat t_mat, cv::Rect &t_rect, double t_factor = 0.97);
-    void setCaptureImage(QJsonObject jobj);
+//    void setCaptureImage(QJsonObject jobj);
     cv::Point findMatchPoint(std::vector<VarForTemplateMatch> _vec, double t_factor = 0.97);
 
 
@@ -150,7 +144,6 @@ public:
 
 
 
-//    CursorPanel *panel1();
     CursorPanel *panel1Header();
     CursorPanel *panel1Body();
     CursorPanel *panelBodyNav();
@@ -174,7 +167,7 @@ public:
 
     CursorPanel *subPanel1Nav();
     void transformSubMenu(cv::Mat &acvMat);
-    void determinCursorSubNavList(std::vector<cv::Rect> &vecRects, cv::Mat &aMatDst);
+//    void determinCursorSubNavList(std::vector<cv::Rect> &vecRects, cv::Mat &aMatDst);
 
     // Меню посадки
     CursorPanel *menuDocking();
