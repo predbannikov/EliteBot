@@ -4,6 +4,7 @@
 #include <QJsonArray>
 #include <QElapsedTimer>
 #include <QDebug>
+#include <QList>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -12,11 +13,16 @@
 #include <map>
 #include "main.h"
 
-enum SYS_STATE{ RESTOR_GAME, AICONTROL, PUSH_KEY, PRESS_KEY, RELEASE_KEY, SEARCH_IMAGE_CONTINUOUS, WHICH_IMAGE_MORE_SIMILAR, CLICK_POINT_IMAGE_AFTER_LOOK,
+enum SYS_STATE{ DEBUG_STATE, RESTOR_GAME, AICONTROL, PUSH_KEY, PRESS_KEY, RELEASE_KEY, SEARCH_IMAGE_CONTINUOUS, WHILE_IMAGE_CONTINUOUS, WHICH_IMAGE_MORE_SIMILAR, CLICK_POINT_IMAGE_AFTER_LOOK,
                 TRANS_MENU_DOCKING,
-                TYPING_TEXT, TRANS_PANEL1, TRANS_BODY_CURSOR, TRANS_SUB_CURSOR, TRANS_MENU_DOCK,
+                TYPING_TEXT, TRANS_PANEL1, TRANS_BODY_CURSOR, TRANS_SUB_CURSOR,
                 WAIT_MSEC,
-              CLICK_TO_POINT};
+              CLICK_TO_POINT,
+              AIMING, COMPASS,
+                APPROACH,
+              SET_FRAME_FREQ};
+
+#define M_PI 3.1415926535
 
 
 class StateApplication {
@@ -30,7 +36,20 @@ static const QMap<int, QString> sNamePicNavList = { {0, "muneLineNavListStar"}, 
                                                     {3,"muneLineNavListGas"}, {4, "muneLineNavListSys"} };
 static const QMap<int, QString> sNamePicNavListTar = { {0, "muneLineNavListTar"}, {1, "muneLineNavListCur"} };
 
-static const QMap<int, QString> subNamePicMenu1NavList = { {0, "subMenuNavFix"}, {1, "subMenuNavUnFix"}, {2, "subMenuNavGipmod"}, {3, ""}};
+static const QMap<int, QString> subNamePicMenu1NavList = { {0, "subMenuNavFix"}, {1, "subMenuNavUnFix"}, {2, "subMenuNavGipmod"},
+                                                           {3, "subMenuNavGipmodHelp"}, {4, "subMuneLineNavListSys"}};
+
+struct Compass {
+    cv::Point pDot;
+    cv::Point pCenter;
+    bool face = 0;
+    bool active = false;
+};
+
+struct Distance {
+    QList<QString> distanceList;
+    double distance;
+};
 
 struct CursorPanel {
     cv::Rect rectHeader;
@@ -38,15 +57,23 @@ struct CursorPanel {
     cv::Rect rectSubNavList;
     cv::Rect rectMenuDocking;
 //    int numberSubNavList;
-    bool activeMenuDocking;
-    bool subNavList = false;
-    bool bodyActive = false;
-    bool headerActive = false;
+    bool activeMenuDocking = false;
+    bool activeSubNav = false;
+    bool activeBody = false;
+    bool activeHeader = false;
     QString sHeaderName;
     QString sBodyName;
     QString sSubNavName;
-    QString sNameMenuDocking;
+    QString sMenuDocking;
 
+};
+
+struct CursorTarget {
+    cv::Rect rectSrc;
+    cv::Rect rectTarget;
+    cv::Point pointCenter;
+    cv::Point pointTarget;
+    bool    active = false;
 };
 
 
@@ -138,6 +165,15 @@ typedef struct {
 //    }
 } VarForTemplateMatch;
 
+inline bool isPointInsideElypse(cv::Vec3f aCircl, cv::Point aPoint) {       // Если внутри то истина
+    if(pow(aPoint.x - aCircl[0], 2) +
+            pow(aPoint.y - aCircl[1], 2) <=
+            pow(aCircl[2], 2))
+        return true;
+    else
+        return false;
+}
+
 
 template<typename P> struct CmpP1
 {
@@ -153,6 +189,43 @@ template<typename P> struct CmpP2
         else return false;
     }
 };
+
+inline void deleteCharExtra(QString &aStr) {
+    for(int i = 0; i < aStr.size(); i++) {
+        if(aStr[i] == '[')
+            aStr[i] = ' ';
+        else if(aStr[i] == ']')
+            aStr[i] = ' ';
+        else if(aStr[i] == '_')
+            aStr[i] = ' ';
+        else if(aStr[i] == '{')
+            aStr[i] = ' ';
+        else if(aStr[i] == '}')
+            aStr[i] = ' ';
+        else if(aStr[i] == '(')
+            aStr[i] = ' ';
+        else if(aStr[i] == ')')
+            aStr[i] = ' ';
+        else if(aStr[i] == ':')
+            aStr[i] = ' ';
+        else if(aStr[i] == ';')
+            aStr[i] = ' ';
+        else if(aStr[i] == '&')
+            aStr[i] = ' ';
+        else if(aStr[i] == '@')
+            aStr[i] = ' ';
+        else if(aStr[i] == '|')
+            aStr[i] = ' ';
+        else if(aStr[i] == '\'')
+            aStr[i] = ' ';
+        else if(aStr[i] == '<')
+            aStr[i] = ' ';
+        else if(aStr[i] == '>')
+            aStr[i] = ' ';
+
+    }
+    aStr.replace(" ", "");
+}
 
 inline int comparisonStr(QString asSrc, QString asCurStr)
 {
@@ -180,9 +253,14 @@ inline int comparisonStr(QString asSrc, QString asCurStr)
             count_error++;
         }
     }
+    count_error += abs(asSrc.size() - asCurStr.size());
     return count_error;
 }
 
+static void printPoint(cv::Point _point)
+{
+    qDebug() << "POINT:" << "x=" << _point.x << " y=" << _point.y;
+}
 
 static void printRect(cv::Rect _rect)
 {
@@ -193,7 +271,7 @@ static void printRect(cv::Rect _rect)
 }
 static void printMat(cv::Mat _mat)
 {
-    qDebug() << "MAT" << "rowInBytes=" << _mat.step
+    qDebug() << "MAT" << "countRowInBytes=" << _mat.step
               << " chanals=" << _mat.channels()
               << " width=" << _mat.cols
               << " heigth=" << _mat.rows;

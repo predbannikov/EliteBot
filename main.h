@@ -2,6 +2,8 @@
 #define MAIN_H
 #include <QApplication>
 #include <QTimer>
+#include <QDebug>
+#include <QKeyEvent>
 #include "global.h"
 
 #define STANDART_HD_WIDTH 1280
@@ -11,6 +13,8 @@
 
 #define USING_WIDTH STANDART_FULLHD_WIDTH
 #define USING_HEIGHT STANDART_FULLHD_HEIGHT
+
+
 
 
 

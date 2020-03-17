@@ -12,6 +12,7 @@ GuiInfo::GuiInfo(IOData *t_ioData, QWidget *parent) : QWidget(parent)
     initLayoutRegion();
     initLayoutManipulation();
 
+    installEventFilter(this);
 
 
 
@@ -29,12 +30,41 @@ GuiInfo::GuiInfo(IOData *t_ioData, QWidget *parent) : QWidget(parent)
     vboxlayout->addLayout(hblSlider);
     vboxlayout->addWidget(sliderMaxContours);
 
-
+//    vboxlayout->addLayout(hboxManipulation);
 
 
 
     updateGuiInfo();
 
+}
+
+void GuiInfo::sendAllNumbData()
+{
+
+//    cv::Scalar minNumber( 0, 0, 0 );
+//    cv::Scalar maxNumber (255, 255, 255 );
+
+    cv::Scalar minScalar    (  13 , 150 , 177 );
+    cv::Scalar maxScalar    (  27 , 250 , 250 );
+
+    sliderMin1->setValue(  static_cast<int>(minScalar[0] ) );
+    sliderMin2->setValue(  static_cast<int>(minScalar[1] ) );
+    sliderMin3->setValue(  static_cast<int>(minScalar[2] ) );
+
+    sliderMax1->setValue(  static_cast<int>(maxScalar[0] ) );
+    sliderMax2->setValue(  static_cast<int>(maxScalar[1] ) );
+    sliderMax3->setValue(  static_cast<int>(maxScalar[2] ) );
+
+    sliderMinNumber->setValue( 30 );
+    sliderMidNumber->setValue( 40 );
+    sliderMaxNumber->setValue( 1 );
+
+    emit signalSendMinNumber(sliderMinNumber->value());
+    emit signalSendMidNumber(sliderMidNumber->value());
+    emit signalSendMaxNumber(sliderMaxNumber->value());
+
+    emit signalSendMinScalar(cv::Scalar(this->sliderMin1->value(), this->sliderMin2->value(), this->sliderMin3->value()));
+    emit signalSendMaxScalar(cv::Scalar(this->sliderMax1->value(), this->sliderMax2->value(), this->sliderMax3->value()));
 }
 
 bool GuiInfo::contains(std::string t_name)
@@ -132,7 +162,6 @@ void GuiInfo::initLayoutRegion()
 void GuiInfo::initLayoutManipulation()
 {
     hboxManipulation = new QHBoxLayout;
-    vboxlayout->addLayout(hboxManipulation);
     buttonCheckRoi = new QPushButton("chckRoi");
     buttonCheckXRoi = new QPushButton("chckXRoi");
     buttonCheckXRect = new QPushButton("chckXRect");
@@ -157,11 +186,22 @@ void GuiInfo::initLayoutManipulation()
     sliderMax1->setMaximum(255);
     sliderMax2->setMaximum(255);
     sliderMax3->setMaximum(255);
-    sliderMin2->setValue(30);
+    sliderMin1->setValue(0);
+    sliderMin2->setValue(0);
+    sliderMin3->setValue(0);
     sliderMax1->setValue(255);
     sliderMax2->setValue(255);
     sliderMax3->setValue(255);
 
+    sliderMinNumber = new QSlider(Qt::Horizontal, this);
+    sliderMidNumber = new QSlider(Qt::Horizontal, this);
+    sliderMaxNumber = new QSlider(Qt::Horizontal, this);
+    sliderMinNumber->setMaximum(255);
+    sliderMaxNumber->setMaximum(255);
+    sliderMidNumber->setMaximum(255);
+    sliderMinNumber->setValue(0);
+    sliderMinNumber->setValue(127);
+    sliderMaxNumber->setValue(250);
 
 
     connect(sliderMin1, &QSlider::valueChanged, [this](int anValue) {
@@ -182,11 +222,23 @@ void GuiInfo::initLayoutManipulation()
     connect(sliderMax3, &QSlider::valueChanged, [this](int anValue) {
         emit signalSendMaxScalar(cv::Scalar(this->sliderMax1->value(), this->sliderMax2->value(), anValue));
     });
+    connect(sliderMinNumber, &QSlider::valueChanged, [this](int anValue) {
+        emit signalSendMinNumber(anValue);
+    });
+    connect(sliderMidNumber, &QSlider::valueChanged, [this](int anValue) {
+        emit signalSendMidNumber(anValue);
+    });
+    connect(sliderMaxNumber, &QSlider::valueChanged, [this](int anValue) {
+        emit signalSendMaxNumber(anValue);
+    });
 
     vblMinSlider = new QVBoxLayout;
     vblMinSlider->addWidget(sliderMin1);
     vblMinSlider->addWidget(sliderMin2);
     vblMinSlider->addWidget(sliderMin3);
+    vblMinSlider->addWidget(sliderMinNumber);
+    vblMinSlider->addWidget(sliderMidNumber);
+    vblMinSlider->addWidget(sliderMaxNumber);
     vblMaxSlider = new QVBoxLayout;
     vblMaxSlider->addWidget(sliderMax1);
     vblMaxSlider->addWidget(sliderMax2);
@@ -199,6 +251,10 @@ void GuiInfo::initLayoutManipulation()
     connect(chckBoxDrawMesh, &QCheckBox::stateChanged, [this] () {
         emit signalDrawMesh(chckBoxDrawMesh->checkState(), spboxCountCell->value());
     });
+    connect(spboxCountCell, qOverload<const int>(&QSpinBox::valueChanged), [this] (int aValue) {
+        emit signalDrawMesh(chckBoxDrawMesh->checkState(), aValue);
+    });
+
     connect(buttonCheckRoi, &QPushButton::clicked, [this] () {
         QJsonArray _jArray;
         QJsonObject _jObj;
@@ -310,4 +366,19 @@ void GuiInfo::closeEvent(QCloseEvent *event)
 {
     event->ignore();
     this->setVisible(false);
+}
+
+void GuiInfo::slotReadKey(QChar aChar)
+{
+    if(aChar == 'a') {
+        QKeyEvent event1(QEvent::KeyPress, Qt::Key_Left, Qt::NoModifier);
+        QKeyEvent event2(QEvent::KeyRelease, Qt::Key_Left, Qt::NoModifier);
+        QApplication::sendEvent(this, &event1);
+        QApplication::sendEvent(this, &event2);
+    } else if(aChar == 'd') {
+        QKeyEvent event1(QEvent::KeyPress, Qt::Key_Right, Qt::NoModifier);
+        QKeyEvent event2(QEvent::KeyRelease, Qt::Key_Right, Qt::NoModifier);
+        QApplication::sendEvent(this, &event1);
+        QApplication::sendEvent(this, &event2);
+    }
 }

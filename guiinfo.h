@@ -55,6 +55,9 @@ class GuiInfo : public QWidget
     QSlider         *sliderMax1;
     QSlider         *sliderMax2;
     QSlider         *sliderMax3;
+    QSlider         *sliderMinNumber;
+    QSlider         *sliderMidNumber;
+    QSlider         *sliderMaxNumber;
 
     QSlider         *sliderMaxContours;
 
@@ -79,14 +82,49 @@ class GuiInfo : public QWidget
 
 public:
     explicit GuiInfo(IOData *t_ioData, QWidget *parent = nullptr);
+    void sendAllNumbData();
     void updateGuiInfo();
     void saveRoi();
 //    void loadDialog(cv::Mat t_mat);
     void openDialog(cv::Rect *t_rect, cv::Mat *t_mat);
     void openDialog();
-
+    bool eventFilter(QObject *obj, QEvent *event) override {
+        if(event->type() == QEvent::KeyPress) {
+            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+            if(keyEvent->key() == Qt::Key_A) {
+                QWidget *wid;
+                QList<QWidget*> mylineEdits = this->findChildren<QWidget*>();
+                QListIterator<QWidget*> it(mylineEdits);
+                while (it.hasNext()) {
+                    wid = it.next(); // take each widget in the list
+                    if(QSlider *slide = qobject_cast<QSlider*>(wid)) {  // check if iterated widget is of type QLineEdit
+                        if (slide->hasFocus())
+                            slide->setValue(slide->value() - 1);
+                    }
+                }
+            } else if(keyEvent->key() == Qt::Key_D) {
+                QWidget *wid;
+                QList<QWidget*> mylineEdits = this->findChildren<QWidget*>();
+                QListIterator<QWidget*> it(mylineEdits);
+                while (it.hasNext()) {
+                    wid = it.next(); // take each widget in the list
+                    if(QSlider *slide = qobject_cast<QSlider*>(wid)) {  // check if iterated widget is of type QLineEdit
+                        if (slide->hasFocus())
+                            slide->setValue(slide->value() + 1);
+                    }
+                }
+            } else if(keyEvent->key() == Qt::LeftArrow) {
+                qDebug() << "press arrow left";
+            }
+        } else {
+            // standard event processing
+            return QObject::eventFilter(obj, event);
+        }
+    }
 private:
-    void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *event) override;
+
+
 
 signals:
     void signalDrawMatchRect(Qt::CheckState t_state);
@@ -98,9 +136,13 @@ signals:
     cv::Rect *signalGetRectRoi();
     void signalSendMinScalar(cv::Scalar acvMinScalar);
     void signalSendMaxScalar(cv::Scalar acvMaxScalar);
+    void signalSendMinNumber(int nMin);
+    void signalSendMidNumber(int nMid);
+    void signalSendMaxNumber(int nMax);
     void signalSendMaxContourForLength(int i);
     void closeWindow();
 public slots:
+    void slotReadKey(QChar aChar);
 };
 
 // *************************************************************************************************************

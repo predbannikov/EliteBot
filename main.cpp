@@ -3,13 +3,18 @@
 
 
 
+
 int main(int argc, char *argv[])
 {
 
     //    cvSetMouseCallback("win2", my_mouse_callback, reinterpret_cast<void *> (image));
 
     QApplication a(argc, argv);
+
     EngineScript *engine = new EngineScript(&a);
+    key_filter kf(&a);
+    a.installEventFilter(&kf);
+
 
 //    cv::Mat mat = cv::imread("F:/projects/work/elite/autoClickerOnOpenCV/1.jpg", cv::IMREAD_COLOR);
 //    cv::imwrite("2.jpg", mat);

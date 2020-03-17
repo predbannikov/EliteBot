@@ -17,9 +17,10 @@ public:
     SYS_STATE state;
     AIControl(QObject *parent = nullptr);
     ~AIControl();
-    bool serviceToRefuel();
 //    QString getPathToTarget();
 
+    bool            compass;
+    bool            target;
     bool            check;
     QString         push_key;
     QString         press_key;
@@ -32,11 +33,16 @@ public:
     QStringList     tmpList;
     QElapsedTimer   timeElapsed;
     CursorPanel     *cursorPanel;
+    double          coeff;
+    double          radius;
+    double          distance;
+    int             frameFreq;
     int             timeWaitMsec;
     int             nCount;
     int             iStart;
     int             iEnd;
 private:
+    QString         m_fixCurrBugs;
 //    enum {STAGE_1, STAGE_2, STAGE_3, STAGE_4, STAGE_5, STAGE_6, STAGE_7, STAGE_8, STAGE_9} stage;
 //    enum {STAGE_PUSH_1, STAGE_PUSH_2} stagePush;
 //    enum {STAGE_TRANS_RL_1, STAGE_TRANS_RL_2, STAGE_TRANS_RL_3} stage_trans_rl;
@@ -52,21 +58,29 @@ public:
 
     // ------------------------------------------------- Средний уровня
 private:
-    void next();
 
+//    int             higtMSec;
+//    QElapsedTimer   highTimer;
 
-    bool test(bool &check);
-
+    bool test(bool &bCheck);
     bool serviceMenuToFuel();
+    bool serviceToRefuel();
     bool makeTrack();
     bool trnasHyperMode();
 
 
     // ------------------------------------------------- Нижний уровень
+    bool aimp(int anMSec, bool &abCheck);
+    bool setFrame(int anMSec);
     bool pickUpSpeed(int anMSec);
-    bool faceTheTarget();
+//    bool faceTheTarget();
+    bool enableHelpAim();
 
     bool waitMenuService(int anMSec, bool &abCheck);
+    bool waitEndHyperModeHelp(int anMSec, bool &abCheck);
+    bool getCloser(bool &abCheck);
+    bool toLanding(int anMSec);
+
 
 
     bool enabledPanel1(QString sName);                  // Включить панель 1
@@ -74,14 +88,14 @@ private:
     bool takeOffIntoSpace();
 
     bool caseStationMenuNav(QString asStation);         // Выбрать станцию в списке навигации
-    bool caseSubMenuNav(QString sNameSubMenu);
+    bool caseSubMenuNav(QString sNameSubMenu, bool &abCheck);
 
-    bool caseMenuContact(QString sNameBodyMenu);        // На посадку
+    bool caseMenuDocking(QString sNameDockMenu);           //
+    bool caseMenuContact(QString sNameBodyMenu);        // На посадку           переделать и убрать
 
     bool waitDockingMenuShow(int anMSec, bool &abCheck);    // функция ветвления
     bool waitDockingMenuHide(int anMSec, bool &abCheck);    // функция ветвления
     bool waitMSec(int anMSec);
-    bool caseMenuDocking(QString sNameDockMenu);           //
 
 };
 

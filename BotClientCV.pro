@@ -16,8 +16,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 CONFIG += c+14
 
-QMAKE_CXXFLAGS_DEBUG += Od
-#QMAKE_CXXFLAGS_DEBUG += -Z7
+#QMAKE_CXXFLAGS_DEBUG += Od
+#QMAKE_CXXFLAGS_DEBUG += -Zi
 
 
 unix: !macx {
@@ -37,45 +37,37 @@ unix: !macx {
     -lopencv_flann
 }
 
-
 VERSION_BUILD = 320
 
 win32-msvc* {
     INCLUDEPATH += "F:\projects\opencv\opencv\opencv-build\install\include"
     INCLUDEPATH += "F:\projects\vcpkg\installed\x86-windows\include"
 
-    CONFIG(debug,debug|release) {
-        LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_core$${VERSION_BUILD}d.lib"
-        LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_highgui$${VERSION_BUILD}d.lib"
-        LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_imgcodecs$${VERSION_BUILD}d.lib"
-        LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_imgproc$${VERSION_BUILD}d.lib"
-        LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_features2d$${VERSION_BUILD}d.lib"
-        LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_calib3d$${VERSION_BUILD}d.lib"
+#    debug:LIBS += "F:\projects\vcpkg\installed\x86-windows\debug\lib\tesseract41d.lib"
+#    else:LIBS += "F:\projects\vcpkg\installed\x86-windows\lib\tesseract41.lib"
 
+    CONFIG(debug, debug|release) {
+            LIBS += "F:\projects\vcpkg\installed\x86-windows\debug\lib\tesseract41d.lib"
+            LIBS += "F:\projects\vcpkg\installed\x86-windows\debug\lib\leptonica-1.78.0d.lib"
 
-#        LIBS += "F:\projects\vcpkg\installed\x86-windows\lib\tesseract41.lib"
-        LIBS += "F:\projects\vcpkg\installed\x86-windows\debug\lib\tesseract41d.lib"
-
-#        LIBS += "F:\projects\vcpkg\installed\x86-windows\lib\leptonica-1.78.0.lib"
-        LIBS += "F:\projects\vcpkg\installed\x86-windows\debug\lib\leptonica-1.78.0d.lib"
-
+            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_core$${VERSION_BUILD}d.lib"
+            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_highgui$${VERSION_BUILD}d.lib"
+            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_imgcodecs$${VERSION_BUILD}d.lib"
+            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_imgproc$${VERSION_BUILD}d.lib"
+            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_features2d$${VERSION_BUILD}d.lib"
+            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_calib3d$${VERSION_BUILD}d.lib"
     }
-#    CONFIG(release,debug|release) {
-#        LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_core$${VERSION_BUILD}.lib"
-#        LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_highgui$${VERSION_BUILD}.lib"
-#        LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_imgcodecs$${VERSION_BUILD}.lib"
-#        LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_imgproc$${VERSION_BUILD}.lib"
-#        LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_features2d$${VERSION_BUILD}.lib"
-#        LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_calib3d$${VERSION_BUILD}.lib"
-#    }
+    CONFIG(release, debug|release) {
+            LIBS += "F:\projects\vcpkg\installed\x86-windows\lib\tesseract41.lib"
+            LIBS += "F:\projects\vcpkg\installed\x86-windows\lib\leptonica-1.78.0.lib"
 
-
-#    LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_core320.lib"
-#    LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_highgui320.lib"
-#    LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_imgcodecs320.lib"
-#    LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_imgproc320.lib"
-#    LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_features2d320.lib"
-#    LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_calib3d320.lib"
+            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_core$${VERSION_BUILD}.lib"
+            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_highgui$${VERSION_BUILD}.lib"
+            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_imgcodecs$${VERSION_BUILD}.lib"
+            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_imgproc$${VERSION_BUILD}.lib"
+            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_features2d$${VERSION_BUILD}.lib"
+            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_calib3d$${VERSION_BUILD}.lib"
+    }
 
 }
 

@@ -23,7 +23,11 @@ EngineScript::EngineScript(QObject *parent) : QObject(parent)
         connect(ginfo, &GuiInfo::signalSetLoop, capture, &CaptureWindow::slotSetLoop);
         connect(ginfo, &GuiInfo::signalSendMinScalar, capture, &CaptureWindow::setMinScalar);
         connect(ginfo, &GuiInfo::signalSendMaxScalar, capture, &CaptureWindow::setMaxScalar);
-        connect(ginfo, &GuiInfo::signalSendMaxContourForLength, capture, &CaptureWindow::slotSetMaxContourForLength);
+        connect(ginfo, &GuiInfo::signalSendMinNumber, capture, &CaptureWindow::setMinNumber);
+        connect(ginfo, &GuiInfo::signalSendMidNumber, capture, &CaptureWindow::setMidNumber);
+        connect(ginfo, &GuiInfo::signalSendMaxNumber, capture, &CaptureWindow::setMaxNumber);
+//        connect(capture, &CaptureWindow::sendKey, ginfo, &GuiInfo::slotReadKey);
+//        connect(ginfo, &GuiInfo::signalSendMaxContourForLength, capture, &CaptureWindow::slotSetMaxContourForLength);
 
 
 
@@ -44,20 +48,34 @@ EngineScript::EngineScript(QObject *parent) : QObject(parent)
     sock->connectToHost("127.0.0.1", 10101);
 
 
+    timeElapsedForFunc.start();
+
     ginfo->openDialog();
     ginfo->move(1280, 550);
-
-
+    ginfo->sendAllNumbData();
 }
 
 void EngineScript::engine()
 {
-    m_pControl->state = AICONTROL;
-//    m_pControl->state = RESTOR_GAME;
+    m_pControl->state = RESTOR_GAME;
+//    m_pControl->state = DEBUG_STATE;
     while(cycle) {
         switch (m_pControl->state) {
-        case RESTOR_GAME:
+        case DEBUG_STATE:
             break;
+        case RESTOR_GAME: {
+            QJsonObject _jMsgToSend;
+            _jMsgToSend["target"] = "mouse";
+            _jMsgToSend["method"] = "move_click";
+            _jMsgToSend["code"] = "BTN_LEFT";
+            _jMsgToSend["x"] = 2100;
+            _jMsgToSend["y"] = -USING_HEIGHT + 150;
+            sendDataToSlave(QJsonDocument(_jMsgToSend).toJson());           // Активировать окно справа сверху
+            _jMsgToSend = QJsonObject();
+            QThread::msleep(50);
+            m_pControl->state = AICONTROL;
+            break;
+        }
         case AICONTROL:
             m_pControl->smallRing();
             break;
@@ -74,116 +92,515 @@ void EngineScript::engine()
             m_pControl->state = AICONTROL;
             break;
         case SEARCH_IMAGE_CONTINUOUS:
-            {
-                qint64 elaps = m_pControl->timeElapsed.elapsed();
-                if(elaps < m_pControl->timeWaitMsec) {
-                    if(srchAreaOnceInPart(m_pControl->searchImage, m_pControl->nCount, m_pControl->iStart, m_pControl->iEnd)) {
+        {
+            qint64 elaps = m_pControl->timeElapsed.elapsed();
+            if(elaps < m_pControl->timeWaitMsec) {
+                if(srchAreaOnceInPart(m_pControl->searchImage, m_pControl->nCount, m_pControl->iStart, m_pControl->iEnd, m_pControl->coeff)) {
+                    m_pControl->check = true;
+                    m_pControl->state = AICONTROL;
+                }
+            } else {
+                m_pControl->state = AICONTROL;
+            }
+            break;
+        }
+        case WHILE_IMAGE_CONTINUOUS:
+        {
+            static int accum = 0;
+            qint64 elaps = m_pControl->timeElapsed.elapsed();
+            if(elaps < m_pControl->timeWaitMsec) {
+                if(!srchAreaOnceInPart(m_pControl->searchImage, m_pControl->nCount, m_pControl->iStart, m_pControl->iEnd, m_pControl->coeff)) {
+                    if(accum == 10) {
+                        accum = 0;
                         m_pControl->check = true;
                         m_pControl->state = AICONTROL;
                     }
+                    qDebug() << "image hide" << accum;
+                    accum++;
                 } else {
-                    m_pControl->state = AICONTROL;
+                    accum = 0;
                 }
+            } else {
+                accum = 0;
+                m_pControl->check = false;
+                m_pControl->state = AICONTROL;
             }
             break;
+        }
         case WHICH_IMAGE_MORE_SIMILAR:
             m_pControl->searchImage = getImageMoreSimilarInRect(m_pControl->listForSearch, m_pControl->nCount, m_pControl->iStart, m_pControl->iEnd);
             m_pControl->state = AICONTROL;
             break;
         case CLICK_POINT_IMAGE_AFTER_LOOK:
-            {
-                cv::Point cvPoint = getPointAfterLookAreaInRect(m_pControl->searchImage, m_pControl->nCount, m_pControl->iStart, m_pControl->iEnd);
-                mouse_move_click(cvPoint);
-                m_pControl->state = AICONTROL;
-            }
+        {
+            cv::Point cvPoint = getPointAfterLookAreaInRect(m_pControl->searchImage, m_pControl->nCount, m_pControl->iStart, m_pControl->iEnd);
+            mouse_move_click(cvPoint);
+            m_pControl->state = AICONTROL;
             break;
+        }
         case CLICK_TO_POINT:
-            {
-                cv::Rect rectTmp = mp_dataSet->at(m_pControl->searchImage.toStdString()).rect;
-                cv::Point cvPoint(rectTmp.x + (rectTmp.width / 2), rectTmp.y + (rectTmp.height / 2));
-                mouse_move_click(cvPoint);
-                m_pControl->state = AICONTROL;
-            }
+        {
+            cv::Rect rectTmp = mp_dataSet->at(m_pControl->searchImage.toStdString()).rect;
+            cv::Point cvPoint(rectTmp.x + (rectTmp.width / 2), rectTmp.y + (rectTmp.height / 2));
+            mouse_move_click(cvPoint);
+            m_pControl->state = AICONTROL;
             break;
+        }
         case TYPING_TEXT:
             typingText();
             m_pControl->state = AICONTROL;
             break;
         case TRANS_PANEL1:
-            {
-                qint64 elaps = m_pControl->timeElapsed.elapsed();
-                if(elaps < m_pControl->timeWaitMsec) {
-                    CursorPanel *pan = capture->panel1();
-                    if(pan->headerActive) {
-                        m_pControl->cursorPanel = pan;
-                        m_pControl->check = true;
-                        m_pControl->state = AICONTROL;
-                    }
-                } else {
-                    m_pControl->check = false;
-                    m_pControl->state = AICONTROL;
-                }
-            }
-            break;
-        case TRANS_BODY_CURSOR:
-            {
-                qint64 elaps = m_pControl->timeElapsed.elapsed();
-                if(elaps < m_pControl->timeWaitMsec) {
-                    CursorPanel *pan = capture->panel1();
-                    if(pan->headerActive && pan->bodyActive) {
-                        m_pControl->cursorPanel = pan;
-                        m_pControl->check = true;
-                        m_pControl->state = AICONTROL;
-                    }
-                } else {
-                    m_pControl->check = false;
-                    m_pControl->state = AICONTROL;
-                }
-            }
-            break;
-        case TRANS_SUB_CURSOR:
-            {
-                qint64 elaps = m_pControl->timeElapsed.elapsed();
-                if(elaps < m_pControl->timeWaitMsec) {
-                    CursorPanel *pan = capture->subPanel1Nav();
-                    if(pan->subNavList) {
-                        m_pControl->cursorPanel = pan;
-                        m_pControl->check = true;
-                        m_pControl->state = AICONTROL;
-                    }
-                } else {
-                    m_pControl->check = false;
-                    m_pControl->state = AICONTROL;
-                }
-            }
-            break;
-        case TRANS_MENU_DOCKING:
-            {
-                qint64 elaps = m_pControl->timeElapsed.elapsed();
-                if(elaps < m_pControl->timeWaitMsec) {
-                    CursorPanel *pan = capture->menuDocking();
-                    if(pan->activeMenuDocking) {
-                        m_pControl->cursorPanel = pan;
-                        m_pControl->check = true;
-                        m_pControl->state = AICONTROL;
-                    }
-                } else {
-                    m_pControl->check = false;
-                    m_pControl->state = AICONTROL;
-                }
-            }
-            break;
-        case WAIT_MSEC:                                                 // Функция ожидания
-            {
-                qint64 elaps = m_pControl->timeElapsed.elapsed();
-                if(elaps < m_pControl->timeWaitMsec) {
-
-                } else {
+        {
+            qint64 elaps = m_pControl->timeElapsed.elapsed();
+            if(elaps < m_pControl->timeWaitMsec) {
+                CursorPanel *pan = capture->panel1Header();
+                if(pan->activeHeader) {
+                    QThread::msleep(500);
+                    m_pControl->cursorPanel = pan;
                     m_pControl->check = true;
                     m_pControl->state = AICONTROL;
                 }
+            } else {
+                m_pControl->check = false;
+                m_pControl->state = AICONTROL;
             }
             break;
+        }
+        case TRANS_BODY_CURSOR:
+        {
+            qint64 elaps = m_pControl->timeElapsed.elapsed();
+            if(elaps < m_pControl->timeWaitMsec) {
+                CursorPanel *pan = capture->panel1Body();
+                if(pan->activeBody) {
+                    m_pControl->cursorPanel = pan;
+                    m_pControl->check = true;
+                    m_pControl->state = AICONTROL;
+                }
+            } else {
+                m_pControl->check = false;
+                m_pControl->state = AICONTROL;
+            }
+        }
+            break;
+        case TRANS_SUB_CURSOR:
+        {
+            qint64 elaps = m_pControl->timeElapsed.elapsed();
+            if(elaps < m_pControl->timeWaitMsec) {
+                CursorPanel *pan = capture->subPanel1Nav();
+                if(pan->activeSubNav) {
+                    m_pControl->cursorPanel = pan;
+                    m_pControl->check = true;
+                    m_pControl->state = AICONTROL;
+                }
+            } else {
+                m_pControl->check = false;
+                m_pControl->state = AICONTROL;
+            }
+            break;
+        }
+        case TRANS_MENU_DOCKING:
+        {
+            qint64 elaps = m_pControl->timeElapsed.elapsed();
+            if(elaps < m_pControl->timeWaitMsec) {
+                CursorPanel *pan = capture->menuDocking();
+                if(pan->activeMenuDocking) {
+                    m_pControl->cursorPanel = pan;
+                    m_pControl->check = true;
+                    m_pControl->state = AICONTROL;
+                }
+            } else {
+                m_pControl->check = false;
+                m_pControl->state = AICONTROL;
+            }
+            break;
+        }
+        case WAIT_MSEC:                                                 // Функция ожидания
+        {
+            qint64 elaps = m_pControl->timeElapsed.elapsed();
+            if(elaps < m_pControl->timeWaitMsec) {
+
+            } else {
+                m_pControl->check = true;
+                m_pControl->state = AICONTROL;
+            }
+            break;
+        }
+        case APPROACH:                                                 // Функция ожидания
+        {
+            static bool resetDistance = false;
+            static bool approach = false;
+            qint64 elaps = m_pControl->timeElapsed.elapsed();
+            if(elaps < m_pControl->timeWaitMsec) {
+                if(!approach) {
+                    press_key("w");
+                    approach = true;
+                }
+                if(elaps > 6000) {
+                    release_key("w");
+                    approach = true;
+                    for(int i = 0; i < 5; i++) {
+                        push_key("x");
+                        QThread::msleep(1300);
+                        approach = false;
+                        resetDistance = false;
+                        m_pControl->check = true;
+                        m_pControl->state = AICONTROL;
+                    }
+                    qDebug() << "Выход из enginescripte APPROACH";
+                }
+//                Distance *distance = capture->recognizDistance();
+//                if(!resetDistance) {
+//                    distance->distanceList.clear();
+//                    distance->distance = 0;
+//                    resetDistance = true;
+//                } else {
+//                    if(!approach) {
+//                        press_key("w");
+//                        approach = true;
+//                    }
+//                    if(distance->distance < std::numeric_limits<double>::epsilon () &&
+//                       distance->distance > -std::numeric_limits<double>::epsilon () ) {
+//                        qDebug() << "distance zero" << distance->distanceList;
+//                        break;
+//                    }
+
+//                    if(distance->distance <= m_pControl->distance) {
+//                        release_key("w");
+//                        for(int i = 0; i < 5; i++) {
+//                            push_key("x");
+//                            QThread::msleep(1300);
+//                        }
+//                        approach = false;
+//                        resetDistance = false;
+//                        m_pControl->check = true;
+//                        m_pControl->state = AICONTROL;
+//                    }
+//                }
+
+            } else {
+                for(int i = 0; i < 5; i++) {
+                    push_key("x");
+                    QThread::msleep(1300);
+                }
+                approach = false;
+                resetDistance = false;
+                m_pControl->check = false;
+                m_pControl->state = AICONTROL;
+            }
+            break;
+        }
+        case SET_FRAME_FREQ:
+            capture->nWaitKey = m_pControl->frameFreq;
+            m_pControl->state = AICONTROL;
+            break;
+        case COMPASS: {
+            qint64 elaps = m_pControl->timeElapsed.elapsed();
+            if(elaps < m_pControl->timeWaitMsec) {
+                Compass *compass = capture->compass();
+                if(!compass->active)
+                    break;
+                int dx = compass->pCenter.x - compass->pDot.x;
+                int dy = compass->pCenter.y - compass->pDot.y;
+                static int powerX;
+                static int seekY;
+                static bool pickup = false;
+                static bool pickdownX = false;
+                static bool pickdownY = false ;
+                static bool rotate = false ;
+                const int approxim = 8;            // Расстояние до центра до которого компас реагирует
+                // Вычисление угла между двумя векторами
+                cv::Point a(compass->pCenter.x - compass->pDot.x, compass->pCenter.y - compass->pDot.y);
+                cv::Point b(0, 1);
+#define SPEED_COMPAS_Y      250
+#define SPEED_COMPAS_ROT    250
+                double radius = sqrt(pow(dx,2) + pow(dy, 2));
+
+                double atan_a = atan2(a.x * b.y - b.x * a.y, a.x * b.x + a.y * b.y);
+                double grad = atan_a * 180. / M_PI;
+                qDebug() << "grad=" << grad << " radius=" << radius;
+                //  Выравнивание по ротации
+                if(!rotate) {
+                    qDebug() << "radius =" << radius;
+                        if(approxim <= radius) {
+                            if((grad > 10 || grad < -10)) {         // выровнять по градусам
+                                if(dx == 0)
+                                    dx = 1;
+                                powerX = SPEED_COMPAS_ROT * (dx / abs(dx));        // знак полярности
+                                powerX *= -1;
+                                qDebug() << "rotate dx =" << dx << powerX;
+                                move_mouse_rel(powerX, 0);
+                            }
+                        } else {
+                            powerX = 0;
+                            pickdownX = true;
+                            qDebug() << "x rotate complate";
+                        }
+                    rotate = true;
+                }
+                if(grad < 20 && grad > -20)
+                    if(!pickdownX) {
+                        powerX *= -1;
+                        move_mouse_rel(powerX, 0);
+                        pickdownX = true;
+                        qDebug() << "x rotate complate" << dx << powerX;
+                    }
+                //  Выравнивание по оси Y
+                if(!pickup && pickdownX) {
+                    if(approxim <= abs(dy) || !compass->face) {
+                        seekY = -SPEED_COMPAS_Y;
+                    } else {
+                        if(dy < -3) {
+                            seekY = SPEED_COMPAS_Y;
+                        } else {
+                            seekY = 0;
+                            pickdownY = true;
+                            qDebug() << "y complate" ;
+                        }
+                    }
+                    qDebug() << "move Y" << dy << seekY << " face=" << compass->face;
+                    move_mouse_rel(0, seekY);
+                    pickup = true;
+                }  
+                if(compass->face && pickdownX) {
+                    if(dy > -3 && dy < approxim  ) {
+                        if(!pickdownY) {
+                            qDebug() << "Делаем обратную силу";
+                            seekY *= -1;
+                            move_mouse_rel(0, seekY);
+                            pickdownY = true;
+                            qDebug() << "y complate" << dy << seekY << " face=" << compass->face;
+                        }
+                    }
+                }
+                if(pickdownX && pickdownY)
+                {
+                    qDebug() << "success compass" ;
+                    pickdownX = false;
+                    pickdownY = false;
+                    pickup = false;
+                    rotate = false;
+//                    m_pControl->check = true;
+                    m_pControl->state = AICONTROL;
+                }
+            } else {
+                m_pControl->check = false;
+                m_pControl->state = AICONTROL;
+            }
+            break;
+        }
+        case AIMING:
+        {
+            qint64 elaps = m_pControl->timeElapsed.elapsed();
+            if(elaps < m_pControl->timeWaitMsec) {
+                CursorTarget *tar = capture->takeAimp();
+
+                int dx = tar->pointCenter.x - tar->pointTarget.x;
+                int dy = tar->pointCenter.y - tar->pointTarget.y;
+                static int powerX;
+                static int seekY;
+                static int seekX;
+
+                static bool pickup = false;
+                static bool pickdownX = false;
+                static bool pickdownY = false;
+                static bool speed0 = false;
+                static bool speed1 = false;
+                static bool rotate = false;
+                static int count_error = 0;
+//                qDebug() << dx;
+//                double radius = sqrt(pow(dx,2) + pow(dy, 2));
+                if(!tar->active) {
+                    qDebug() << "target not active err=" << count_error;
+                    if(count_error == 3) {
+                        qDebug() << "target RESET err=" << count_error;
+                        count_error = 0;
+                        push_key(" ");
+                        QThread::msleep(30);
+                        pickup = false;
+                        speed1 = false;
+                        speed0 = false;
+                        pickdownX = false;
+                        rotate = false;
+                        pickdownY = false;
+                        m_pControl->check = false;
+                        m_pControl->target = true;
+                        m_pControl->state = AICONTROL;
+                    }
+                    if(timeElapsedForFunc.elapsed() > 500 ) {
+                        count_error++;
+                        timeElapsedForFunc.restart();
+                    }
+                    break;
+
+
+                }
+                count_error = 0;
+                double radius = sqrt(pow(dx,2) + pow(dy, 2));
+/*                // Вычисление угла между двумя векторами
+                cv::Point a(tar->pointCenter.x - tar->pointTarget.x, tar->pointCenter.y - tar->pointTarget.y);
+                cv::Point b(0, 1);
+                double atan_a = atan2(a.x * b.y - b.x * a.y, a.x * b.x + a.y * b.y);
+                double grad = atan_a * 180. / M_PI;
+                qDebug() << "grad=" << grad << " radius=" << radius;
+
+
+#define ROTATE_SPEED_0  180
+#define ROTATE_SPEED_2  100
+#define ROTATE_SPEED_3  100
+#define ROTATE_SPEED_2_SEEK  45
+#define ROTATE_SPEED_3_SEEK  90
+#define ROTATE_SPEDD_DELTA  7
+                //  Выравнивание по ротации
+                if(!rotate) {
+                    qDebug() << "radius =" << radius;
+                        if(abs(dx) > 5) {
+                            if((grad > 3 || grad < -3)) {         // выровнять по градусам
+                                if(dx == 0)
+                                    dx = 1;
+                                powerX = ROTATE_SPEED_0 * (dx / abs(dx));        // знак полярности
+                                powerX *= -1;
+                                qDebug() << "rotate dx =" << dx << powerX;
+//                                if(abs(grad) > 30) {
+//                                    powerX = (powerX / abs(powerX)) * (abs(powerX) + ROTATE_SPEED_2);
+//                                    speed0 = true;
+//                                }
+//                                if(abs(grad) > 90) {
+//                                    powerX = (powerX / abs(powerX)) * (abs(powerX) + ROTATE_SPEED_3);
+//                                    speed1 = true;
+//                                }
+                                move_mouse_rel(powerX , 0);
+                            }
+                        } else {
+                            powerX = 0;
+                            pickdownX = true;
+                            qDebug() << "x rotate complate" << dx;
+                        }
+                        rotate = true;
+                } else {
+                    if(powerX != 0 && !pickdownX) {
+                        if(abs(grad) > ROTATE_SPEED_2_SEEK + ROTATE_SPEDD_DELTA && !speed0 ) {
+                            powerX = (powerX / abs(powerX)) * (abs(powerX) + ROTATE_SPEED_2);
+                            speed0 = true;
+                            move_mouse_rel((powerX / abs(powerX)) * ROTATE_SPEED_2, 0);
+                            qDebug() << "UP rotate speed" << powerX;
+                        }
+                        if(abs(grad) > ROTATE_SPEED_3_SEEK + ROTATE_SPEDD_DELTA && !speed1) {
+                            powerX = (powerX / abs(powerX)) * (abs(powerX) + ROTATE_SPEED_3);
+                            speed1 = true;
+                            move_mouse_rel((powerX / abs(powerX)) * ROTATE_SPEED_3, 0);
+                            qDebug() << "UP rotate speed" << powerX;
+                        }
+
+                        if(abs(grad) < ROTATE_SPEED_2_SEEK - ROTATE_SPEDD_DELTA && speed0 ) {
+                            powerX = (powerX / abs(powerX)) * (abs(powerX) - ROTATE_SPEED_2 );
+                            move_mouse_rel(-((powerX / abs(powerX)) * ROTATE_SPEED_2), 0);
+                            speed0 = false;
+                            qDebug() << "DOWN rotate speed" << powerX;
+                        }
+                        if(abs(grad) < ROTATE_SPEED_3_SEEK - ROTATE_SPEDD_DELTA && speed1 ) {
+                            powerX = (powerX / abs(powerX)) * (abs(powerX) - ROTATE_SPEED_3);
+                            move_mouse_rel(-((powerX / abs(powerX)) * ROTATE_SPEED_3), 0);
+                            speed1 = false;
+                            qDebug() << "DOWN rotate speed" << powerX;
+                        }
+                    }
+
+                    if(abs(grad) < 3) {
+                        if(!pickdownX) {
+                            //                        move_mouse_rel(-powerX, 0);
+                            push_key(" ");
+                            pickdownX = true;
+                            qDebug() << "x rotate complate" << dx << powerX;
+                        }
+                    }
+
+*/
+
+                    if(!pickup) {
+                        if(dy == 0)
+                            dy = 1;
+                        if(dx == 0)
+                            dx = 1;
+
+                        seekY = dy / abs(dy) * 150;
+                        seekY *= -1;
+                        seekX = dx / abs(dx);
+                        qDebug() << "START Y X move" << dy << seekY;
+                        move_mouse_rel(0, seekY);
+                        pickup = true;
+                        if(dx > 0) {
+                            press_key("a");
+                            QThread::msleep(30);
+                            qDebug() << "press_key(a)";
+                        } else if(dx < 0) {
+                            press_key("d");
+                            QThread::msleep(30);
+                            qDebug() << "press_key(d)";
+                        }
+
+                    }
+                    qDebug() << dx;
+                    if(seekX > 0 && !pickdownX) {
+                        if(dx < 25)
+                        {
+                            release_key("a");
+                            QThread::msleep(30);
+                            pickdownX = true;
+                            qDebug() << "release_key(a)";
+                        }
+                    } else if(seekX < 0 && !pickdownX) {
+                        if(dx > -25)
+                        {
+                            release_key("d");
+                            pickdownX = true;
+                            QThread::msleep(30);
+                            qDebug() << "release_key(d)";
+                        }
+                    }
+
+
+                    if(seekY > 0 ) {
+                        if(dy > 0)
+                            if(!pickdownY) {
+                                move_mouse_rel(0, -seekY);
+                                pickdownY = true;
+                            }
+                    }
+                    else if(seekY <= 0 ){
+                        if(dy < 0)
+                            if(!pickdownY) {
+                                move_mouse_rel(0, -seekY);
+                                pickdownY = true;
+
+
+                            }
+                    }
+
+
+                if(pickdownX && pickdownY)
+                {
+                    qDebug() << "success aiming" ;
+                    pickdownX = false;
+                    pickdownY = false;
+                    pickup = false;
+//                    speed0 = false;
+//                    speed1 = false;
+//                    rotate = false;
+                    m_pControl->check = true;
+                    m_pControl->radius = radius;
+                    m_pControl->state = AICONTROL;
+                }
+
+
+            } else {
+                qDebug() << "exit" ;
+                m_pControl->check = false;
+                m_pControl->state = AICONTROL;
+            }
+            break;
+        }
+
         }
         capture->update();
     }
@@ -226,11 +643,11 @@ cv::Point EngineScript::getPointAfterLookAreaInRect(QString asImageROI, int anCo
 //    return false;
 //}
 
-bool EngineScript::srchAreaOnceInPart(QString as_imageROI, int anCount, int anStart, int anEnd)
+bool EngineScript::srchAreaOnceInPart(QString as_imageROI, int anCount, int anStart, int anEnd, double coeff)
 {
     cv::Rect cvRect = calcRectFromPartOfIndex(anCount, anStart, anEnd);
     if(mp_dataSet->find(as_imageROI.toStdString()) != mp_dataSet->end())
-        return capture->srchAreaOnceInRect(as_imageROI.toStdString(), cvRect);
+        return capture->srchAreaOnceInRect(as_imageROI.toStdString(), cvRect, coeff);
     return false;
 }
 
@@ -315,6 +732,33 @@ void EngineScript::push_key()
     sendDataToSlave(QJsonDocument(jMsg).toJson());
 }
 
+void EngineScript::push_key(QString aChar)
+{
+    QJsonObject jMsg;
+    jMsg["target"] = "keyboard";
+    jMsg["method"] = "push_key";
+    jMsg["code"] = aChar;
+    sendDataToSlave(QJsonDocument(jMsg).toJson());
+}
+
+void EngineScript::press_key(QString aChar)
+{
+    QJsonObject jMsg;
+    jMsg["target"] = "keyboard";
+    jMsg["method"] = "press_key";
+    jMsg["code"] = aChar;
+    sendDataToSlave(QJsonDocument(jMsg).toJson());
+}
+
+void EngineScript::release_key(QString aChar)
+{
+    QJsonObject jMsg;
+    jMsg["target"] = "keyboard";
+    jMsg["method"] = "release_key";
+    jMsg["code"] = aChar;
+    sendDataToSlave(QJsonDocument(jMsg).toJson());
+}
+
 void EngineScript::press_key()
 {
     QJsonObject jMsg;
@@ -328,7 +772,7 @@ void EngineScript::release_key()
 {
     QJsonObject jMsg;
     jMsg["target"] = "keyboard";
-    jMsg["method"] = "press_key";
+    jMsg["method"] = "release_key";
     jMsg["code"] = m_pControl->release_key;
     sendDataToSlave(QJsonDocument(jMsg).toJson());
 }
@@ -349,7 +793,18 @@ void EngineScript::typingText()
 //    jMsg["method"] = "push_f";
 //    jMsg["f_code"] = "ENTER";
 //    QThread::msleep(50);
-//    sendDataToSlave(QJsonDocument(jMsg).toJson());
+    //    sendDataToSlave(QJsonDocument(jMsg).toJson());
+}
+
+void EngineScript::move_mouse_rel(int x, int y)
+{
+    QJsonObject jMsg;
+    jMsg["target"] = "mouse";
+    jMsg["method"] = "move";
+    jMsg["move_type"] = "REL";
+    jMsg["x"] = x ;
+    jMsg["y"] = y;
+    sendDataToSlave(QJsonDocument(jMsg).toJson());
 }
 
 void EngineScript::mouse_move_click(cv::Point cvPoint)
@@ -418,15 +873,7 @@ bool EngineScript::menuDocking()
 
 void EngineScript::update()
 {
-    QJsonObject _jMsgToSend;
-    _jMsgToSend["target"] = "mouse";
-    _jMsgToSend["method"] = "move_click";
-    _jMsgToSend["code"] = "BTN_LEFT";
-    _jMsgToSend["x"] = 2100;
-    _jMsgToSend["y"] = -USING_HEIGHT + 150;
-    sendDataToSlave(QJsonDocument(_jMsgToSend).toJson());           // Активировать окно справа сверху
-    _jMsgToSend = QJsonObject();
-    QThread::msleep(150);
+
 
     engine();
 //    setListScript();

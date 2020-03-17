@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QJsonObject>
+#include <QEvent>
 #include "capturewindow.h"
 #include "guiinfo.h"
 #include "global.h"
@@ -29,7 +30,7 @@ public:
     cv::Point getPointAfterLookAreaInRect(QString asImageROI, int anCount = 3, int anStart = 0, int anEnd = 8);
     // Нумерация с 0
 //    bool srchAreaOnceInPart(QString as_imageROI, int anXCount = 3, int anYCount = 3, int anXStart = 0, int anYStart = 0, int anXEnd = 2, int anYEnd = 2);
-    bool srchAreaOnceInPart(QString as_imageROI, int anCount = 3, int anStart = 0, int anEnd = 8);
+    bool srchAreaOnceInPart(QString as_imageROI, int anCount = 3, int anStart = 0, int anEnd = 8, double coeff = 0.9);
     cv::Rect calcRectFromPart(int anXCount = 3, int anYCount = 3, int anXStart = 0, int anYStart = 0, int anXEnd = 2, int anYEnd = 2);
     cv::Rect calcRectFromPartOfIndex(int anCount = 3, int aiStart = 1, int aiEnd = 0);
     QString getImageMoreSimilarInRect(QStringList alistsStations, int anCount = 3, int anStart = 0, int anEnd = 8);
@@ -42,9 +43,13 @@ private:
     std::map<std::string, ImageROI> *mp_dataSet;
     QList<QJsonObject> m_listScript;
     void push_key();
+    void push_key(QString aChar);
+    void press_key(QString aChar);
+    void release_key(QString aChar);
     void press_key();
     void release_key();
     void typingText();
+    void move_mouse_rel(int x, int y);
     void mouse_move_click(cv::Point cvPoint);
 
 
@@ -77,5 +82,32 @@ public slots:
 signals:
 
 };
+
+
+class key_filter : public QObject
+{
+    Q_OBJECT
+public:
+    key_filter(QObject *parent = nullptr) : QObject(parent) {}
+    bool eventFilter(QObject *obj, QEvent *event) override {
+        if(event->type() == QEvent::KeyPress) {
+            QKeyEvent *ke = static_cast<QKeyEvent*>(event);
+            if(ke->key() == Qt::Key_A) {
+//                QKeyEvent * eve1 = new QKeyEvent (QEvent::KeyPress,Qt::Key_Left,Qt::NoModifier);
+//                QKeyEvent * eve2 = new QKeyEvent (QEvent::KeyRelease,Qt::Key_Left,Qt::NoModifier);
+
+
+//                qDebug() << "press arrow key left";
+            }
+        }
+        return QObject::eventFilter(obj, event);
+    }
+protected:
+
+
+};
+
+
+
 
 #endif // ENGINESCRIPT_H
