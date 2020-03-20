@@ -1,8 +1,10 @@
-#include <iostream>
+//#include <iostream>
 #include "guiinfo.h"
-#include <stdio.h>
-#include <stdlib.h>
+//#include <stdio.h>
+//#include <stdlib.h>
 #include <QTextCodec>
+
+#include <QApplication>
 
 
 
@@ -12,7 +14,6 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
     Q_UNUSED(context)
     static const QString logFileName = QString("%1\\%2.log").arg(PATH_LOG).arg(QDateTime::currentDateTime().toString("yyMMdd-hhmmss"));
 
-//    QByteArray local8bt = msg.toLocal8Bit();
     #if defined (Q_OS_WIN)
     QFile logFile(logFileName);
     #elif defined (Q_OS_LINUX)
@@ -27,7 +28,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
         QTextStream out(&logFile);
         out << localMsg;
         logFile.close();
-        if(type == QtDebugMsg)
+//        if(type == QtDebugMsg)
             qDebug() << msg.toUtf8().data();
     } else {
         std::cout << "error opening output file" << std::endl;
@@ -35,22 +36,6 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 
 }
 
-
-//void myLoger()
-//{
-//    remove("file.log");
-//    std::ofstream logFile;
-//    logFile.open("file.log");
-
-//    std::ostream tmp(std::cout.rdbuf());        // <----
-//    std::TeeDevice  outputDevice(tmp, logFile);  // <----
-//    std::TeeDevice  logger(outputDevice);
-
-//    std::cout.rdbuf(logger.rdbuf());
-//    std::cout << "some log info" << endl;
-
-//    logger.close();
-//}
 
 
 
@@ -88,8 +73,8 @@ int main(int argc, char *argv[])
     qInstallMessageHandler(myMessageOutput);
 
     IOData *pIOData = new IOData();
-    GuiInfo *pGui = new GuiInfo(pIOData);
-    pGui->show();
+    GuiInfo pGui(pIOData);
+    pGui.show();
 
 
 //    cv::Mat mat = cv::imread("F:/projects/work/elite/autoClickerOnOpenCV/1.jpg", cv::IMREAD_COLOR);

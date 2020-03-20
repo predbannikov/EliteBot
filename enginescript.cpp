@@ -18,34 +18,10 @@ EngineScript::EngineScript(IOData *apIOData, QObject *parent) : QObject(parent)
     capture = new CaptureWindow(mp_dataSet, m_screen.x(), m_screen.y(), m_screen.width(), m_screen.height(), this);
     m_pControl = new AIControl;
 
-    if(m_pIOData->prepWorkPath()) {
-        std::cout << "load success" << std::endl;
 
-//        connect(ginfo, &GuiInfo::signalGetMatRoi, capture, &CaptureWindow::slotCheckRoiMat);
-//        connect(ginfo, &GuiInfo::signalGetRectRoi, capture, &CaptureWindow::slotCheckRoiRect);
-//        connect(ginfo, &GuiInfo::signalDrawMatchRect, capture, &CaptureWindow::slotDrawMatchRect);
-//        connect(ginfo, &GuiInfo::signalDrawMesh, capture, &CaptureWindow::slotSetDrawLine);
-//        connect(ginfo, &GuiInfo::signalSetLoop, capture, &CaptureWindow::slotSetLoop);
-//        connect(ginfo, &GuiInfo::signalSendMinScalar, capture, &CaptureWindow::setMinScalar);
-//        connect(ginfo, &GuiInfo::signalSendMaxScalar, capture, &CaptureWindow::setMaxScalar);
-//        connect(ginfo, &GuiInfo::signalSendMinNumber, capture, &CaptureWindow::setMinNumber);
-//        connect(ginfo, &GuiInfo::signalSendMidNumber, capture, &CaptureWindow::setMidNumber);
-//        connect(ginfo, &GuiInfo::signalSendMaxNumber, capture, &CaptureWindow::setMaxNumber);
-
-
-//        connect(capture, &CaptureWindow::openGUI, this, &EngineScript::openGUI);
-        connect(capture, &CaptureWindow::exitCapture, this, &EngineScript::exitEngine);
-
-
-//        connect(ginfo, &GuiInfo::signalEngineEnable, this, &EngineScript::slotEngineEnable);
-//        connect(ginfo, &GuiInfo::signalEngineSetCurStation, m_pControl, &AIControl::setCurStation);
-
-        // for debug
-        connect(capture, &CaptureWindow::signalSaveImageForDebug, this, &EngineScript::slotSaveImage);
-    } else  {
-        std::cout << "load not seccess" << std::endl;
-        cycle = false;
-    }
+    // for debug
+    connect(capture, &CaptureWindow::signalSaveImageForDebug, this, &EngineScript::slotSaveImage);
+    cycle = true;
 
 
     sock = new QTcpSocket;
@@ -54,22 +30,16 @@ EngineScript::EngineScript(IOData *apIOData, QObject *parent) : QObject(parent)
 
 
     timeElapsedForFunc.start();
-
-
-
-//    ginfo->openDialog();
-//    ginfo->move(1280, 550);
-//    ginfo->sendAllNumbData();
-
-//    threadGui = new QThread;
-//    connect(threadGui, &QThread::started, ginfo, &GuiInfo::run);
-//    connect(threadGui, &QThread::isFinished, threadGui, &GuiInfo::deleteLater);
-//    connect(threadGui, &QThread::isFinished, ginfo, &GuiInfo::deleteLater);
-//    ginfo->moveToThread(threadGui);
-//    threadGui->start();
-//    QThread::msleep(100);
-    //    qDebug() << "engine" << this->thread()->currentThreadId();
     emit signalOpenGui();
+}
+
+EngineScript::~EngineScript()
+{
+//    qDebug() << "begin EngineScript exit";
+    capture->deleteLater();
+    sock->deleteLater();
+    qDebug() << "end EngineScript exit";
+    delete capture;
 }
 
 void EngineScript::engine()
@@ -616,8 +586,10 @@ void EngineScript::engine()
         }
 
         }
+        QCoreApplication::processEvents();
         capture->update();
     }
+//    qDebug() << "cycle end";
 }
 
 void EngineScript::initDisplay()
@@ -671,13 +643,6 @@ void EngineScript::initDisplay()
             qDebug() << "not open file to read data file config";
         }
     }
-}
-
-
-
-void EngineScript::setScript(QJsonObject _script)
-{
-    script = _script;
 }
 
 bool EngineScript::srchAreaOnceInRect(QString as_ImageROI, QString as_rectInWhichLook)
@@ -882,23 +847,11 @@ void EngineScript::sendDataToSlave(QByteArray a_data)
     sock->waitForBytesWritten();
 }
 
-bool EngineScript::menuDocking()
-{
-    return capture->menuDocking()->activeMenuDocking;
-}
-
 void EngineScript::update()
 {
 
     engine();
 
-}
-
-void EngineScript::exitEngine()
-{
-    qDebug() << "slot exit enginer";
-    cycle = false;
-    qApp->quit();
 }
 
 void EngineScript::slotSaveImage(cv::Mat acvMat, QString asName)
@@ -917,8 +870,49 @@ void EngineScript::slotEngineEnable(bool aState)
     }
 }
 
-//void EngineScript::slotSetCurStation(QString asStation)
-//{
-//    qDebug() << asStation;
-//}
+void EngineScript::slotSetCurStation(QString asStation)
+{
+    qDebug() << "Текущая станция" << asStation;
+    m_pControl->setCurStation(asStation);
+}
+
+cv::Mat EngineScript::slotCheckRoiMat()
+{
+    return capture->checkRoiMat();
+}
+
+cv::Rect EngineScript::slotCheckRoiRect()
+{
+    return capture->checkRoiRect();
+}
+
+void EngineScript::slotSetDrawLine(bool abCheck, int anCount)
+{
+    capture->slotSetDrawLine(abCheck, anCount);
+}
+
+void EngineScript::setMinScalar(int n1, int n2, int n3)
+{
+    capture->setMinScalar(cv::Scalar(n1, n2, n3));
+}
+
+void EngineScript::setMaxScalar(int n1, int n2, int n3)
+{
+    capture->setMaxScalar(cv::Scalar(n1, n2, n3));
+}
+
+void EngineScript::setMinNumber(int aNumber)
+{
+    capture->setMinNumber(aNumber);
+}
+
+void EngineScript::setMidNumber(int aNumber)
+{
+    capture->setMidNumber(aNumber);
+}
+
+void EngineScript::setMaxNumber(int aNumber)
+{
+    capture->setMaxNumber(aNumber);
+}
 

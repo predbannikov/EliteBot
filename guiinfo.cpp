@@ -2,10 +2,22 @@
 GuiInfo::GuiInfo(IOData *t_ioData, QWidget *parent) : QWidget(parent)
 {
     m_ioData = t_ioData;
+    if(m_ioData->prepWorkPath()) {
+        std::cout << "load DataSet success" << std::endl;
+
+    } else  {
+        std::cout << "load DataSet not seccess" << std::endl;
+    }
+
     mp_dataSet = t_ioData->assignpDataSet();
 
+
+
+
+
+
+
     // layouts
-//    vblayout = new QVBoxLayout;
     vboxlayout = new QVBoxLayout;
     setLayout(vboxlayout);
     initLayoutProjects();
@@ -18,7 +30,6 @@ GuiInfo::GuiInfo(IOData *t_ioData, QWidget *parent) : QWidget(parent)
 
     sliderMaxContours = new QSlider;
     sliderMaxContours->setMaximumWidth(m_screen.width());
-//    connect(sliderMaxContours, &QSlider::valueChanged, &GuiInfo::signalSendMaxContourForLength);
     sliderMaxContours->setValue(30);
     connect(sliderMaxContours, &QSlider::valueChanged, [this] (int anValue) {
         emit signalSendMaxContourForLength(anValue);
@@ -31,19 +42,55 @@ GuiInfo::GuiInfo(IOData *t_ioData, QWidget *parent) : QWidget(parent)
     vboxlayout->addLayout(hblSlider);
     vboxlayout->addWidget(sliderMaxContours);
 
-//    vboxlayout->addLayout(hboxManipulation);
 
 
 
-    updateGuiInfo();
+
+
+    engine = new EngineScript(m_ioData);
+    connect(this, &GuiInfo::signalGetMatRoi, engine, &EngineScript::slotCheckRoiMat);
+    connect(this, &GuiInfo::signalGetRectRoi, engine, &EngineScript::slotCheckRoiRect);
+    connect(this, &GuiInfo::signalDrawMesh, engine, &EngineScript::slotSetDrawLine);
+    connect(this, &GuiInfo::signalSendMinScalar, engine, &EngineScript::setMinScalar);
+    connect(this, &GuiInfo::signalSendMaxScalar, engine, &EngineScript::setMaxScalar);
+    connect(this, &GuiInfo::signalSendMinNumber, engine, &EngineScript::setMinNumber);
+    connect(this, &GuiInfo::signalSendMidNumber, engine, &EngineScript::setMidNumber);
+    connect(this, &GuiInfo::signalSendMaxNumber, engine, &EngineScript::setMaxNumber);
+    connect(this, &GuiInfo::signalEngineEnable, engine, &EngineScript::slotEngineEnable);
+    connect(this, &GuiInfo::signalEngineSetCurStation, engine, &EngineScript::slotSetCurStation);
+
 
     thread = new QThread;
-    engine = new EngineScript(m_ioData);
+
+
+
+
+
     engine->moveToThread(thread);
     connect(thread, &QThread::finished, engine, &QObject::deleteLater);
     connect(thread, &QThread::started, engine, &EngineScript::update);
     thread->start();
 
+    updateGuiInfo();
+
+
+
+
+    this->sendAllNumbData();
+
+
+
+}
+
+GuiInfo::~GuiInfo()
+{
+//    qDebug() << "begin exit";
+    engine->cycle = false;
+    thread->quit();
+    cv::destroyAllWindows();
+    thread->wait();
+    delete thread;
+    qDebug() << "end exit";
 }
 
 void GuiInfo::sendAllNumbData()
@@ -52,16 +99,14 @@ void GuiInfo::sendAllNumbData()
 //    cv::Scalar minNumber( 0, 0, 0 );
 //    cv::Scalar maxNumber (255, 255, 255 );
 
-    cv::Scalar minScalar    (  13 , 150 , 177 );
-    cv::Scalar maxScalar    (  27 , 250 , 250 );
 
-    sliderMin1->setValue(  static_cast<int>(minScalar[0] ) );
-    sliderMin2->setValue(  static_cast<int>(minScalar[1] ) );
-    sliderMin3->setValue(  static_cast<int>(minScalar[2] ) );
+//    sliderMin1->setValue(  static_cast<int>(minScalar[0] ) );
+//    sliderMin2->setValue(  static_cast<int>(minScalar[1] ) );
+//    sliderMin3->setValue(  static_cast<int>(minScalar[2] ) );
 
-    sliderMax1->setValue(  static_cast<int>(maxScalar[0] ) );
-    sliderMax2->setValue(  static_cast<int>(maxScalar[1] ) );
-    sliderMax3->setValue(  static_cast<int>(maxScalar[2] ) );
+//    sliderMax1->setValue(  static_cast<int>(maxScalar[0] ) );
+//    sliderMax2->setValue(  static_cast<int>(maxScalar[1] ) );
+//    sliderMax3->setValue(  static_cast<int>(maxScalar[2] ) );
 
     sliderMinNumber->setValue( 30 );
     sliderMidNumber->setValue( 40 );
@@ -71,8 +116,8 @@ void GuiInfo::sendAllNumbData()
     emit signalSendMidNumber(sliderMidNumber->value());
     emit signalSendMaxNumber(sliderMaxNumber->value());
 
-    emit signalSendMinScalar(cv::Scalar(this->sliderMin1->value(), this->sliderMin2->value(), this->sliderMin3->value()));
-    emit signalSendMaxScalar(cv::Scalar(this->sliderMax1->value(), this->sliderMax2->value(), this->sliderMax3->value()));
+    emit signalSendMinScalar(this->sliderMin1->value(), this->sliderMin2->value(), this->sliderMin3->value());
+    emit signalSendMaxScalar(this->sliderMax1->value(), this->sliderMax2->value(), this->sliderMax3->value());
 }
 
 bool GuiInfo::contains(std::string t_name)
@@ -241,22 +286,22 @@ void GuiInfo::initLayoutManipulation()
 
 
     connect(sliderMin1, &QSlider::valueChanged, [this](int anValue) {
-        emit signalSendMinScalar(cv::Scalar(anValue, this->sliderMin2->value(), this->sliderMin3->value()));
+        emit signalSendMinScalar(anValue, this->sliderMin2->value(), this->sliderMin3->value());
     });
     connect(sliderMin2, &QSlider::valueChanged, [this](int anValue) {
-        emit signalSendMinScalar(cv::Scalar(this->sliderMin1->value(), anValue, this->sliderMin3->value()));
+        emit signalSendMinScalar(this->sliderMin1->value(), anValue, this->sliderMin3->value());
     });
     connect(sliderMin3, &QSlider::valueChanged, [this](int anValue) {
-        emit signalSendMinScalar(cv::Scalar(this->sliderMin1->value(), this->sliderMin2->value(), anValue));
+        emit signalSendMinScalar(this->sliderMin1->value(), this->sliderMin2->value(), anValue);
     });
     connect(sliderMax1, &QSlider::valueChanged, [this](int anValue) {
-        emit signalSendMaxScalar(cv::Scalar(anValue, this->sliderMax2->value(), this->sliderMax3->value()));
+        emit signalSendMaxScalar(anValue, this->sliderMax2->value(), this->sliderMax3->value());
     });
     connect(sliderMax2, &QSlider::valueChanged, [this](int anValue) {
-        emit signalSendMaxScalar(cv::Scalar(this->sliderMax1->value(), anValue, this->sliderMax3->value()));
+        emit signalSendMaxScalar(this->sliderMax1->value(), anValue, this->sliderMax3->value());
     });
     connect(sliderMax3, &QSlider::valueChanged, [this](int anValue) {
-        emit signalSendMaxScalar(cv::Scalar(this->sliderMax1->value(), this->sliderMax2->value(), anValue));
+        emit signalSendMaxScalar(this->sliderMax1->value(), this->sliderMax2->value(), anValue);
     });
     connect(sliderMinNumber, &QSlider::valueChanged, [this](int anValue) {
         emit signalSendMinNumber(anValue);
@@ -267,8 +312,6 @@ void GuiInfo::initLayoutManipulation()
     connect(sliderMaxNumber, &QSlider::valueChanged, [this](int anValue) {
         emit signalSendMaxNumber(anValue);
     });
-
-
 
 
     vblMinSlider = new QVBoxLayout;
@@ -285,8 +328,6 @@ void GuiInfo::initLayoutManipulation()
     hblSlider = new QHBoxLayout;
     hblSlider->addLayout(vblMinSlider);
     hblSlider->addLayout(vblMaxSlider);
-
-
 
 
     chckBoxEngine = new QCheckBox("Включить");
@@ -332,70 +373,31 @@ void GuiInfo::saveRoi()
         if(QMessageBox::warning(this, "Warnign", "this is name already used, would you like set this name?", QMessageBox::No | QMessageBox::Yes) == QMessageBox::No)
             return;
     }
-    m_mat = emit signalGetMatRoi();
-    if(m_mat == nullptr) {
+    cv::Mat mat = emit signalGetMatRoi();
+    if(mat.empty()) {
         QMessageBox::warning(this, "Warnign", "allocate roi please");
         return;
     }
-    m_rect = emit signalGetRectRoi();
-    if(m_rect == nullptr) {
+    cv::Rect rect = emit signalGetRectRoi();
+    if(rect.x == 0 && rect.y == 0 && rect.width == 0 && rect.height == 0) {
         QMessageBox::warning(this, "Warnign", "allocate roi please");
         return;
     }
     if(mp_dataSet->find(leNameRegion->text().toStdString()) == mp_dataSet->end()) {
 
         ImageROI set;
-        set.mat = *m_mat;
-        set.rect = *m_rect;
+        set.mat = mat;
+        set.rect = rect;
         set.active = false;
         set.name = leNameRegion->text().toStdString();
         mp_dataSet->insert(std::pair<std::string, ImageROI>(leNameRegion->text().toStdString(), set));
     } else {
 
-        mp_dataSet->at(leNameRegion->text().toStdString()).mat = *m_mat;
-        mp_dataSet->at(leNameRegion->text().toStdString()).rect = *m_rect;
+        mp_dataSet->at(leNameRegion->text().toStdString()).mat = mat;
+        mp_dataSet->at(leNameRegion->text().toStdString()).rect = rect;
         mp_dataSet->at(leNameRegion->text().toStdString()).active = chckBoxReginActiveRect->checkState();
     }
     m_ioData->saveProjectRoi(leNameRegion->text());
-}
-
-//void GuiInfo::loadDialog(cv::Mat t_mat)
-//{
-//    m_mat = &t_mat;
-//    QStringList list;
-//    updateGuiInfo();
-//    this->setVisible(true);
-//}
-
-//void GuiInfo::openDialog(cv::Rect *t_rect, cv::Mat *t_mat)
-//{
-//    updateGuiInfo();
-//    buttonSaveRegion->setEnabled(true);
-//    m_mat = t_mat;
-//    m_rect = t_rect;
-//    this->setVisible(true);
-////    this->show();
-
-//}
-
-void GuiInfo::openDialog()
-{
-//    updateGuiInfo();
-//    if(mp_dataSet->size() == 0) {
-//        buttonSaveRegion->setEnabled(false);
-//    } else {
-//        buttonSaveRegion->setEnabled(true);
-//        m_mat = &mp_dataSet->at(cmbBoxRegions->currentText().toStdString()).mat;
-//        m_rect = &mp_dataSet->at(cmbBoxRegions->currentText().toStdString()).rect;
-//    }
-//    this->show();
-    this->setVisible(true);
-    qDebug() << "openDialog" << this->thread->currentThreadId();
-}
-
-void GuiInfo::run()
-{
-    qDebug() << "openDialog" << this->thread->currentThreadId();
 }
 
 void GuiInfo::slotReadKey(QChar aChar)

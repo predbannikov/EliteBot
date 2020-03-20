@@ -25,8 +25,8 @@ class EngineScript : public QObject
 public:
     IOData *m_pIOData;
     explicit EngineScript(IOData *apIOData, QObject *parent = nullptr);
-    void setScript(QJsonObject script);
-    QJsonObject readAction();
+    ~EngineScript();
+    bool            cycle = true;
     bool srchAreaOnceInRect(QString as_ImageROI, QString as_rectInWhichLook);
     cv::Point getPointAfterLookAreaOnceInRect(QString as_ImageROI, QString as_rectInWhichLook);
     cv::Point getPointAfterLookAreaInRect(QString asImageROI, int anCount = 3, int anStart = 0, int anEnd = 8);
@@ -40,7 +40,6 @@ public:
 
 
     void engine();
-
     void initDisplay();
 
 
@@ -61,28 +60,28 @@ private:
     QTcpSocket      *sock;
     CaptureWindow   *capture;
     AIControl       *m_pControl;
-    bool            cycle = true;
 //    int             m_index = 0;
     QElapsedTimer   timeElapsed;
     QElapsedTimer   timeElapsedForFunc;
 
     void sendDataToSlave(QByteArray a_data);
 
-    bool menuDocking();
 
-//    void nextScript();
-//    void setScript(QString as_scriptName);
-//    void setListScript();
-//    void setListScript(QJsonArray t_jArray);
-//    void setListScript(QJsonObject t_jObj);
 public slots:
 //    void performScript(QJsonArray t_jArray);
 //    void parsePushKey(QChar ac_key);
     void update();
-    void exitEngine();
     void slotSaveImage(cv::Mat acvMat, QString asName);
     void slotEngineEnable(bool aState);
-//    void slotSetCurStation(QString asStation);
+    void slotSetCurStation(QString asStation);
+    cv::Mat slotCheckRoiMat ();
+    cv::Rect slotCheckRoiRect ();
+    void slotSetDrawLine(bool abCheck, int anCount);
+    void setMinScalar(int n1, int n2, int n3);
+    void setMaxScalar(int n1, int n2, int n3);
+    void setMinNumber(int aNumber);
+    void setMidNumber(int aNumber);
+    void setMaxNumber(int aNumber);
 signals:
     void signalOpenGui();
 };

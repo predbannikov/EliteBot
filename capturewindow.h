@@ -10,7 +10,6 @@
 #include <QScreen>
 #include "iodata.h"
 #include "displays.h"
-#include "parsingscript.h"
 #include "tesseract/baseapi.h"
 #include "leptonica/allheaders.h"
 #ifdef __WIN32__
@@ -63,7 +62,6 @@ class CaptureWindow : public  QObject, Displays
 
     bool m_bDrawLine = false;
     int findImageIndex = 0;
-    bool loop = false;
     bool draw_match_rect = false;
     bool m_flowFrame= true;
     tesseract::TessBaseAPI *myOCREng;
@@ -79,7 +77,6 @@ class CaptureWindow : public  QObject, Displays
     QStringList m_listRecord;
     QStringList m_fieldToRecord;
     cv::Point m_pointTemp;
-    StackFunk m_stack;
 
     cv::Scalar minScalar;
     cv::Scalar maxScalar;
@@ -122,6 +119,8 @@ public:
 
 
 
+    cv::Mat checkRoiMat();
+    cv::Rect checkRoiRect();
     void showRoi();
     void drawRectangles();
     void drawLines();
@@ -200,9 +199,6 @@ public slots:
 //    void sendDataToSlave(QJsonObject a_ObjData);
 
     void slotDrawMatchRect(Qt::CheckState t_state);
-    void slotSetLoop(Qt::CheckState t_state);
-    cv::Mat *slotCheckRoiMat();
-    cv::Rect *slotCheckRoiRect();
     void slotSetDrawLine(bool aCheck, int anCount);
     void setMinScalar(cv::Scalar acvMinScalar);
     void setMaxScalar(cv::Scalar acvMaxScalar);

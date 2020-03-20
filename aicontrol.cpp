@@ -1062,7 +1062,6 @@ bool AIControl::waitMSec(int anMSec)
 
 void AIControl::setCurStation(QString asStation)
 {
-    qDebug() << "Текущая станция" << asStation;
     asStation = asStation.simplified();
     asStation = asStation.toLower();
     asStation = asStation.replace(" ", "");

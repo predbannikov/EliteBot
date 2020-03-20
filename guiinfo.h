@@ -2,6 +2,7 @@
 #define GUIINFO_H
 
 #include <QWidget>
+#include <QDebug>
 #include <QBoxLayout>
 #include <QLineEdit>
 #include <QTextEdit>
@@ -19,7 +20,6 @@
 #include <QComboBox>
 #include <QThread>
 #include <QSpinBox>
-//#include "iodata.h"
 #include "enginescript.h"
 #include "global.h"
 
@@ -71,8 +71,8 @@ class GuiInfo : public QWidget
     //
     QHBoxLayout     *hblEngineControl;
     QVBoxLayout     *vboxlayout;
-    cv::Mat         *m_mat;
-    cv::Rect        *m_rect;
+//    cv::Mat         m_mat;
+//    cv::Rect        m_rect;
     QTcpSocket      *sock;
     QString         nameProject = "project";
     IOData          *m_ioData;
@@ -91,10 +91,12 @@ class GuiInfo : public QWidget
 
 public:
     explicit GuiInfo(IOData *t_ioData, QWidget *parent = nullptr);
+//    explicit GuiInfo(QWidget *parent = nullptr);
+    ~GuiInfo()override;
     void sendAllNumbData();
     void updateGuiInfo();
     void saveRoi();
-//    void loadDialog(cv::Mat t_mat);
+
     bool eventFilter(QObject *obj, QEvent *event) override {
         if(event->type() == QEvent::KeyPress) {
             QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
@@ -127,21 +129,20 @@ public:
             // standard event processing
             return QObject::eventFilter(obj, event);
         }
+        return QObject::eventFilter(obj, event);
     }
+
 private:
-
-
-
 signals:
     void signalDrawMatchRect(Qt::CheckState t_state);
     void signalSetLoop(Qt::CheckState t_state);
     void sendScriptPerform(QJsonArray);
 
     void signalDrawMesh(bool abCheck, int anCount);
-    cv::Mat *signalGetMatRoi();
-    cv::Rect *signalGetRectRoi();
-    void signalSendMinScalar(cv::Scalar acvMinScalar);
-    void signalSendMaxScalar(cv::Scalar acvMaxScalar);
+    cv::Mat signalGetMatRoi();
+    cv::Rect signalGetRectRoi();
+    void signalSendMinScalar(int n1, int n2, int n3);
+    void signalSendMaxScalar(int n1, int n2, int n3);
     void signalSendMinNumber(int nMin);
     void signalSendMidNumber(int nMid);
     void signalSendMaxNumber(int nMax);
@@ -151,9 +152,6 @@ signals:
     void closeWindow();
 public slots:
     void slotReadKey(QChar aChar);
-    //    void openDialog(cv::Rect *t_rect, cv::Mat *t_mat);
-    void openDialog();
-    void run();
 };
 
 // *************************************************************************************************************

@@ -4,7 +4,6 @@
 
 
 
-#define     WAIT_KEY_MSEC                   50
 
 #define     MIN_COEFF_FOR_FIND              0.99
 #define     MIN_COEFF_FOR_FIND_POINT        0.7
@@ -30,9 +29,7 @@ CaptureWindow::CaptureWindow(std::map<std::string, ImageROI> *ap_dataSet, int x,
     minScalar(cv::Scalar(0, 100, 100)),
     maxScalar(cv::Scalar(255, 255, 0)),
     minNumber(0),
-    maxNumber(255),
-//    maxContours(50),
-    nWaitKey(WAIT_KEY_MSEC)
+    maxNumber(255)
 {
     mp_dataSet = ap_dataSet;
 
@@ -86,6 +83,17 @@ CaptureWindow::CaptureWindow(std::map<std::string, ImageROI> *ap_dataSet, int x,
 
 }
 
+CaptureWindow::~CaptureWindow()
+{
+//    qDebug() << "begin Capture exit in destructor";
+    win.release();
+//    cvReleaseMemStorage(&storage);
+//    myOCREng->Clear();
+//    myOCREng->End();
+//    myOCRRus->Clear();
+//    myOCRRus->End();
+    qDebug() << "end Capture exit in destructor";
+}
 
 void CaptureWindow::update()
 {
@@ -113,39 +121,23 @@ void CaptureWindow::update()
 //    menuDocking();
 //    recognizDistance();
 
-
     cv::resize(win, win, win.size() / 3);
     imshow("win1", win);
-
-    int ch = cv::waitKey(nWaitKey);
-    char c = static_cast<char> (ch);
-    if(ch != 255) {
-        if(c == 27)
-            emit exitCapture();
-        else if(c == 's') {                                                 // заморозить кадр
-            m_flowFrame = m_flowFrame ? false : true;
-            win.copyTo(m_srcWin);
-        } else if(c == 'g') {
-            emit openGUI();
-        } else {
-//            sendKey(QChar(c));
-        }
-    }
 }
 
-cv::Mat *CaptureWindow::slotCheckRoiMat()
+cv::Mat CaptureWindow::checkRoiMat()
 {
-    cv::Mat *_mat = nullptr;
+    cv::Mat _mat;
     if(state.roi)
-        _mat = &matroi;
+        _mat = matroi;
     return _mat;
 }
 
-cv::Rect *CaptureWindow::slotCheckRoiRect()
+cv::Rect CaptureWindow::checkRoiRect()
 {
-    cv::Rect *_rect = nullptr;
+    cv::Rect _rect;
     if(state.roi)
-        _rect = &m_rectMap["selectROI"];
+        _rect = m_rectMap["selectROI"];
     return _rect;
 }
 
@@ -189,24 +181,6 @@ void CaptureWindow::slotDrawMatchRect(Qt::CheckState t_state)
 {
     draw_match_rect = static_cast<bool>(t_state);
 }
-
-void CaptureWindow::slotSetLoop(Qt::CheckState t_state)
-{
-    loop = static_cast<bool>(t_state);
-}
-
-CaptureWindow::~CaptureWindow()
-{
-    win.release();
-    cv::destroyAllWindows();
-//    cvReleaseMemStorage(&storage);
-//    myOCREng->Clear();
-//    myOCREng->End();
-//    myOCRRus->Clear();
-//    myOCRRus->End();
-    qDebug() << "exit in destructor CaptureWindow";
-}
-
 
 cv::Mat *CaptureWindow::getSelectMatROI()
 {
