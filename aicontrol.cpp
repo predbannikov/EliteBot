@@ -35,7 +35,7 @@ bool AIControl::smallRing()
 {
     static enum {BUILD_TRACK, AUTOSTART, PICK_UP_SPEED, FLY_TO_THE_TARGET, AIMING_ON_TARGET, ENABLE_HELP_AIM,
                  WAIT_END_HYPER_MODE, GET_CLOSER, REQ_LANDING, TO_REFUEL,
-                 STATE_TEST, WAIT} action = GET_CLOSER;
+                 STATE_TEST, WAIT} action = STATE_TEST;
 
     switch (action) {
     case BUILD_TRACK:
@@ -140,6 +140,11 @@ bool AIControl::smallRing()
     return false;
 }
 
+void AIControl::resetState()
+{
+
+}
+
 bool AIControl::test(bool &bCheck)
 {
     static enum {TRANS_1} action;
@@ -192,7 +197,7 @@ bool AIControl::serviceToRefuel()
 
 bool AIControl::makeTrack()
 {
-    static enum {PREP_TRACK, ENABLED_PANEL_1, CASE_STATION, CASE_MAKE_TARGET, /*DISAPLE_PANEL_1*/ } action;
+    static enum {PREP_TRACK, ENABLED_PANEL_1, CASE_STATION, CASE_MAKE_TARGET } action;
 
     switch (action) {
     case PREP_TRACK: {
@@ -214,7 +219,6 @@ bool AIControl::makeTrack()
     }
     case CASE_STATION: {
         if(caseStationMenuNav(m_sTarget)) {
-//            highTimer.restart();
             action = CASE_MAKE_TARGET;
             qDebug() << "CASE_STATION";
         }
@@ -225,7 +229,6 @@ bool AIControl::makeTrack()
             if(caseSubMenuNav("fix_target", checkState)) {
                 if(checkState) {
                     action = PREP_TRACK;
-                    //            action = DISAPLE_PANEL_1;
                     qDebug() << "CASE_MAKE_TARGET";
                     return true;
                 } else {
@@ -237,13 +240,6 @@ bool AIControl::makeTrack()
 
         break;
     }
-//    case DISAPLE_PANEL_1: {
-//        if(disabledPanel1()) {
-//            action = PREP_TRACK;
-//            qDebug() << "DISAPLE_PANEL_1";
-//        }
-//        return true;
-//    }
 
     }
     return false;
@@ -450,31 +446,45 @@ bool AIControl::enableHelpAim()
 
 bool AIControl::serviceMenuToFuel()
 {
-    static enum {TRANS_1, TRANS_2, TRANS_3, TRANS_4} trans ;
+    static enum {TRANS_1, TRANS_2, TRANS_3, TRANS_4, TRANS_5} trans ;
     switch (trans) {
     case TRANS_1:
-        qDebug() << "SERVICE MENU: click to fuel";
+        qDebug() << "AIControl::serviceMenuToFuel() click to fuel";
         searchImage = "rectServiceFuel";
         state = CLICK_TO_POINT;
         trans = TRANS_2;
         break;
     case TRANS_2:
-        if(waitMSec(1000)) {
+        if(waitMSec(1500)) {
             trans = TRANS_3;
         }
         break;
     case TRANS_3:
-        qDebug() << "SERVICE MENU: click to exit";
+        qDebug() << "AIControl::serviceMenuToFuel() click to exit";
         searchImage = "rectServiceExit";
         state = CLICK_TO_POINT;
         trans = TRANS_4;
         break;
-    case TRANS_4:
+    case TRANS_4: {
+        bool checkState = false;
+        if(waitMenuService(1500, checkState)) {
+            if(checkState)  {
+                qDebug() << "AIControl::serviceMenuToFuel() закрытие меню сервиса не состоялось";
+                trans = TRANS_1;
+            } else {
+                trans = TRANS_5;
+                qDebug() << "AIControl::serviceMenuToFuel() меню сервиса закрыто";
+            }
+        }
+        break;
+    }
+    case TRANS_5:
         if(waitMSec(1000)) {
             trans = TRANS_1;
             return true;
         }
         break;
+
     }
     return false;
 }
@@ -523,6 +533,7 @@ bool AIControl::waitEndHyperModeHelp(int anMSec, bool &abCheck)
         timeElapsed.restart();
         searchImage = "helpInHypModeTriangle";
         timeWaitMsec = anMSec;
+        whileWaitMsec = 9000;
         coeff = 0.70;
         nCount = 14;
         iStart = 61;
@@ -531,7 +542,7 @@ bool AIControl::waitEndHyperModeHelp(int anMSec, bool &abCheck)
         trans = TRANS_2;
         break;
     case TRANS_2:
-        timeWaitMsec = 5000;
+        timeWaitMsec = 50;
         timeElapsed.restart();
         state = WAIT_MSEC;
         trans = TRANS_3;
@@ -613,102 +624,6 @@ bool AIControl:: toLanding(int anMSec)
     return false;
 }
 
-/*
-//void AIControl::where_iam()
-//{
-//    switch (stage) {
-//    case STAGE_1:
-//        push_key = "1";
-//        state = PUSH_KEY;
-//        stage = STAGE_2;
-//        break;
-//    case STAGE_2:               // Отправляем на поиск картинки
-//        check = false;
-//        timeElapsed.restart();
-//        searchImage = "menu1_nav";
-//        timeWaitMsec = 3000;
-//        nCount = 4;
-//        iStart = 8;
-//        iEnd = 12;
-//        stage = STAGE_3;
-//        state = SEARCH_IMAGE_CONTINUOUS;
-//        break;
-//    case STAGE_3:               // Проверяем результат
-//        if(check) {
-//            qDebug() << searchImage << "this picture found";
-//            timeElapsed.restart();
-//            push_key = "q";
-//            state = PUSH_KEY;
-//            stage = STAGE_4;
-//        } else {
-//            qDebug() << "PANIC: this picture >" << searchImage << "not found";
-//            action = WAIT;
-//        }
-//        break;
-//    case STAGE_4:
-//        check = false;
-//        timeElapsed.restart();
-//        searchImage = "menu1_contact";
-//        timeWaitMsec = 3000;
-//        nCount = 3;
-//        iStart = 1;
-//        iEnd = 1;
-//        stage = STAGE_5;
-//        state = SEARCH_IMAGE_CONTINUOUS;
-//        break;
-//    case STAGE_5:
-//        stage = STAGE_6;
-//        if(check) {
-//            qDebug() << searchImage << "this picture found";
-//            timeElapsed.restart();
-//            listForSearch = m_slistStations;
-//            state = WHICH_IMAGE_MORE_SIMILAR;
-//            nCount = 5;
-//            iStart = 7;
-//            iEnd = 8;
-//        } else {
-//            qDebug() << "PANIC: this picture >" << searchImage << "not found";
-//            action = WAIT;
-//        }
-//        break;
-//    case STAGE_6:
-//        stage = STAGE_1;
-//        if(searchImage.isEmpty()) {
-//            qDebug() << "name station not detected";
-//            action = WAIT;
-//        } else {
-//            qDebug() << "Stateon:" << searchImage;
-//            m_sStation = searchImage;
-//            stage = STAGE_7;
-//            timeElapsed.restart();
-//            push_key = "e";
-//            state = PUSH_KEY;
-//        }
-//        break;
-//    case STAGE_7:
-//        check = false;
-//        timeElapsed.restart();
-//        searchImage = "menu1_nav";
-//        timeWaitMsec = 3000;
-//        nCount = 4;
-//        iStart = 8;
-//        iEnd = 12;
-//        stage = STAGE_8;
-//        state = SEARCH_IMAGE_CONTINUOUS;
-//        break;
-//    case STAGE_8:
-//        if(check) {
-//            qDebug() << searchImage << "this picture found";
-//            timeElapsed.restart();
-//            action = GET_THE_GOAL;
-//            stage = STAGE_1;
-//        } else {
-//            qDebug() << "PANIC: this picture >" << searchImage << "not found";
-//            action = WAIT;
-//        }
-//        break;
-//    }
-//}
 
 //void AIControl::build_track()
 //{
@@ -801,7 +716,7 @@ bool AIControl:: toLanding(int anMSec)
 //        break;
 //    }
 //}
-*/
+
 
 bool AIControl::enabledPanel1(QString sName)                // Включение меню с нужным разделом
 {
@@ -809,6 +724,7 @@ bool AIControl::enabledPanel1(QString sName)                // Включени�
 
     switch (trans) {
     case TRANS_1:               // Чтение состояния панели
+        qDebug() << "Считываем состояние панели 1";
         trans = TRANS_2;
         timeWaitMsec = 3000;
         timeElapsed.restart();
@@ -824,36 +740,25 @@ bool AIControl::enabledPanel1(QString sName)                // Включени�
                 return true;
             } else {
                 push_key = "e";
+                trans = TRANS_1;
+                state = PUSH_KEY;
             }
         } else {
             push_key = "1";
 //            qDebug() << "Enabled panel";
+            trans = TRANS_1;
+            state = PUSH_KEY;
         }
-        trans = TRANS_1;
-        state = PUSH_KEY;
         break;
 
     }
     return false;
 }
 
-bool AIControl::disabledPanel1()
-{
-    static enum {TRANS_1} trans ;
-    switch (trans) {
-    case TRANS_1:
-        push_key = "1";
-        state = PUSH_KEY;
-        trans = TRANS_1;
-        return true;
-    }
-}
-
 bool AIControl::takeOffIntoSpace()
 {
     static enum { MENU_DOCKING_AUTOSTART, WAIT_TAKE_OFF_INFO_SPACE} action;
     switch (action) {
-
     case MENU_DOCKING_AUTOSTART:
         if(caseMenuDocking("menu_docking_autostart")) {
 
@@ -940,7 +845,7 @@ bool AIControl::caseSubMenuNav(QString sNameSubMenu, bool &abCheck)
             qDebug() << "AIControl::caseSubMenuNav" << cursorPanel->sSubNavName << sNameSubMenu;
             int res = comparisonStr(cursorPanel->sSubNavName, sNameSubMenu);
             if(res <= 2) {
-                qDebug() << "Сравнивание прошло успешно";
+                qDebug() << "Сравнивание прошло успешно, нажимаем 'пробел'";
                 push_key = " ";
                 state = PUSH_KEY;
                 trans = TRANS_3;
@@ -1044,9 +949,11 @@ bool AIControl::caseMenuContact(QString sNameBodyMenu)                          
 
 bool AIControl::caseMenuDocking(QString sNameDockMenu)                                  // Нажать кнопку автостарт
 {
+
     static enum {TRANS_1, TRANS_2/*, TRANS_3, TRANS_4*/} trans ;
     switch (trans) {
     case TRANS_1:
+        qDebug() << "Считываем меню докинга ";
         timeWaitMsec = 3000;
         timeElapsed.restart();
         check = false;
@@ -1059,7 +966,7 @@ bool AIControl::caseMenuDocking(QString sNameDockMenu)                          
             qDebug() << "Сравниваем " << cursorPanel->sMenuDocking << sNameDockMenu;
             int res = comparisonStr(cursorPanel->sMenuDocking, sNameDockMenu);
             if(res <= 2) {
-                qDebug() << "push" << sNameDockMenu;
+                qDebug() << "нажимаем 'пробел'" << sNameDockMenu;
                 push_key = " ";
                 state = PUSH_KEY;
                 trans = TRANS_1;
@@ -1070,7 +977,8 @@ bool AIControl::caseMenuDocking(QString sNameDockMenu)                          
                 state = PUSH_KEY;
             }
         } else {
-            qDebug() << "PANIC: cursors not found menuDock";
+            qDebug() << "Считывание не удалось";
+            trans = TRANS_1;
         }
         break;
 //    case TRANS_3:
@@ -1150,5 +1058,14 @@ bool AIControl::waitMSec(int anMSec)
         return  true;
     }
     return false;
+}
+
+void AIControl::setCurStation(QString asStation)
+{
+    qDebug() << "Текущая станция" << asStation;
+    asStation = asStation.simplified();
+    asStation = asStation.toLower();
+    asStation = asStation.replace(" ", "");
+    m_sTarget = asStation;
 }
 

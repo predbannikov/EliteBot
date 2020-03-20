@@ -81,8 +81,7 @@ SOURCES += \
     enginescript.cpp \
     guiinfo.cpp \
     iodata.cpp \
-    main.cpp \
-    parsingscript.cpp
+    main.cpp
 
 HEADERS += \
     aicontrol.h \
@@ -92,8 +91,7 @@ HEADERS += \
     global.h \
     guiinfo.h \
     iodata.h \
-    main.h \
-    parsingscript.h
+    main.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

@@ -14,8 +14,6 @@ EngineScript::EngineScript(QObject *parent) : QObject(parent)
 
 
 
-//    m_pointOffsetScreen = QPoint(STANDART_FULLHD_WIDTH, -STANDART_FULLHD_HEIGHT);
-//    capture = new CaptureWindow(mp_dataSet, STANDART_FUL111LHD_WIDTH + 1, -STANDART_FULLHD_HEIGHT, USING_WIDTH, USING_HEIGHT, this);
     m_pointOffsetScreen = QPoint( m_screen.x(), m_screen.y());
     capture = new CaptureWindow(mp_dataSet, m_screen.x(), m_screen.y(), m_screen.width(), m_screen.height(), this);
     m_pControl = new AIControl;
@@ -44,6 +42,10 @@ EngineScript::EngineScript(QObject *parent) : QObject(parent)
         connect(capture, &CaptureWindow::exitCapture, this, &EngineScript::exitEngine);
 
 
+        connect(ginfo, &GuiInfo::signalEngineEnable, this, &EngineScript::slotEngineEnable);
+//        connect(ginfo, &GuiInfo::signalEngineSetCurStation, this, &EngineScript::slotSetCurStation);
+        connect(ginfo, &GuiInfo::signalEngineSetCurStation, m_pControl, &AIControl::setCurStation);
+
         // for debug
         connect(capture, &CaptureWindow::signalSaveImageForDebug, this, &EngineScript::slotSaveImage);
     } else  {
@@ -59,9 +61,22 @@ EngineScript::EngineScript(QObject *parent) : QObject(parent)
 
     timeElapsedForFunc.start();
 
-    ginfo->openDialog();
-    ginfo->move(1280, 550);
-    ginfo->sendAllNumbData();
+    connect(this, &EngineScript::signalOpenGui, ginfo, &GuiInfo::openDialog);
+
+
+//    ginfo->openDialog();
+//    ginfo->move(1280, 550);
+//    ginfo->sendAllNumbData();
+
+//    threadGui = new QThread;
+//    connect(threadGui, &QThread::started, ginfo, &GuiInfo::run);
+//    connect(threadGui, &QThread::isFinished, threadGui, &GuiInfo::deleteLater);
+//    connect(threadGui, &QThread::isFinished, ginfo, &GuiInfo::deleteLater);
+//    ginfo->moveToThread(threadGui);
+//    threadGui->start();
+//    QThread::msleep(100);
+    //    qDebug() << "engine" << this->thread()->currentThreadId();
+    emit signalOpenGui();
 }
 
 void EngineScript::engine()
@@ -73,16 +88,9 @@ void EngineScript::engine()
         case DEBUG_STATE:
             break;
         case RESTOR_GAME: {
-            mouse_move_click(cv::Point(100, 100));
-//            QJsonObject _jMsgToSend;
-//            _jMsgToSend["target"] = "mouse";
-//            _jMsgToSend["method"] = "move_click";
-//            _jMsgToSend["code"] = "BTN_LEFT";
-//            _jMsgToSend["x"] = 2100;
-//            _jMsgToSend["y"] = m_screen.height() + 150;
-//            sendDataToSlave(QJsonDocument(_jMsgToSend).toJson());           // Активировать окно справа сверху
-//            _jMsgToSend = QJsonObject();
+            mouse_move_click(cv::Point(m_screen.width()/2, m_screen.height()/2));
             QThread::msleep(50);
+            mouse_move_click(cv::Point(m_screen.width()/2, m_screen.height()/2));
             m_pControl->state = AICONTROL;
             break;
         }
@@ -98,7 +106,7 @@ void EngineScript::engine()
             m_pControl->state = AICONTROL;
             break;
         case RELEASE_KEY:
-            press_key();
+            release_key();
             m_pControl->state = AICONTROL;
             break;
         case SEARCH_IMAGE_CONTINUOUS:
@@ -116,22 +124,20 @@ void EngineScript::engine()
         }
         case WHILE_IMAGE_CONTINUOUS:
         {
-            static int accum = 0;
+            static qint64 lastElapse = 0;
             qint64 elaps = m_pControl->timeElapsed.elapsed();
             if(elaps < m_pControl->timeWaitMsec) {
                 if(!srchAreaOnceInPart(m_pControl->searchImage, m_pControl->nCount, m_pControl->iStart, m_pControl->iEnd, m_pControl->coeff)) {
-                    if(accum == 10) {
-                        accum = 0;
+                    if(m_pControl->timeElapsed.elapsed() - lastElapse > m_pControl->whileWaitMsec) {
                         m_pControl->check = true;
                         m_pControl->state = AICONTROL;
                     }
-                    qDebug() << "image hide" << accum;
-                    accum++;
+                    qDebug() << "pattern image hide" << lastElapse;
                 } else {
-                    accum = 0;
+                    lastElapse = m_pControl->timeElapsed.elapsed();
                 }
             } else {
-                accum = 0;
+                lastElapse = 0;
                 m_pControl->check = false;
                 m_pControl->state = AICONTROL;
             }
@@ -246,7 +252,7 @@ void EngineScript::engine()
                     press_key("w");
                     approach = true;
                 }
-                if(elaps > 6000) {
+                if(elaps > 4000) {
                     release_key("w");
                     approach = true;
                     for(int i = 0; i < 5; i++) {
@@ -322,8 +328,8 @@ void EngineScript::engine()
                 // Вычисление угла между двумя векторами
                 cv::Point a(compass->pCenter.x - compass->pDot.x, compass->pCenter.y - compass->pDot.y);
                 cv::Point b(0, 1);
-#define SPEED_COMPAS_Y      250
-#define SPEED_COMPAS_ROT    250
+#define SPEED_COMPAS_Y      200
+#define SPEED_COMPAS_ROT    200
                 double radius = sqrt(pow(dx,2) + pow(dy, 2));
 
                 double atan_a = atan2(a.x * b.y - b.x * a.y, a.x * b.x + a.y * b.y);
@@ -348,7 +354,7 @@ void EngineScript::engine()
                         }
                     rotate = true;
                 }
-                if(grad < 20 && grad > -20)
+                if(grad > -15 && grad < 15)
                     if(!pickdownX) {
                         powerX *= -1;
                         move_mouse_rel(powerX, 0);
@@ -386,6 +392,10 @@ void EngineScript::engine()
                 if(pickdownX && pickdownY)
                 {
                     qDebug() << "success compass" ;
+                    QThread::msleep(30);
+                    push_key(" ");
+                    QThread::msleep(30);
+
                     pickdownX = false;
                     pickdownY = false;
                     pickup = false;
@@ -538,6 +548,7 @@ void EngineScript::engine()
                         seekX = dx / abs(dx);
                         qDebug() << "START Y X move" << dy << seekY;
                         move_mouse_rel(0, seekY);
+                        QThread::msleep(30);
                         pickup = true;
                         if(dx > 0) {
                             press_key("a");
@@ -550,7 +561,6 @@ void EngineScript::engine()
                         }
 
                     }
-                    qDebug() << dx;
                     if(seekX > 0 && !pickdownX) {
                         if(dx < 25)
                         {
@@ -586,6 +596,7 @@ void EngineScript::engine()
 
                             }
                     }
+                    qDebug() << "dx =" << dx << " dy =" << dy;
 
 
                 if(pickdownX && pickdownY)
@@ -699,14 +710,6 @@ cv::Point EngineScript::getPointAfterLookAreaInRect(QString asImageROI, int anCo
         return capture->getPointAfterLookAreaInRect(asImageROI.toStdString(), cvRect);
     return cv::Point();
 }
-
-//bool EngineScript::srchAreaOnceInPart(QString as_imageROI, int anXCount, int anYCount, int anXStart, int anYStart, int anXEnd, int anYEnd)
-//{
-//    cv::Rect cvRect = calcRectFromPart(anXCount, anYCount, anXStart, anYStart, anXEnd, anYEnd);
-//    if(mp_dataSet->find(as_imageROI.toStdString()) != mp_dataSet->end())
-//        return capture->srchAreaOnceInRect(as_imageROI.toStdString(), cvRect);
-//    return false;
-//}
 
 bool EngineScript::srchAreaOnceInPart(QString as_imageROI, int anCount, int anStart, int anEnd, double coeff)
 {
@@ -853,12 +856,6 @@ void EngineScript::typingText()
         sendDataToSlave(QJsonDocument(jMsg).toJson());
         QThread::msleep(35);
     }
-//    QJsonObject jMsg;
-//    jMsg["target"] = "keyboard";
-//    jMsg["method"] = "push_f";
-//    jMsg["f_code"] = "ENTER";
-//    QThread::msleep(50);
-    //    sendDataToSlave(QJsonDocument(jMsg).toJson());
 }
 
 void EngineScript::move_mouse_rel(int x, int y)
@@ -897,94 +894,11 @@ bool EngineScript::menuDocking()
     return capture->menuDocking()->activeMenuDocking;
 }
 
-//void EngineScript::nextScript()
-//{
-//    timeElapsed.restart();
-//    m_index = m_listScript[m_index]["index"].toInt() + 1;
-//    //    m_rectMap.erase("rectMatch");
-
-//}
-
-//void EngineScript::setScript(QString as_scriptName)
-//{
-////    qDebug() << "switch script:" << as_scriptName;
-//    QJsonArray *m_arrayScript = mp_ioData->assignpScript(as_scriptName);
-//    setListScript(*m_arrayScript);
-//    m_index = 0;
-//}
-
-//void EngineScript::setListScript()
-//{
-//    m_listScript.clear();
-//    QJsonArray *arrayScript = mp_ioData->assignpScript();
-//    for(QJsonValue jValue: *arrayScript) {
-//        m_listScript.insert(jValue.toObject()["index"].toInt(), jValue.toObject());
-//    }
-//}
-
-//void EngineScript::setListScript(QJsonArray t_jArray)
-//{
-//    m_listScript.clear();
-//    for(QJsonValue jValue: t_jArray) {
-//        m_listScript.insert(jValue.toObject()["index"].toInt(), jValue.toObject());
-//    }
-//}
-
-//void EngineScript::setListScript(QJsonObject t_jObj)
-//{
-//    m_listScript.clear();
-//    m_listScript.insert(t_jObj["index"].toInt(), t_jObj);
-//}
-
 void EngineScript::update()
 {
 
-
     engine();
-//    setListScript();
-//    m_index = 0;
-//    while(cycle) {
-//        QJsonObject jObj = m_listScript[m_index];
-//        if(jObj["action"].toString() == "srchAreaOnceInRect") {
-//            if(srchAreaOnceInRect(jObj["roi"].toString(), jObj["xrect"].toString())) {
-//                qDebug() << "hit the target";
-////                setScript(jObj["next_script"].toString());
-//            } else {
-////                qDebug() << "missed the mark";
-////                nextScript();
-//            }
-//        } else if(jObj["action"].toString() == "srchAreaInRectAndCheck") {
-//            cv::Point _p = getPointAfterLookAreaOnceInRect(jObj["roi"].toString(), jObj["xrect"].toString());
-//                qDebug() << "hit the target";
-////                setScript(jObj["next_script"].toString());
-//                //                    _jMsgToSend["target"] = "mouse";
-//                //                    _jMsgToSend["method"] = "move_click";
-//                //                    _jMsgToSend["code"] = "BTN_LEFT";
-//                //                    _jMsgToSend["x"] = _point.x + m_dataSet->at(m_listScript[m_index]["roi"].toString().toStdString()).mat.cols / 2;
-//                //                    _jMsgToSend["y"] = _point.y + m_dataSet->at(m_listScript[m_index]["roi"].toString().toStdString()).mat.rows / 2;
 
-//        } else if(jObj["action"].toString() == "switchScript") {
-//            setScript(jObj["next_script"].toString());
-//        } else if(jObj["action"].toString() == "sendKeyAndWaitRectArea") {
-//            if(_jMsgToSend.isEmpty()) {
-//                _jMsgToSend["target"] = "keyboard";
-//                _jMsgToSend["method"] = "push_key";
-//                _jMsgToSend["code"] = jObj["code"];
-//                sendDataToSlave(QJsonDocument(_jMsgToSend).toJson());
-//                timeElapsedForFunc.start();
-//            } else {
-
-//                cv::Rect cvRect = calcRectFromPartOfIndex(10, 12, 87);
-//                capture->addDrawRect(cvRect);
-//                if(timeElapsedForFunc.elapsed() > jObj["waitMsec"].toInt()) {
-//                    setScript(jObj["next_script"].toString());
-//                    qDebug() << "hit the target";
-//                    _jMsgToSend = QJsonObject();
-//                }
-//            }
-//        }
-//        capture->update();
-//    }
 }
 
 void EngineScript::openGUI()
@@ -1007,13 +921,19 @@ void EngineScript::slotSaveImage(cv::Mat acvMat, QString asName)
     mp_ioData->saveImageForDebug(acvMat, asName);
 }
 
-//void EngineScript::performScript(QJsonArray t_jArray)
+void EngineScript::slotEngineEnable(bool aState)
+{
+    if(aState) {
+        m_pControl->state = RESTOR_GAME;
+        qDebug() << "restor game";
+    } else {
+        m_pControl->state = DEBUG_STATE;
+        qDebug() << "debug state";
+    }
+}
+
+//void EngineScript::slotSetCurStation(QString asStation)
 //{
-//    m_index = 0;
-//    setListScript(t_jArray);
+//    qDebug() << asStation;
 //}
 
-//void EngineScript::parsePushKey(QChar ac_key)
-//{
-
-//}

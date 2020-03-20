@@ -27,6 +27,7 @@ GuiInfo::GuiInfo(IOData *t_ioData, QWidget *parent) : QWidget(parent)
     vboxlayout->addLayout(hboxProjects);
     vboxlayout->addLayout(hboxRegion);
     vboxlayout->addLayout(hboxManipulation);
+    vboxlayout->addLayout(hblEngineControl);
     vboxlayout->addLayout(hblSlider);
     vboxlayout->addWidget(sliderMaxContours);
 
@@ -173,6 +174,34 @@ void GuiInfo::initLayoutManipulation()
     hboxManipulation->addWidget(chckBoxDrawMesh);
     hboxManipulation->addWidget(spboxCountCell);
     spboxCountCell->setValue(4);
+    connect(chckBoxDrawMesh, &QCheckBox::stateChanged, [this] () {
+        emit signalDrawMesh(chckBoxDrawMesh->checkState(), spboxCountCell->value());
+    });
+    connect(spboxCountCell, qOverload<const int>(&QSpinBox::valueChanged), [this] (int aValue) {
+        emit signalDrawMesh(chckBoxDrawMesh->checkState(), aValue);
+    });
+
+    connect(buttonCheckRoi, &QPushButton::clicked, [this] () {
+        QJsonArray _jArray;
+        QJsonObject _jObj;
+        _jObj["index"] = 0;
+        _jArray.append(_jObj);
+        emit sendScriptPerform(_jArray);
+    });
+    connect(buttonCheckXRoi, &QPushButton::clicked, [this] () {
+        QJsonArray _jArray;
+        QJsonObject _jObj;
+        _jObj["index"] = 0;
+        _jArray.append(_jObj);
+        emit sendScriptPerform(_jArray);
+    });
+    connect(buttonCheckXRect, &QPushButton::clicked, [this] () {
+        QJsonArray _jArray;
+        QJsonObject _jObj;
+        _jObj["index"] = 0;
+        _jArray.append(_jObj);
+        emit sendScriptPerform(_jArray);
+    });
 
     sliderMin1 = new QSlider(Qt::Horizontal, this);
     sliderMin2 = new QSlider(Qt::Horizontal, this);
@@ -232,6 +261,9 @@ void GuiInfo::initLayoutManipulation()
         emit signalSendMaxNumber(anValue);
     });
 
+
+
+
     vblMinSlider = new QVBoxLayout;
     vblMinSlider->addWidget(sliderMin1);
     vblMinSlider->addWidget(sliderMin2);
@@ -248,34 +280,25 @@ void GuiInfo::initLayoutManipulation()
     hblSlider->addLayout(vblMaxSlider);
 
 
-    connect(chckBoxDrawMesh, &QCheckBox::stateChanged, [this] () {
-        emit signalDrawMesh(chckBoxDrawMesh->checkState(), spboxCountCell->value());
+
+
+    chckBoxEngine = new QCheckBox("Включить");
+    connect(chckBoxEngine, &QCheckBox::stateChanged, [this] (bool aState) {
+        emit signalEngineEnable(aState);
     });
-    connect(spboxCountCell, qOverload<const int>(&QSpinBox::valueChanged), [this] (int aValue) {
-        emit signalDrawMesh(chckBoxDrawMesh->checkState(), aValue);
+    cmbCurStation = new QComboBox;
+    QStringList list;
+    list << "Gabriel enterprise" << "Celebi city";
+    cmbCurStation->addItems(list);
+    connect(cmbCurStation, qOverload<const QString &>(&QComboBox::activated), [this] (const QString asItem) {
+        emit signalEngineSetCurStation(asItem);
     });
 
-    connect(buttonCheckRoi, &QPushButton::clicked, [this] () {
-        QJsonArray _jArray;
-        QJsonObject _jObj;
-        _jObj["index"] = 0;
-        _jArray.append(_jObj);
-        emit sendScriptPerform(_jArray);
-    });
-    connect(buttonCheckXRoi, &QPushButton::clicked, [this] () {
-        QJsonArray _jArray;
-        QJsonObject _jObj;
-        _jObj["index"] = 0;
-        _jArray.append(_jObj);
-        emit sendScriptPerform(_jArray);
-    });
-    connect(buttonCheckXRect, &QPushButton::clicked, [this] () {
-        QJsonArray _jArray;
-        QJsonObject _jObj;
-        _jObj["index"] = 0;
-        _jArray.append(_jObj);
-        emit sendScriptPerform(_jArray);
-    });
+
+    hblEngineControl = new QHBoxLayout;
+    hblEngineControl->addWidget(chckBoxEngine);
+    hblEngineControl->addWidget(cmbCurStation);
+
 }
 
 
@@ -337,16 +360,16 @@ void GuiInfo::saveRoi()
 //    this->setVisible(true);
 //}
 
-void GuiInfo::openDialog(cv::Rect *t_rect, cv::Mat *t_mat)
-{
-    updateGuiInfo();
-    buttonSaveRegion->setEnabled(true);
-    m_mat = t_mat;
-    m_rect = t_rect;
-    this->setVisible(true);
-//    this->show();
+//void GuiInfo::openDialog(cv::Rect *t_rect, cv::Mat *t_mat)
+//{
+//    updateGuiInfo();
+//    buttonSaveRegion->setEnabled(true);
+//    m_mat = t_mat;
+//    m_rect = t_rect;
+//    this->setVisible(true);
+////    this->show();
 
-}
+//}
 
 void GuiInfo::openDialog()
 {
@@ -360,6 +383,12 @@ void GuiInfo::openDialog()
 //    }
 //    this->show();
     this->setVisible(true);
+    qDebug() << "openDialog" << this->thread()->currentThreadId();
+}
+
+void GuiInfo::run()
+{
+    qDebug() << "openDialog" << this->thread()->currentThreadId();
 }
 
 void GuiInfo::closeEvent(QCloseEvent *event)

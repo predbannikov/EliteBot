@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QJsonObject>
 #include <QMessageBox>
+#include <QThread>
 #include <QEvent>
 #include "capturewindow.h"
 #include "guiinfo.h"
@@ -42,6 +43,9 @@ public:
     void engine();
 
     void initDisplay();
+
+
+    QThread *threadGui;
 private:
     std::map<std::string, ImageROI> *mp_dataSet;
     QList<QJsonObject> m_listScript;
@@ -81,9 +85,10 @@ public slots:
     void openGUI();
     void exitEngine();
     void slotSaveImage(cv::Mat acvMat, QString asName);
-
+    void slotEngineEnable(bool aState);
+//    void slotSetCurStation(QString asStation);
 signals:
-
+    void signalOpenGui();
 };
 
 

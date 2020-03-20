@@ -20,6 +20,10 @@
 #define     PATH_LOG            ".\\log"
 #define     PATH_CONFIG_DISPLAY ".\\config\\display.json"
 
+#define     DEBUG1               0
+#define     DEBUG2               1
+
+
 
 enum SYS_STATE{ DEBUG_STATE, RESTOR_GAME, AICONTROL, PUSH_KEY, PRESS_KEY, RELEASE_KEY, SEARCH_IMAGE_CONTINUOUS, WHILE_IMAGE_CONTINUOUS, WHICH_IMAGE_MORE_SIMILAR, CLICK_POINT_IMAGE_AFTER_LOOK,
                 TRANS_MENU_DOCKING,
@@ -37,6 +41,7 @@ public:
     bool roi = false;
 };
 
+extern bool state_debug;
 
 extern QRect  m_screen;
 

@@ -17,6 +17,7 @@
 #include <QLabel>
 #include <QSpacerItem>
 #include <QComboBox>
+#include <QThread>
 #include <QSpinBox>
 #include "iodata.h"
 #include "global.h"
@@ -62,8 +63,12 @@ class GuiInfo : public QWidget
     QSlider         *sliderMaxContours;
 
 
+//  Engine control
+    QCheckBox       *chckBoxEngine;
+    QComboBox       *cmbCurStation;
 
     //
+    QHBoxLayout     *hblEngineControl;
     QVBoxLayout     *vboxlayout;
     cv::Mat         *m_mat;
     cv::Rect        *m_rect;
@@ -86,8 +91,6 @@ public:
     void updateGuiInfo();
     void saveRoi();
 //    void loadDialog(cv::Mat t_mat);
-    void openDialog(cv::Rect *t_rect, cv::Mat *t_mat);
-    void openDialog();
     bool eventFilter(QObject *obj, QEvent *event) override {
         if(event->type() == QEvent::KeyPress) {
             QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
@@ -140,9 +143,14 @@ signals:
     void signalSendMidNumber(int nMid);
     void signalSendMaxNumber(int nMax);
     void signalSendMaxContourForLength(int i);
+    void signalEngineEnable(bool aState);
+    void signalEngineSetCurStation(QString asStation);
     void closeWindow();
 public slots:
     void slotReadKey(QChar aChar);
+    //    void openDialog(cv::Rect *t_rect, cv::Mat *t_mat);
+    void openDialog();
+    void run();
 };
 
 // *************************************************************************************************************
