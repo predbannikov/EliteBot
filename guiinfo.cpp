@@ -13,16 +13,13 @@ GuiInfo::GuiInfo(IOData *t_ioData, QWidget *parent) : QWidget(parent)
 
 
 
-
-
-
-
     // layouts
     vboxlayout = new QVBoxLayout;
     setLayout(vboxlayout);
     initLayoutProjects();
     initLayoutRegion();
     initLayoutManipulation();
+    updateGuiInfo();
 
     installEventFilter(this);
 
@@ -41,9 +38,6 @@ GuiInfo::GuiInfo(IOData *t_ioData, QWidget *parent) : QWidget(parent)
     vboxlayout->addLayout(hblEngineControl);
     vboxlayout->addLayout(hblSlider);
     vboxlayout->addWidget(sliderMaxContours);
-
-
-
 
 
 
@@ -71,15 +65,8 @@ GuiInfo::GuiInfo(IOData *t_ioData, QWidget *parent) : QWidget(parent)
     connect(thread, &QThread::started, engine, &EngineScript::update);
     thread->start();
 
-    updateGuiInfo();
-
-
-
 
     this->sendAllNumbData();
-
-
-
 }
 
 GuiInfo::~GuiInfo()

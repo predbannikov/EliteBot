@@ -92,7 +92,7 @@ CaptureWindow::~CaptureWindow()
 //    myOCREng->End();
 //    myOCRRus->Clear();
 //    myOCRRus->End();
-    qDebug() << "end Capture exit in destructor";
+    qDebug() << "end Capture exit";
 }
 
 void CaptureWindow::update()
@@ -121,7 +121,7 @@ void CaptureWindow::update()
 //    menuDocking();
 //    recognizDistance();
 
-    cv::resize(win, win, win.size() / 3);
+    cv::resize(win, win, win.size() / 2);
     imshow("win1", win);
 }
 
