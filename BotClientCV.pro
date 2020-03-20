@@ -82,6 +82,7 @@ SOURCES += \
     enginescript.cpp \
     guiinfo.cpp \
     iodata.cpp \
+    lowlvlenginescript.cpp \
     main.cpp
 
 HEADERS += \
@@ -92,6 +93,7 @@ HEADERS += \
     global.h \
     guiinfo.h \
     iodata.h \
+    lowlvlenginescript.h \
     main.h
 
 # Default rules for deployment.
