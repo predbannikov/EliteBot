@@ -87,7 +87,9 @@ int main(int argc, char *argv[])
 
     qInstallMessageHandler(myMessageOutput);
 
-
+    IOData *pIOData = new IOData();
+    GuiInfo *pGui = new GuiInfo(pIOData);
+    pGui->show();
 
 
 //    cv::Mat mat = cv::imread("F:/projects/work/elite/autoClickerOnOpenCV/1.jpg", cv::IMREAD_COLOR);

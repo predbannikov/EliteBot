@@ -7,7 +7,6 @@
 #include <QThread>
 #include <QEvent>
 #include "capturewindow.h"
-#include "guiinfo.h"
 #include "global.h"
 #include "iodata.h"
 #include "aicontrol.h"
@@ -24,8 +23,8 @@ class EngineScript : public QObject
     QJsonObject script;
     QPoint m_pointOffsetScreen;
 public:
-    IOData *mp_ioData;
-    explicit EngineScript(QObject *parent = nullptr);
+    IOData *m_pIOData;
+    explicit EngineScript(IOData *apIOData, QObject *parent = nullptr);
     void setScript(QJsonObject script);
     QJsonObject readAction();
     bool srchAreaOnceInRect(QString as_ImageROI, QString as_rectInWhichLook);
@@ -45,7 +44,6 @@ public:
     void initDisplay();
 
 
-    QThread *threadGui;
 private:
     std::map<std::string, ImageROI> *mp_dataSet;
     QList<QJsonObject> m_listScript;
@@ -62,7 +60,6 @@ private:
 
     QTcpSocket      *sock;
     CaptureWindow   *capture;
-    GuiInfo         *ginfo;
     AIControl       *m_pControl;
     bool            cycle = true;
 //    int             m_index = 0;
@@ -82,7 +79,6 @@ public slots:
 //    void performScript(QJsonArray t_jArray);
 //    void parsePushKey(QChar ac_key);
     void update();
-    void openGUI();
     void exitEngine();
     void slotSaveImage(cv::Mat acvMat, QString asName);
     void slotEngineEnable(bool aState);

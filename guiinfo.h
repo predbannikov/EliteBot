@@ -19,7 +19,8 @@
 #include <QComboBox>
 #include <QThread>
 #include <QSpinBox>
-#include "iodata.h"
+//#include "iodata.h"
+#include "enginescript.h"
 #include "global.h"
 
 class GuiInfo : public QWidget
@@ -73,8 +74,8 @@ class GuiInfo : public QWidget
     cv::Mat         *m_mat;
     cv::Rect        *m_rect;
     QTcpSocket      *sock;
-    QString nameProject = "project";
-    IOData *m_ioData;
+    QString         nameProject = "project";
+    IOData          *m_ioData;
     std::map<std::string, ImageROI> *mp_dataSet;
     bool contains(std::string t_name);
     void initInfoDataRegion();
@@ -83,6 +84,9 @@ class GuiInfo : public QWidget
     void initLayoutRegion();
     void initLayoutManipulation();
 //    void loadDataSet();
+
+    QThread         *thread;
+    EngineScript    *engine;
 
 
 public:
@@ -125,7 +129,6 @@ public:
         }
     }
 private:
-    void closeEvent(QCloseEvent *event) override;
 
 
 

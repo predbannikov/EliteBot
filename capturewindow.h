@@ -8,7 +8,6 @@
 #include <QJsonDocument>
 #include <QElapsedTimer>
 #include <QScreen>
-#include "guiinfo.h"
 #include "iodata.h"
 #include "displays.h"
 #include "parsingscript.h"

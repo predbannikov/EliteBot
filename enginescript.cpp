@@ -4,11 +4,11 @@
 QRect  m_screen;
 
 
-EngineScript::EngineScript(QObject *parent) : QObject(parent)
+EngineScript::EngineScript(IOData *apIOData, QObject *parent) : QObject(parent)
 {
 
-    mp_ioData = new IOData;
-    mp_dataSet = mp_ioData->assignpDataSet();
+    m_pIOData = apIOData;
+    mp_dataSet = m_pIOData->assignpDataSet();
 
     initDisplay();
 
@@ -18,33 +18,27 @@ EngineScript::EngineScript(QObject *parent) : QObject(parent)
     capture = new CaptureWindow(mp_dataSet, m_screen.x(), m_screen.y(), m_screen.width(), m_screen.height(), this);
     m_pControl = new AIControl;
 
-    if(mp_ioData->prepWorkPath()) {
+    if(m_pIOData->prepWorkPath()) {
         std::cout << "load success" << std::endl;
-        ginfo = new GuiInfo(mp_ioData);
-//        connect(ginfo, &GuiInfo::sendScriptPerform, this, &EngineScript::performScript);
 
-        connect(ginfo, &GuiInfo::signalGetMatRoi, capture, &CaptureWindow::slotCheckRoiMat);
-        connect(ginfo, &GuiInfo::signalGetRectRoi, capture, &CaptureWindow::slotCheckRoiRect);
-        connect(ginfo, &GuiInfo::signalDrawMatchRect, capture, &CaptureWindow::slotDrawMatchRect);
-        connect(ginfo, &GuiInfo::signalDrawMesh, capture, &CaptureWindow::slotSetDrawLine);
-        connect(ginfo, &GuiInfo::signalSetLoop, capture, &CaptureWindow::slotSetLoop);
-        connect(ginfo, &GuiInfo::signalSendMinScalar, capture, &CaptureWindow::setMinScalar);
-        connect(ginfo, &GuiInfo::signalSendMaxScalar, capture, &CaptureWindow::setMaxScalar);
-        connect(ginfo, &GuiInfo::signalSendMinNumber, capture, &CaptureWindow::setMinNumber);
-        connect(ginfo, &GuiInfo::signalSendMidNumber, capture, &CaptureWindow::setMidNumber);
-        connect(ginfo, &GuiInfo::signalSendMaxNumber, capture, &CaptureWindow::setMaxNumber);
-//        connect(capture, &CaptureWindow::sendKey, ginfo, &GuiInfo::slotReadKey);
-//        connect(ginfo, &GuiInfo::signalSendMaxContourForLength, capture, &CaptureWindow::slotSetMaxContourForLength);
+//        connect(ginfo, &GuiInfo::signalGetMatRoi, capture, &CaptureWindow::slotCheckRoiMat);
+//        connect(ginfo, &GuiInfo::signalGetRectRoi, capture, &CaptureWindow::slotCheckRoiRect);
+//        connect(ginfo, &GuiInfo::signalDrawMatchRect, capture, &CaptureWindow::slotDrawMatchRect);
+//        connect(ginfo, &GuiInfo::signalDrawMesh, capture, &CaptureWindow::slotSetDrawLine);
+//        connect(ginfo, &GuiInfo::signalSetLoop, capture, &CaptureWindow::slotSetLoop);
+//        connect(ginfo, &GuiInfo::signalSendMinScalar, capture, &CaptureWindow::setMinScalar);
+//        connect(ginfo, &GuiInfo::signalSendMaxScalar, capture, &CaptureWindow::setMaxScalar);
+//        connect(ginfo, &GuiInfo::signalSendMinNumber, capture, &CaptureWindow::setMinNumber);
+//        connect(ginfo, &GuiInfo::signalSendMidNumber, capture, &CaptureWindow::setMidNumber);
+//        connect(ginfo, &GuiInfo::signalSendMaxNumber, capture, &CaptureWindow::setMaxNumber);
 
 
-
-        connect(capture, &CaptureWindow::openGUI, this, &EngineScript::openGUI);
+//        connect(capture, &CaptureWindow::openGUI, this, &EngineScript::openGUI);
         connect(capture, &CaptureWindow::exitCapture, this, &EngineScript::exitEngine);
 
 
-        connect(ginfo, &GuiInfo::signalEngineEnable, this, &EngineScript::slotEngineEnable);
-//        connect(ginfo, &GuiInfo::signalEngineSetCurStation, this, &EngineScript::slotSetCurStation);
-        connect(ginfo, &GuiInfo::signalEngineSetCurStation, m_pControl, &AIControl::setCurStation);
+//        connect(ginfo, &GuiInfo::signalEngineEnable, this, &EngineScript::slotEngineEnable);
+//        connect(ginfo, &GuiInfo::signalEngineSetCurStation, m_pControl, &AIControl::setCurStation);
 
         // for debug
         connect(capture, &CaptureWindow::signalSaveImageForDebug, this, &EngineScript::slotSaveImage);
@@ -61,7 +55,6 @@ EngineScript::EngineScript(QObject *parent) : QObject(parent)
 
     timeElapsedForFunc.start();
 
-    connect(this, &EngineScript::signalOpenGui, ginfo, &GuiInfo::openDialog);
 
 
 //    ginfo->openDialog();
@@ -901,14 +894,6 @@ void EngineScript::update()
 
 }
 
-void EngineScript::openGUI()
-{
-//    if(capture->checkRectName("selectROI"))
-//        ginfo->openDialog(capture->getNamedRect("selectROI"), capture->getSelectMatROI());
-//    else
-        ginfo->openDialog();
-}
-
 void EngineScript::exitEngine()
 {
     qDebug() << "slot exit enginer";
@@ -918,7 +903,7 @@ void EngineScript::exitEngine()
 
 void EngineScript::slotSaveImage(cv::Mat acvMat, QString asName)
 {
-    mp_ioData->saveImageForDebug(acvMat, asName);
+    m_pIOData->saveImageForDebug(acvMat, asName);
 }
 
 void EngineScript::slotEngineEnable(bool aState)

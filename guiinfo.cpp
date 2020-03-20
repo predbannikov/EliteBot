@@ -37,6 +37,13 @@ GuiInfo::GuiInfo(IOData *t_ioData, QWidget *parent) : QWidget(parent)
 
     updateGuiInfo();
 
+    thread = new QThread;
+    engine = new EngineScript(m_ioData);
+    engine->moveToThread(thread);
+    connect(thread, &QThread::finished, engine, &QObject::deleteLater);
+    connect(thread, &QThread::started, engine, &EngineScript::update);
+    thread->start();
+
 }
 
 void GuiInfo::sendAllNumbData()
@@ -383,18 +390,12 @@ void GuiInfo::openDialog()
 //    }
 //    this->show();
     this->setVisible(true);
-    qDebug() << "openDialog" << this->thread()->currentThreadId();
+    qDebug() << "openDialog" << this->thread->currentThreadId();
 }
 
 void GuiInfo::run()
 {
-    qDebug() << "openDialog" << this->thread()->currentThreadId();
-}
-
-void GuiInfo::closeEvent(QCloseEvent *event)
-{
-    event->ignore();
-    this->setVisible(false);
+    qDebug() << "openDialog" << this->thread->currentThreadId();
 }
 
 void GuiInfo::slotReadKey(QChar aChar)
