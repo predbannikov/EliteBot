@@ -1,5 +1,5 @@
 #include <iostream>
-#include "enginescript.h"
+#include "guiinfo.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <QTextCodec>
@@ -88,21 +88,14 @@ int main(int argc, char *argv[])
     qInstallMessageHandler(myMessageOutput);
 
 
-    EngineScript *engine = new EngineScript(&a);
-    key_filter kf(&a);
-    a.installEventFilter(&kf);
-
 
 
 //    cv::Mat mat = cv::imread("F:/projects/work/elite/autoClickerOnOpenCV/1.jpg", cv::IMREAD_COLOR);
 //    cv::imwrite("2.jpg", mat);
 //    cv::imshow("win2", mat);
 
-//    cv::createButton("button1", callbackButton1, capture, CV_PUSH_BUTTON, false);
 
-    QTimer::singleShot(1, [engine]() -> void {
-        engine->update();
-    });
+
     return a.exec();
 
 }
