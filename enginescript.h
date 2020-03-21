@@ -45,7 +45,6 @@ public:
 
 private:
     std::map<std::string, ImageROI> *mp_dataSet;
-    QList<QJsonObject> m_listScript;
     void push_key();
     void push_key(QString aChar);
     void press_key(QString aChar);

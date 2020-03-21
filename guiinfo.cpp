@@ -58,8 +58,6 @@ GuiInfo::GuiInfo(IOData *t_ioData, QWidget *parent) : QWidget(parent)
 
 
 
-
-
     engine->moveToThread(thread);
     connect(thread, &QThread::finished, engine, &QObject::deleteLater);
     connect(thread, &QThread::started, engine, &EngineScript::update);

@@ -76,16 +76,19 @@ win32-msvc* {
 
 
 SOURCES += \
+    actions/baseaction.cpp \
+    actions/lowlvlenginescript.cpp \
     aicontrol.cpp \
     capturewindow.cpp \
     displays.cpp \
     enginescript.cpp \
     guiinfo.cpp \
     iodata.cpp \
-    lowlvlenginescript.cpp \
     main.cpp
 
 HEADERS += \
+    actions/baseaction.h \
+    actions/lowlvlenginescript.h \
     aicontrol.h \
     capturewindow.h \
     displays.h \
@@ -93,7 +96,6 @@ HEADERS += \
     global.h \
     guiinfo.h \
     iodata.h \
-    lowlvlenginescript.h \
     main.h
 
 # Default rules for deployment.

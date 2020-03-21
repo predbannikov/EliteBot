@@ -68,6 +68,7 @@ private:
 
 
     // ------------------------------------------------- Нижний уровень
+    bool takeOffIntoSpace();
     bool aimp(int anMSec, bool &abCheck);
     bool setFrame(int anMSec);
     bool pickUpSpeed(int anMSec);
@@ -81,8 +82,7 @@ private:
 
 
 
-    bool enabledPanel1(QString sName);                  // Включить панель 1
-    bool takeOffIntoSpace();
+    bool enabledPanel1(QString sName);                  // Включить панель 1                                // *
 
     bool caseStationMenuNav(QString asStation);         // Выбрать станцию в списке навигации
     bool caseSubMenuNav(QString sNameSubMenu, bool &abCheck);
