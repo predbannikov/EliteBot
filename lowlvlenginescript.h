@@ -8,6 +8,9 @@
 #include <QCoreApplication>
 #include "capturewindow.h"
 #include "global.h"
+#include "socketio.h"
+#include "actions/panel1Enable.h"
+#include "actions/actionwait.h"
 
 
 
@@ -15,12 +18,21 @@ class LowLvlEngineScript
 {
     QStringList     command;
 
-    static QTcpSocket      *sock;
-    static CaptureWindow   *capture;
-    static QPoint          m_pointOffsetScreen;
+    BaseAction          *parseAction();
 
+    Panel1Enable        *panel1Enable;
+    ActionWait          *actionWait;
+    SocketIO            *m_sock;
 public:
+    virtual ~LowLvlEngineScript();
     LowLvlEngineScript();
+    void update();
+    bool cycle = true;
+    virtual void init();
+    CaptureWindow   *capture;
+    IOData          *m_pIOData;
+    std::map<std::string, ImageROI> *mp_dataSet;
+
 protected:
     bool            compass;
     bool            target;
@@ -43,23 +55,11 @@ protected:
     int             iStart;
     int             iEnd;
 
-    virtual bool processing(QString sName, bool &abCheck, int anMSec);
-    virtual bool proc() = 0;
-    virtual bool interapt() = 0;
-    virtual bool update() = 0;
+    virtual void    readCommand(QStringList &aslistCommand) {}
+public slots:
 
-    static inline void push_key();
-    static inline void push_key(QString aChar);
-    static inline void press_key(QString aChar);
-    static inline void release_key(QString aChar);
-    static inline void press_key();
-    static inline void release_key();
-    static inline void typingText();
-    static inline void move_mouse_rel(int x, int y);
-    static inline void mouse_move_click(cv::Point cvPoint);
-    static inline void sendDataToSlave(QByteArray a_data);
 private:
-    ~LowLvlEngineScript();
+
 };
 
 #endif // LOWLVLENGINESCRIPT_H

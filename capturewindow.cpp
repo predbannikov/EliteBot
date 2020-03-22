@@ -120,9 +120,9 @@ void CaptureWindow::update()
 //    subPanel1Nav();
 //    menuDocking();
 //    recognizDistance();
-
-    cv::resize(win, win, win.size() / 2);
-    imshow("win1", win);
+    cv::Mat winResize;
+    cv::resize(win, winResize, win.size() / 2);
+    imshow("win1", winResize);
 }
 
 cv::Mat CaptureWindow::checkRoiMat()

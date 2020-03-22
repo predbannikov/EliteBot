@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QThread>
 #include <QStringList>
+#include <QQueue>
 #include "global.h"
 
 
@@ -17,6 +18,7 @@ public:
     SYS_STATE state;
     AIControl(QObject *parent = nullptr);
     ~AIControl();
+    QQueue <QStringList> queue;
 //    QString getPathToTarget();
 
     bool            compass;
@@ -52,6 +54,7 @@ private:
     // ------------------------------------------------- Высокий уровня
 public:
     bool smallRing();
+    QStringList readCommand();
     void resetState();
 
     // ------------------------------------------------- Средний уровня

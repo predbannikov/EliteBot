@@ -76,27 +76,35 @@ win32-msvc* {
 
 
 SOURCES += \
-    actions/baseaction.cpp \
-    actions/lowlvlenginescript.cpp \
+    actions/actionwait.cpp \
+    actions/panel1casemenunav.cpp \
+    actions/panel1enable.cpp \
     aicontrol.cpp \
+    baseaction.cpp \
     capturewindow.cpp \
     displays.cpp \
     enginescript.cpp \
     guiinfo.cpp \
     iodata.cpp \
-    main.cpp
+    lowlvlenginescript.cpp \
+    main.cpp \
+    socketio.cpp
 
 HEADERS += \
-    actions/baseaction.h \
-    actions/lowlvlenginescript.h \
+    actions/actionwait.h \
+    actions/panel1Enable.h \
+    actions/panel1casemenunav.h \
     aicontrol.h \
+    baseaction.h \
     capturewindow.h \
     displays.h \
     enginescript.h \
     global.h \
     guiinfo.h \
     iodata.h \
-    main.h
+    lowlvlenginescript.h \
+    main.h \
+    socketio.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

@@ -24,6 +24,7 @@ AIControl::AIControl(QObject *parent) : QObject(parent)
     m_slistCommand << "transport";
     m_sTarget = m_slistStations[1];             //  текущую станцию указать
 
+    queue.enqueue(QStringList {"PANEL1ENABLE", "0", "навигация"});
 }
 
 AIControl::~AIControl()
@@ -138,6 +139,16 @@ bool AIControl::smallRing()
         break;
     }
     return false;
+}
+
+QStringList AIControl::readCommand()
+{
+    if(!queue.empty()) {
+        return queue.dequeue();
+    } else {
+        QStringList list = { "WAIT", "0" };
+        return list;
+    }
 }
 
 void AIControl::resetState()

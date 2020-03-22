@@ -72,6 +72,9 @@ int main(int argc, char *argv[])
 
     qInstallMessageHandler(myMessageOutput);
 
+//    key_filter kf(&a);
+//    a.installEventFilter(&kf);
+
     IOData *pIOData = new IOData();
     GuiInfo pGui(pIOData);
     pGui.show();

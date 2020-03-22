@@ -10,12 +10,13 @@
 #include "global.h"
 #include "iodata.h"
 #include "aicontrol.h"
+#include "lowlvlenginescript.h"
 
 
 
 
 
-class EngineScript : public QObject
+class EngineScript : public QObject, public LowLvlEngineScript
 {
     Q_OBJECT
 
@@ -23,10 +24,12 @@ class EngineScript : public QObject
     QJsonObject script;
     QPoint m_pointOffsetScreen;
 public:
-    IOData *m_pIOData;
+//    CaptureWindow   *capture;
     explicit EngineScript(IOData *apIOData, QObject *parent = nullptr);
     ~EngineScript();
-    bool            cycle = true;
+
+    void readCommand(QStringList &aslistCommand);
+
     bool srchAreaOnceInRect(QString as_ImageROI, QString as_rectInWhichLook);
     cv::Point getPointAfterLookAreaOnceInRect(QString as_ImageROI, QString as_rectInWhichLook);
     cv::Point getPointAfterLookAreaInRect(QString asImageROI, int anCount = 3, int anStart = 0, int anEnd = 8);
@@ -44,7 +47,6 @@ public:
 
 
 private:
-    std::map<std::string, ImageROI> *mp_dataSet;
     void push_key();
     void push_key(QString aChar);
     void press_key(QString aChar);
@@ -57,7 +59,6 @@ private:
 
 
     QTcpSocket      *sock;
-    CaptureWindow   *capture;
     AIControl       *m_pControl;
 //    int             m_index = 0;
     QElapsedTimer   timeElapsed;
@@ -69,7 +70,7 @@ private:
 public slots:
 //    void performScript(QJsonArray t_jArray);
 //    void parsePushKey(QChar ac_key);
-    void update();
+    void run();
     void slotSaveImage(cv::Mat acvMat, QString asName);
     void slotEngineEnable(bool aState);
     void slotSetCurStation(QString asStation);

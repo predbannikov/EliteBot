@@ -107,8 +107,10 @@ public:
                 while (it.hasNext()) {
                     wid = it.next(); // take each widget in the list
                     if(QSlider *slide = qobject_cast<QSlider*>(wid)) {  // check if iterated widget is of type QLineEdit
-                        if (slide->hasFocus())
+                        if (slide->hasFocus()) {
                             slide->setValue(slide->value() - 1);
+                            slide->update();
+                        }
                     }
                 }
             } else if(keyEvent->key() == Qt::Key_D) {
@@ -118,8 +120,10 @@ public:
                 while (it.hasNext()) {
                     wid = it.next(); // take each widget in the list
                     if(QSlider *slide = qobject_cast<QSlider*>(wid)) {  // check if iterated widget is of type QLineEdit
-                        if (slide->hasFocus())
+                        if (slide->hasFocus()) {
                             slide->setValue(slide->value() + 1);
+                            slide->update();
+                        }
                     }
                 }
             } else if(keyEvent->key() == Qt::LeftArrow) {
