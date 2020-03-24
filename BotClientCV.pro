@@ -76,9 +76,23 @@ win32-msvc* {
 
 
 SOURCES += \
+    actions/actionaimp.cpp \
+    actions/actiondebug.cpp \
+    actions/actiongetcloser.cpp \
     actions/actionwait.cpp \
+    actions/dockingmenucase.cpp \
+    actions/imageexpected.cpp \
+    actions/panel1casehead.cpp \
+    actions/panel1casemenucont.cpp \
     actions/panel1casemenunav.cpp \
     actions/panel1enable.cpp \
+    actions/panel1subnav.cpp \
+    actions/pickupspeed.cpp \
+    actions/restorgame.cpp \
+    actions/servicemenu.cpp \
+    actions/stopafterautostart.cpp \
+    actions/waitendhypermodehelp.cpp \
+    actions/waitmenudocking.cpp \
     aicontrol.cpp \
     baseaction.cpp \
     capturewindow.cpp \
@@ -91,9 +105,23 @@ SOURCES += \
     socketio.cpp
 
 HEADERS += \
+    actions/actionaimp.h \
+    actions/actiondebug.h \
+    actions/actiongetcloser.h \
     actions/actionwait.h \
+    actions/dockingmenucase.h \
+    actions/imageexpected.h \
     actions/panel1Enable.h \
+    actions/panel1casehead.h \
+    actions/panel1casemenucont.h \
     actions/panel1casemenunav.h \
+    actions/panel1subnav.h \
+    actions/pickupspeed.h \
+    actions/restorgame.h \
+    actions/servicemenu.h \
+    actions/stopafterautostart.h \
+    actions/waitendhypermodehelp.h \
+    actions/waitmenudocking.h \
     aicontrol.h \
     baseaction.h \
     capturewindow.h \

@@ -7,31 +7,31 @@ QRect  m_screen;
 EngineScript::EngineScript(IOData *apIOData, QObject *parent) : QObject(parent)
 {
 
-    m_pIOData = apIOData;
-    mp_dataSet = m_pIOData->assignpDataSet();
+//    m_pIOData = apIOData;
+//    mp_dataSet = m_pIOData->assignpDataSet();
 
-    initDisplay();
-
-
-
-    m_pointOffsetScreen = QPoint( m_screen.x(), m_screen.y());
-    capture = new CaptureWindow(mp_dataSet, m_screen.x(), m_screen.y(), m_screen.width(), m_screen.height(), this);
-    m_pControl = new AIControl;
-
-    init();
-
-    // for debug
-    connect(capture, &CaptureWindow::signalSaveImageForDebug, this, &EngineScript::slotSaveImage);
-    cycle = true;
+//    initDisplay();
 
 
-//    sock = new QTcpSocket;
-////    sock->connectToHost("192.168.16.128", 10101);
-//    sock->connectToHost("127.0.0.1", 10101);
+
+//    m_pointOffsetScreen = QPoint( m_screen.x(), m_screen.y());
+//    capture = new CaptureWindow(mp_dataSet, m_screen.x(), m_screen.y(), m_screen.width(), m_screen.height(), this);
+//    m_pControl = new AIControl;
+
+//    init();
+
+//    // for debug
+//    connect(capture, &CaptureWindow::signalSaveImageForDebug, this, &EngineScript::slotSaveImage);
 
 
-    timeElapsedForFunc.start();
-    emit signalOpenGui();
+////    sock = new QTcpSocket;
+//////    sock->connectToHost("192.168.16.128", 10101);
+////    sock->connectToHost("127.0.0.1", 10101);
+
+
+//    timeElapsedForFunc.start();
+//    emit signalOpenGui();
+//    qDebug() << "engine id =" << this->thread()->currentThreadId();
 }
 
 EngineScript::~EngineScript()
@@ -651,16 +651,16 @@ void EngineScript::initDisplay()
 
 bool EngineScript::srchAreaOnceInRect(QString as_ImageROI, QString as_rectInWhichLook)
 {
-    if(mp_dataSet->find(as_rectInWhichLook.toStdString()) != mp_dataSet->end() &&
-            mp_dataSet->find(as_ImageROI.toStdString()) != mp_dataSet->end())
+    if(m_pDataSet->find(as_rectInWhichLook.toStdString()) != m_pDataSet->end() &&
+            m_pDataSet->find(as_ImageROI.toStdString()) != m_pDataSet->end())
         return capture->srchAreaOnceInRect(as_rectInWhichLook.toStdString(), as_rectInWhichLook.toStdString());
     return false;
 }
 
 cv::Point EngineScript::getPointAfterLookAreaOnceInRect(QString as_ImageROI, QString as_rectInWhichLook)
 {
-    if(mp_dataSet->find(as_rectInWhichLook.toStdString()) != mp_dataSet->end() &&
-            mp_dataSet->find(as_ImageROI.toStdString()) != mp_dataSet->end())
+    if(m_pDataSet->find(as_rectInWhichLook.toStdString()) != m_pDataSet->end() &&
+            m_pDataSet->find(as_ImageROI.toStdString()) != m_pDataSet->end())
         return capture->getPointAfterLookAreaOnceInRect(as_rectInWhichLook.toStdString(), as_rectInWhichLook.toStdString());
     return cv::Point();
 }
@@ -668,18 +668,18 @@ cv::Point EngineScript::getPointAfterLookAreaOnceInRect(QString as_ImageROI, QSt
 cv::Point EngineScript::getPointAfterLookAreaInRect(QString asImageROI, int anCount, int anStart, int anEnd)
 {
     cv::Rect cvRect = calcRectFromPartOfIndex(anCount, anStart, anEnd);
-    if(mp_dataSet->find(asImageROI.toStdString()) != mp_dataSet->end())
+    if(m_pDataSet->find(asImageROI.toStdString()) != m_pDataSet->end())
         return capture->getPointAfterLookAreaInRect(asImageROI.toStdString(), cvRect);
     return cv::Point();
 }
 
-bool EngineScript::srchAreaOnceInPart(QString as_imageROI, int anCount, int anStart, int anEnd, double coeff)
-{
-    cv::Rect cvRect = calcRectFromPartOfIndex(anCount, anStart, anEnd);
-    if(mp_dataSet->find(as_imageROI.toStdString()) != mp_dataSet->end())
-        return capture->srchAreaOnceInRect(as_imageROI.toStdString(), cvRect, coeff);
-    return false;
-}
+//bool EngineScript::srchAreaOnceInPart(QString as_imageROI, int anCount, int anStart, int anEnd, double coeff)
+//{
+//    cv::Rect cvRect = calcRectFromPartOfIndex(anCount, anStart, anEnd);
+//    if(m_pDataSet->find(as_imageROI.toStdString()) != m_pDataSet->end())
+//        return capture->srchAreaOnceInRect(as_imageROI.toStdString(), cvRect, coeff);
+//    return false;
+//}
 
 cv::Rect EngineScript::calcRectFromPart(int anXCount, int anYCount, int anXStart, int anYStart, int anXEnd, int anYEnd)
 {
@@ -853,15 +853,52 @@ void EngineScript::sendDataToSlave(QByteArray a_data)
 
 void EngineScript::run()
 {
+
+    IOData *pIOData = new IOData();
+    if(pIOData->prepWorkPath()) {
+        qDebug() << "thread IOData load success";
+    } else {
+        qDebug() << "thread IOData load not success";
+    }
+
+    m_pIOData = pIOData;
+    m_pDataSet = m_pIOData->assignpDataSet();
+
+    initDisplay();
+
+
+
+    m_pointOffsetScreen = QPoint( m_screen.x(), m_screen.y());
+    capture = new CaptureWindow(m_pDataSet, m_screen.x(), m_screen.y(), m_screen.width(), m_screen.height(), this);
+    m_pControl = new AIControl;
+
+    init();
+
+    // for debug
+    connect(capture, &CaptureWindow::signalSaveImageForDebug, this, &EngineScript::slotSaveImage);
+
+
+
+    timeElapsedForFunc.start();
     update();
 }
 
-//void EngineScript::update()
-//{
+void EngineScript::slotFreeze()
+{
+    capture->freeze();
+}
 
-//    engine();
+void EngineScript::slotResizeImage()
+{
+    capture->enableResizeImage();
+}
 
-//}
+void EngineScript::slotStartTest()
+{
+    m_pControl->test();
+}
+
+
 
 void EngineScript::slotSaveImage(cv::Mat acvMat, QString asName)
 {
@@ -870,6 +907,10 @@ void EngineScript::slotSaveImage(cv::Mat acvMat, QString asName)
 
 void EngineScript::slotEngineEnable(bool aState)
 {
+//    m_sock->mouse_move_click(cv::Point(m_screen.width()/2, m_screen.height()/2));
+//    update();
+    m_pControl->init();
+
     if(aState) {
         m_pControl->state = RESTOR_GAME;
         qDebug() << "restor game";

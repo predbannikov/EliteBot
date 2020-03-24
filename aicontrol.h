@@ -44,6 +44,8 @@ public:
     int             nCount;
     int             iStart;
     int             iEnd;
+    void init();
+    void test();
 private:
     QString         m_fixCurrBugs;
     QStringList     m_slistStations;

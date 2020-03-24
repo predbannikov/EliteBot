@@ -1,21 +1,25 @@
 #include "actionwait.h"
 
+
 ActionWait::ActionWait(CaptureWindow *aCapture, SocketIO *aSock) : BaseAction(aCapture, aSock)
 {
-
+    m_sActionName = "ACTIONWAIT";
 }
 
-void ActionWait::init()
+void ActionWait::init(QStringList &asListParam)
 {
-    timeWaitMsec = 3000;
+    timer.restart();
 }
 
 bool ActionWait::logic(QStringList &asListParam)
 {
+    qint64 elaps = timer.elapsed();
+    if(elaps > asListParam[2].toInt()) {
+        return true;
+    }
     return false;
 }
 
 void ActionWait::reset()
 {
-    timeWaitMsec = 3000;
 }

@@ -1,15 +1,15 @@
-#ifndef ACTIONWAIT_H
-#define ACTIONWAIT_H
+#ifndef ACTIONAIMP_H
+#define ACTIONAIMP_H
 #include "baseaction.h"
 
-class ActionWait : public BaseAction
+
+class ActionAimp : public BaseAction
 {
 public:
-    ActionWait(CaptureWindow *aCapture, SocketIO *aSock);
+    ActionAimp(CaptureWindow *aCapture, SocketIO *aSock);
     void init(QStringList &asListParam) override;
     bool logic(QStringList &asListParam) override;
     void reset() override;
 };
 
-
-#endif // ACTIONWAIT_H
+#endif // ACTIONAIMP_H

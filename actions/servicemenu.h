@@ -1,15 +1,16 @@
-#ifndef ACTIONWAIT_H
-#define ACTIONWAIT_H
+#ifndef SERVICEMENU_H
+#define SERVICEMENU_H
 #include "baseaction.h"
 
-class ActionWait : public BaseAction
+
+class ServiceMenu : public BaseAction
 {
 public:
-    ActionWait(CaptureWindow *aCapture, SocketIO *aSock);
+    ServiceMenu(CaptureWindow *aCapture, SocketIO *aSock);
     void init(QStringList &asListParam) override;
     bool logic(QStringList &asListParam) override;
     void reset() override;
 };
 
 
-#endif // ACTIONWAIT_H
+#endif // SERVICEMENU_H

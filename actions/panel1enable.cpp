@@ -2,23 +2,36 @@
 
 Panel1Enable::Panel1Enable(CaptureWindow *aCapture, SocketIO *aSock) : BaseAction(aCapture, aSock)
 {
-
+    m_sActionName = "PANEL1ENABLE";
 }
 
-void Panel1Enable::init()
+void Panel1Enable::init(QStringList &asListParam)
 {
-    timeWaitMsec = 3000;
+    waitEnable = 1500;
+    confirmTime = 500;
+    trigger = false;
+    timer.restart();
+    confirmTimer.restart();
 }
 
 bool Panel1Enable::logic(QStringList &asListParam)
 {
+
     CursorPanel *pan = capture->panel1Header();
-    if(pan->activeHeader) {
-        int res = comparisonStr(pan->sHeaderName, asListParam[2]);
-        if(res <= 2) {
+    bool enable = static_cast<bool>(asListParam[2].toUInt());
+    if(pan->activeHeader == enable) {
+        if(confirmTimer.elapsed() > confirmTime)
             return true;
+    } else {
+        confirmTimer.restart();
+        if(!trigger) {
+            timer.restart();
+            push_key("1");
+            trigger = true;
         } else {
-            push_key("e");
+            if(timer.elapsed() > waitEnable) {
+                trigger = false;
+            }
         }
     }
     return false;
@@ -26,5 +39,4 @@ bool Panel1Enable::logic(QStringList &asListParam)
 
 void Panel1Enable::reset()
 {
-    timeWaitMsec = 3000;
 }

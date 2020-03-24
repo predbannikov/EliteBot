@@ -4,7 +4,6 @@ GuiInfo::GuiInfo(IOData *t_ioData, QWidget *parent) : QWidget(parent)
     m_ioData = t_ioData;
     if(m_ioData->prepWorkPath()) {
         std::cout << "load DataSet success" << std::endl;
-
     } else  {
         std::cout << "load DataSet not seccess" << std::endl;
     }
@@ -42,34 +41,37 @@ GuiInfo::GuiInfo(IOData *t_ioData, QWidget *parent) : QWidget(parent)
 
 
     engine = new EngineScript(m_ioData);
-    connect(this, &GuiInfo::signalGetMatRoi, engine, &EngineScript::slotCheckRoiMat);
-    connect(this, &GuiInfo::signalGetRectRoi, engine, &EngineScript::slotCheckRoiRect);
-    connect(this, &GuiInfo::signalDrawMesh, engine, &EngineScript::slotSetDrawLine);
-    connect(this, &GuiInfo::signalSendMinScalar, engine, &EngineScript::setMinScalar);
-    connect(this, &GuiInfo::signalSendMaxScalar, engine, &EngineScript::setMaxScalar);
-    connect(this, &GuiInfo::signalSendMinNumber, engine, &EngineScript::setMinNumber);
-    connect(this, &GuiInfo::signalSendMidNumber, engine, &EngineScript::setMidNumber);
-    connect(this, &GuiInfo::signalSendMaxNumber, engine, &EngineScript::setMaxNumber);
-    connect(this, &GuiInfo::signalEngineEnable, engine, &EngineScript::slotEngineEnable);
-    connect(this, &GuiInfo::signalEngineSetCurStation, engine, &EngineScript::slotSetCurStation);
 
 
     thread = new QThread;
-
-
-
     engine->moveToThread(thread);
     connect(thread, &QThread::finished, engine, &QObject::deleteLater);
+    connect(thread, &QThread::isFinished, thread, &QThread::deleteLater);
     connect(thread, &QThread::started, engine, &EngineScript::run);
     thread->start();
 
+    connect(this, &GuiInfo::signalGetMatRoi, engine, &EngineScript::slotCheckRoiMat, Qt::QueuedConnection);
+    connect(this, &GuiInfo::signalGetRectRoi, engine, &EngineScript::slotCheckRoiRect, Qt::QueuedConnection);
+    connect(this, &GuiInfo::signalDrawMesh, engine, &EngineScript::slotSetDrawLine, Qt::QueuedConnection);
+    connect(this, &GuiInfo::signalSendMinScalar, engine, &EngineScript::setMinScalar, Qt::QueuedConnection);
+    connect(this, &GuiInfo::signalSendMaxScalar, engine, &EngineScript::setMaxScalar, Qt::QueuedConnection);
+    connect(this, &GuiInfo::signalSendMinNumber, engine, &EngineScript::setMinNumber, Qt::QueuedConnection);
+    connect(this, &GuiInfo::signalSendMidNumber, engine, &EngineScript::setMidNumber, Qt::QueuedConnection);
+    connect(this, &GuiInfo::signalSendMaxNumber, engine, &EngineScript::setMaxNumber, Qt::QueuedConnection);
+    connect(this, &GuiInfo::signalEngineEnable, engine, &EngineScript::slotEngineEnable, Qt::QueuedConnection);
+    connect(this, &GuiInfo::signalEngineSetCurStation, engine, &EngineScript::slotSetCurStation, Qt::QueuedConnection);
+    connect(this, &GuiInfo::signalEngineEnableTest, engine, &EngineScript::slotStartTest, Qt::QueuedConnection);
+    connect(this, &GuiInfo::signalFreeze, engine, &EngineScript::slotFreeze, Qt::QueuedConnection);
+    connect(this, &GuiInfo::signalResizeImage, engine, &EngineScript::slotResizeImage, Qt::QueuedConnection);
 
     this->sendAllNumbData();
+    qDebug() << "guiinfo id =" << this->thread->currentThreadId();
+    chckBoxEngine->setFocus();
 }
 
 GuiInfo::~GuiInfo()
 {
-//    qDebug() << "begin exit";
+    qDebug() << "begin exit";
     engine->cycle = false;
     thread->quit();
     cv::destroyAllWindows();
@@ -252,11 +254,12 @@ void GuiInfo::initLayoutManipulation()
     sliderMax1->setMaximum(255);
     sliderMax2->setMaximum(255);
     sliderMax3->setMaximum(255);
-    sliderMin1->setValue(0);
+
+    sliderMin1->setValue(125);
     sliderMin2->setValue(0);
-    sliderMin3->setValue(0);
-    sliderMax1->setValue(255);
-    sliderMax2->setValue(255);
+    sliderMin3->setValue(82);
+    sliderMax1->setValue(163);
+    sliderMax2->setValue(128);
     sliderMax3->setValue(255);
 
     sliderMinNumber = new QSlider(Qt::Horizontal, this);
@@ -326,10 +329,15 @@ void GuiInfo::initLayoutManipulation()
     connect(cmbCurStation, qOverload<const QString &>(&QComboBox::activated), [this] (const QString asItem) {
         emit signalEngineSetCurStation(asItem);
     });
+    pbTest = new QPushButton("Тест");
+    connect(pbTest, &QPushButton::clicked, [this] () {
+        emit signalEngineEnableTest();
+    });
 
 
     hblEngineControl = new QHBoxLayout;
     hblEngineControl->addWidget(chckBoxEngine);
+    hblEngineControl->addWidget(pbTest);
     hblEngineControl->addWidget(cmbCurStation);
 
 }

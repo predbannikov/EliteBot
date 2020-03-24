@@ -6,8 +6,7 @@ class Panel1Enable : public BaseAction
 {
 public:
     Panel1Enable(CaptureWindow *aCapture, SocketIO *aSock);
-//    ~Panel1Enable() override;
-    void init() override;
+    void init(QStringList &asListParam) override;
     bool logic(QStringList &asListParam) override;
     void reset() override;
 };

@@ -34,11 +34,11 @@ CaptureWindow::CaptureWindow(std::map<std::string, ImageROI> *ap_dataSet, int x,
     mp_dataSet = ap_dataSet;
 
 
-//    cv::namedWindow("win1", cv::WND_PROP_FULLSCREEN);
-    cv::namedWindow("win1", cv::WND_PROP_AUTOSIZE);
+    cv::namedWindow("win1", cv::WND_PROP_FULLSCREEN);
+//    cv::namedWindow("win1", cv::WND_PROP_AUTOSIZE);
     cv::moveWindow("win1", 0, -STANDART_FULLHD_HEIGHT);
 
-//    cv::setWindowProperty("win1", cv::WND_PROP_FULLSCREEN, cv::WND_PROP_AUTOSIZE);
+    cv::setWindowProperty("win1", cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN);
     cv::setMouseCallback("win1", my_mouse_callback, this);
 //    cv::namedWindow("win2", cv::WND_PROP_AUTOSIZE );
 //    cv::namedWindow("win3", cv::WND_PROP_AUTOSIZE );
@@ -80,7 +80,8 @@ CaptureWindow::CaptureWindow(std::map<std::string, ImageROI> *ap_dataSet, int x,
 
 //    qDebug() << myOCREng->GetUTF8Text() << myOCRRus->GetUTF8Text();
     m_cursorPan.sHeaderName ="навигация";
-
+//    m_cursorPan.rectBody = cv::Rect(796, 424, 414, 77);
+//    m_cursorPan.activeBody = true;
 }
 
 CaptureWindow::~CaptureWindow()
@@ -112,17 +113,21 @@ void CaptureWindow::update()
     drawLines();
     showRoi();
 
+
 //    panel1Body();
 //    panelBodyCont();
+//    panelBodyContNotice();
 //    panel1Header();
 //    compass();
 //    takeAimp();
 //    subPanel1Nav();
 //    menuDocking();
 //    recognizDistance();
-    cv::Mat winResize;
-    cv::resize(win, winResize, win.size() / 2);
-    imshow("win1", winResize);
+    if(resizeImage) {
+//        cv::Mat winResize;
+        cv::resize(win, win, win.size() / 2);
+    }
+    imshow("win1", win);
 }
 
 cv::Mat CaptureWindow::checkRoiMat()
@@ -229,8 +234,8 @@ cv::Point CaptureWindow::getPointAreaInMat(std::string asImageROI, cv::Mat acvMa
     cv::Mat _roiMat;
 
     _roiMat = mp_dataSet->at(asImageROI).mat;
-    qDebug() << QString::fromStdString(asImageROI);
-    printMat(_roiMat);
+//    qDebug() << QString::fromStdString(asImageROI);
+//    printMat(_roiMat);
 
     if(findPointRoi(_roiMat, acvMat, _point, factor)) {
 
@@ -297,21 +302,21 @@ cv::Point CaptureWindow::getPointAndFactorOfSPattern(cv::Mat acvMat, std::string
     return _point;
 }
 
-bool CaptureWindow::srchAreaOnceInRect(std::string as_imageROI, cv::Rect acvRect, double coeff)
+bool CaptureWindow::srchAreaOnceInRect(std::string asImageROI, int anCount, int anStart, int anEnd, double coeff)
 {
+    if(mp_dataSet->find(asImageROI) == mp_dataSet->end()) {
+        return false;
+    }
     cv::Mat _matXRoi;
     cv::Point _point;
     cv::Mat _roiMat;
-    win(acvRect).copyTo(_matXRoi);
-
-    _roiMat = mp_dataSet->at(as_imageROI).mat;
-
-
+    cv::Rect cvRect = calcRectFromPartOfIndex(anCount, anStart, anEnd);
+    win(cvRect).copyTo(_matXRoi);
+    _roiMat = mp_dataSet->at(asImageROI).mat;
     if(findPointRoi(_roiMat, _matXRoi, _point, coeff)) {
         return true;
     } else
         return false;
-
 }
 
 
@@ -617,7 +622,7 @@ CursorPanel *CaptureWindow::panelBodyNav()
                                     int seekXDistance = colorMapToSrchPattern.size().width - 300;
                                     int cutXLeft = 0;
                                     for(int i = 0; i < sNamePicNavList.size(); i++) {
-                                        printMat(colorMapToSrchPattern);
+//                                        printMat(colorMapToSrchPattern);
                                         point = getPointAreaInMat(sNamePicNavList[i].toStdString(), colorMapToSrchPattern, 0.95);
                                         if(point.x > 0) {
 //                                            cv::circle(colorMapToSrchPattern, point, 1, cv::Scalar(0, 0, 255),2);
@@ -740,7 +745,7 @@ CursorPanel *CaptureWindow::panelBodyCont()
                     if(area > 15000 && area < 25000 ) {
                         cv::Rect rectRecognize = cv::boundingRect(cont[i]);
                         cv::Mat binRecognize;
-                        bin(cv::Rect(rectRecognize.x + 5, rectRecognize.y + 1, rectRecognize.width - 10, rectRecognize.height - 2)).copyTo(binRecognize);
+                        bin(cv::Rect(rectRecognize.x + 5, rectRecognize.y + 1, rectRecognize.width - 30, rectRecognize.height - 2)).copyTo(binRecognize);
 
 
                         myOCREng->SetImage( (uchar*)binRecognize.data, binRecognize.size().width, binRecognize.size().height, binRecognize.channels(), binRecognize.step1());
@@ -753,22 +758,96 @@ CursorPanel *CaptureWindow::panelBodyCont()
                         deleteCharExtra(m_cursorPan.sBodyName);
                         m_cursorPan.activeBody = true;
 
-                        //cv::imshow("win4", binRecognize);
+                        cv::imshow("win4", binRecognize);
                     }
                 }
 
             } else if(rectToCut.width < 500 && rectToCut.width > 300) {
-                m_cursorPan.sBodyName = "req_docking";
-                m_cursorPan.activeBody = true;
+                cv::Mat rotateMat;
+                rectMat(rectToCut).copyTo(rotateMat);
+                if(minRect.angle < -45)
+                    minRect.angle += 90.;
+//                cv::circle(rotateMat, minRect.center, 2, cvBlue);
+                cv::Mat rMatToWarp = cv::getRotationMatrix2D(cv::Point(rectToCut.width / 2, rectToCut.height / 2), minRect.angle, 1);
+                cv::warpAffine(rotateMat, rotateMat, rMatToWarp, rotateMat.size(), cv::INTER_CUBIC);
 
+                cv::Mat bin;
+                cv::Mat rotateMatHSV;
+                cv::cvtColor(rotateMat, rotateMatHSV, CV_BGR2HSV);
+                inRange(rotateMatHSV, cv::Scalar(12, 190, 190), cv::Scalar(50, 255, 255), bin);
+                std::vector< std::vector< cv::Point> > cont;
+                cv::findContours(bin, cont, cv::noArray(), cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+                for(size_t i = 0; i < cont.size(); i++) {
+                    double area = contourArea(cont[i]);
+                    if(area > 15000 && area < 25000 ) {
+                        cv::Rect rectRecognize = cv::boundingRect(cont[i]);
+                        cv::Mat binRecognize;
+                        bin(cv::Rect(rectRecognize.x + 5, rectRecognize.y + 3, rectRecognize.width - 30, rectRecognize.height - 6)).copyTo(binRecognize);
+                        myOCRRus->SetImage( (uchar*)binRecognize.data, binRecognize.size().width, binRecognize.size().height, binRecognize.channels(), binRecognize.step1());
+                        myOCRRus->Recognize(nullptr);
+                        m_cursorPan.sBodyName = myOCRRus->GetUTF8Text();
+                        if(m_cursorPan.sBodyName.isEmpty())
+                            m_cursorPan.sBodyName = "not recognized";
+                        m_cursorPan.sBodyName = m_cursorPan.sBodyName.simplified();
+                        m_cursorPan.sBodyName = m_cursorPan.sBodyName.toLower();
+                        deleteCharExtra(m_cursorPan.sBodyName);
+//                        qDebug() << "recognize: " << m_cursorPan.sBodyName << " set req_docking";
+                        m_cursorPan.sBodyName = "req_docking";
+                        m_cursorPan.activeBody = true;
+                        cv::imshow("win4", binRecognize);
+                    }
+                }
             }
+            m_cursorPan.rectBody = rectToCut;
+
         }
     }  else {
 //        qDebug() << "Панели навигации не определены";
     }
-    qDebug() << m_cursorPan.sBodyName;
+//    qDebug() << "m_cursorPan.sBodyName" << m_cursorPan.sBodyName;
     //cv::imshow("win3", mask);
     //cv::imshow("win2", rectMat);
+    return &m_cursorPan;
+}
+
+CursorPanel *CaptureWindow::panelBodyContNotice()
+{
+    if(m_cursorPan.activeBody) {
+        cv::Mat hsv;
+        cv::Mat rectMat;
+        cv::Mat rotateMat;
+        cv::Mat mask;
+        win(cv::Rect(100, 100, m_screen.width() - 500, m_screen.height() - 200)).copyTo(rectMat);
+        cv::cvtColor( rectMat, hsv, CV_BGR2HSV );
+        cv::Rect rect(m_cursorPan.rectBody.x, m_cursorPan.rectBody.y, m_cursorPan.rectBody.width, m_cursorPan.rectBody.height + 90);
+        rectMat(rect).copyTo(rotateMat);
+        cv::Mat rMatToWarp = cv::getRotationMatrix2D(cv::Point(rect.width / 2, rect.height / 2), -4, 1);
+        cv::warpAffine(rotateMat, rotateMat, rMatToWarp, rotateMat.size(), cv::INTER_CUBIC);
+//        getMaskOfMat(rotateMat, mask, cv::Scalar(125, 0, 82), cv::Scalar(163, 128, 255));
+//        getMaskOfMat(rotateMat, mask, minScalar, maxScalar);
+        cv::inRange(rotateMat, cv::Scalar(157, 116, 132), cv::Scalar(255, 255, 255), mask);
+//        cv::inRange(rotateMat, minScalar, maxScalar, mask);
+        cv::bitwise_not(mask, mask);
+        cv::Mat recognizeMat;
+        mask(cv::Rect(50, mask.size().height - 70, mask.size().width - 50, 50)).copyTo(recognizeMat);
+//        cv::rectangle(rectMat, rect, cvBlue);
+        myOCRRus->SetImage( (uchar*)recognizeMat.data, recognizeMat.size().width, recognizeMat.size().height, recognizeMat.channels(), recognizeMat.step1());
+        myOCRRus->Recognize(nullptr);
+        m_cursorPan.sBodyNameNotice = myOCRRus->GetUTF8Text();
+        if(m_cursorPan.sBodyNameNotice.isEmpty())
+            m_cursorPan.sBodyNameNotice = "not recognized";
+        m_cursorPan.sBodyNameNotice = m_cursorPan.sBodyNameNotice.simplified();
+        m_cursorPan.sBodyNameNotice = m_cursorPan.sBodyNameNotice.toLower();
+        deleteCharExtra(m_cursorPan.sBodyNameNotice);
+        qDebug() << "notice recognize: " << m_cursorPan.sBodyNameNotice;
+
+
+        cv::imshow("win5", rotateMat);
+        cv::imshow("win5", recognizeMat);
+
+    } else {
+        m_cursorPan.sBodyNameNotice = "not active";
+    }
     return &m_cursorPan;
 }
 
@@ -1226,8 +1305,8 @@ bool CaptureWindow::findPointRoi(cv::Mat &t_mat, cv::Mat &t_whereFind, cv::Point
         vec.push_back(_f);
     }
     for(auto tmp: vec) {
-        if(tmp.m2 < 0.9)
-            qDebug() << tmp.m2;
+//        if(tmp.m2 < 0.9)
+//            qDebug() << tmp.m2;
     }
     cv::Point match = findMatchPoint(vec, t_factor);
     t_point = match;
@@ -2343,6 +2422,39 @@ CursorPanel *CaptureWindow::menuDocking()
     imshow("win3", mask);
     imshow("win2", dst);
     return &m_cursorPan;
+}
+
+QRect CaptureWindow::getRect(QString sName)
+{
+    cv::Rect rect = mp_dataSet->at(sName.toStdString()).rect;
+    return QRect(rect.x, rect.y, rect.width, rect.height);
+}
+
+QPoint CaptureWindow::getPoint(QString sName)
+{
+    cv::Rect rect = mp_dataSet->at(sName.toStdString()).rect;
+    return QPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+}
+
+void CaptureWindow::enableResizeImage()
+{
+//    cv::namedWindow("win1", cv::WND_PROP_FULLSCREEN);
+    resizeImage = resizeImage ? false : true;
+    if(resizeImage) {
+        cv::destroyWindow("win1");
+        cv::namedWindow("win1", cv::WND_PROP_AUTOSIZE);
+//        cv::setWindowProperty("win1", cv::WND_PROP_AUTOSIZE, cv::WINDOW_GUI_NORMAL);
+    } else {
+        cv::destroyWindow("win1");
+        cv::namedWindow("win1", cv::WND_PROP_FULLSCREEN);
+        cv::setWindowProperty("win1", cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN);
+    }
+}
+
+void CaptureWindow::freeze()
+{
+    m_flowFrame = m_flowFrame ? false : true;
+    win.copyTo(m_srcWin);
 }
 
 bool CaptureWindow::blackLessWhite(cv::Mat &aBinMat, int &anWhite, int &anBlack)       // Только для бинарных матриц

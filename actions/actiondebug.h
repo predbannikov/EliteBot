@@ -1,15 +1,15 @@
-#ifndef ACTIONWAIT_H
-#define ACTIONWAIT_H
+#ifndef ACTIONDEBUG_H
+#define ACTIONDEBUG_H
 #include "baseaction.h"
 
-class ActionWait : public BaseAction
+
+class ActionDebug : public BaseAction
 {
 public:
-    ActionWait(CaptureWindow *aCapture, SocketIO *aSock);
+    ActionDebug(CaptureWindow *aCapture, SocketIO *aSock);
     void init(QStringList &asListParam) override;
     bool logic(QStringList &asListParam) override;
     void reset() override;
 };
 
-
-#endif // ACTIONWAIT_H
+#endif // ACTIONDEBUG_H

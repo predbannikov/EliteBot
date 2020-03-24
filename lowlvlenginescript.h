@@ -10,7 +10,23 @@
 #include "global.h"
 #include "socketio.h"
 #include "actions/panel1Enable.h"
+#include "actions/actiondebug.h"
+#include "actions/panel1casehead.h"
+#include "actions/panel1casemenunav.h"
+#include "actions/panel1subnav.h"
+#include "actions/dockingmenucase.h"
 #include "actions/actionwait.h"
+#include "actions/restorgame.h"
+#include "actions/stopafterautostart.h"
+#include "actions/pickupspeed.h"
+#include "actions/actionaimp.h"
+#include "actions/waitendhypermodehelp.h"
+#include "actions/actiongetcloser.h"
+#include "actions/panel1casemenucont.h"
+#include "actions/waitmenudocking.h"
+#include "actions/imageexpected.h"
+#include "actions/servicemenu.h"
+
 
 
 
@@ -20,8 +36,7 @@ class LowLvlEngineScript
 
     BaseAction          *parseAction();
 
-    Panel1Enable        *panel1Enable;
-    ActionWait          *actionWait;
+    QVector<BaseAction *> actions;
     SocketIO            *m_sock;
 public:
     virtual ~LowLvlEngineScript();
@@ -31,7 +46,7 @@ public:
     virtual void init();
     CaptureWindow   *capture;
     IOData          *m_pIOData;
-    std::map<std::string, ImageROI> *mp_dataSet;
+    std::map<std::string, ImageROI> *m_pDataSet;
 
 protected:
     bool            compass;

@@ -23,12 +23,65 @@ AIControl::AIControl(QObject *parent) : QObject(parent)
     m_slistStations << "celebicity" << "gabrielenterprise";
     m_slistCommand << "transport";
     m_sTarget = m_slistStations[1];             //  текущую станцию указать
-
-    queue.enqueue(QStringList {"PANEL1ENABLE", "0", "навигация"});
+//    init();
 }
 
 AIControl::~AIControl()
 {
+
+}
+
+void AIControl::init()
+{
+    queue.clear();
+    queue.enqueue(QStringList {"RESTORGAME",            "0" });
+    queue.enqueue(QStringList {"PANEL1ENABLE",          "0", "1"});      // включить панель
+    queue.enqueue(QStringList {"PANEL1CASEHEADER",      "0", "навигация"});
+    queue.enqueue(QStringList {"PANEL1CASEMENUNAV",     "0", m_sTarget});
+    queue.enqueue(QStringList {"PANEL1SUBNAV",          "0", "fix_target"});
+    queue.enqueue(QStringList {"PANEL1ENABLE",          "0", "0"});      // выключить панель
+    queue.enqueue(QStringList {"DOCKINGMENUCASE",       "0", "menu_docking_autostart"});
+    queue.enqueue(QStringList {"STOPAFTERAUTOSTART",    "0"});
+    queue.enqueue(QStringList {"PICKUPSPEED",           "0"});
+    queue.enqueue(QStringList {"ACTIONAIMP",            "0"});
+    queue.enqueue(QStringList {"PANEL1ENABLE",          "0", "1"});
+    queue.enqueue(QStringList {"PANEL1CASEHEADER",      "0", "навигация"});
+    queue.enqueue(QStringList {"PANEL1CASEMENUNAV",     "0", m_sTarget});
+    queue.enqueue(QStringList {"PANEL1SUBNAV",          "0", "enable_hypermode"});
+    queue.enqueue(QStringList {"ACTIONWAIT",            "0", "13000"});
+    queue.enqueue(QStringList {"PANEL1ENABLE",          "0", "1"});
+    queue.enqueue(QStringList {"PANEL1CASEHEADER",      "0", "навигация"});
+    queue.enqueue(QStringList {"PANEL1CASEMENUNAV",     "0", m_sTarget});
+    queue.enqueue(QStringList {"PANEL1SUBNAV",          "0", "enable_hypermode_helper"});
+    queue.enqueue(QStringList {"PANEL1ENABLE",          "0", "0"});
+    queue.enqueue(QStringList {"WAITENDHYPERMODEHELP",  "0"});
+    queue.enqueue(QStringList {"ACTIONGETCLOSER",       "0"});
+    queue.enqueue(QStringList {"PANEL1ENABLE",          "0", "1"});
+    queue.enqueue(QStringList {"PANEL1CASEHEADER",      "0", "контакты"});
+    queue.enqueue(QStringList {"PANEL1CASEMENUCONT",    "0", m_sTarget});
+    queue.enqueue(QStringList {"PANEL1ENABLE",          "0", "0"});
+    queue.enqueue(QStringList {"WAITMENUDOCKING",       "0"});
+    queue.enqueue(QStringList {"DOCKINGMENUCASE",       "0", "menu_docking_service"});
+    queue.enqueue(QStringList {"IMAGEEXPECTED",         "0", "menuServiceExit"});
+
+}
+
+void AIControl::test()
+{
+    queue.clear();
+    queue.enqueue(QStringList {"RESTORGAME",            "0" });
+
+
+
+
+    queue.enqueue(QStringList {"PANEL1ENABLE",          "0", "1"});
+    queue.enqueue(QStringList {"PANEL1CASEHEADER",      "0", "контакты"});
+    queue.enqueue(QStringList {"PANEL1CASEMENUCONT",    "0", m_sTarget});
+    queue.enqueue(QStringList {"PANEL1ENABLE",          "0", "0"});
+    queue.enqueue(QStringList {"WAITMENUDOCKING",       "0"});
+    queue.enqueue(QStringList {"DOCKINGMENUCASE",       "0", "menu_docking_service"});
+    queue.enqueue(QStringList {"IMAGEEXPECTED",         "0", "menuServiceExit"});
+    queue.enqueue(QStringList {"SERVICEMENU",           "0"});
 
 }
 
@@ -146,7 +199,7 @@ QStringList AIControl::readCommand()
     if(!queue.empty()) {
         return queue.dequeue();
     } else {
-        QStringList list = { "WAIT", "0" };
+        QStringList list = { "DEBUG", "0" };
         return list;
     }
 }
@@ -729,7 +782,7 @@ bool AIControl:: toLanding(int anMSec)
 //}
 
 
-bool AIControl::enabledPanel1(QString sName)                // Включение меню с нужным разделом
+bool AIControl::enabledPanel1(QString sName)                // *
 {
     static enum {TRANS_1, TRANS_2} trans ;
 
@@ -772,7 +825,6 @@ bool AIControl::takeOffIntoSpace()
     switch (action) {
     case MENU_DOCKING_AUTOSTART:
         if(caseMenuDocking("menu_docking_autostart")) {
-
             action = WAIT_TAKE_OFF_INFO_SPACE;
             qDebug() << "MENU_DOCKING_AUTOSTART";
         }
@@ -796,7 +848,7 @@ bool AIControl::takeOffIntoSpace()
     return false;
 }
 
-bool AIControl::caseStationMenuNav(QString asStation)
+bool AIControl::caseStationMenuNav(QString asStation)           // *
 {
     static enum {TRANS_1, TRANS_2} trans ;
     switch (trans) {
@@ -838,7 +890,7 @@ bool AIControl::caseStationMenuNav(QString asStation)
     return false;
 }
 
-bool AIControl::caseSubMenuNav(QString sNameSubMenu, bool &abCheck)
+bool AIControl::caseSubMenuNav(QString sNameSubMenu, bool &abCheck)             // *
 {
     static enum {TRANS_1, TRANS_2, TRANS_3} trans ;
     switch (trans) {
@@ -1077,5 +1129,6 @@ void AIControl::setCurStation(QString asStation)
     asStation = asStation.toLower();
     asStation = asStation.replace(" ", "");
     m_sTarget = asStation;
+//    init();
 }
 

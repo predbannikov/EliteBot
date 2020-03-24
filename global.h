@@ -79,6 +79,7 @@ struct CursorPanel {
     bool activeHeader = false;
     QString sHeaderName;
     QString sBodyName;
+    QString sBodyNameNotice;
     QString sSubNavName;
     QString sMenuDocking;
 

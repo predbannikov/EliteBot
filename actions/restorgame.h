@@ -1,15 +1,15 @@
-#ifndef ACTIONWAIT_H
-#define ACTIONWAIT_H
+#ifndef RESTORGAME_H
+#define RESTORGAME_H
 #include "baseaction.h"
 
-class ActionWait : public BaseAction
+class RestorGame : public BaseAction
 {
 public:
-    ActionWait(CaptureWindow *aCapture, SocketIO *aSock);
+    RestorGame(CaptureWindow *aCapture, SocketIO *aSock);
     void init(QStringList &asListParam) override;
     bool logic(QStringList &asListParam) override;
     void reset() override;
 };
 
 
-#endif // ACTIONWAIT_H
+#endif // RESTORGAME_H

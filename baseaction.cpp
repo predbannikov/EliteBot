@@ -12,7 +12,7 @@ BaseAction::BaseAction(CaptureWindow *aCapture, SocketIO *aSock)
 {
     m_sock = aSock;
     capture = aCapture;
-    trans = TRANS_1;
+    transition = TRANSITION_1;
 }
 
 BaseAction::~BaseAction()
@@ -20,22 +20,39 @@ BaseAction::~BaseAction()
 
 }
 
+bool BaseAction::srchAreaOnceInPart()
+{
+    return capture->srchAreaOnceInRect(sSearchImage.toStdString(), nCount, iStart, iEnd, coeff);
+}
+
 bool BaseAction::perform(QStringList &asListParam)
 {
-    switch (trans) {
-    case TRANS_1:
-        timeElapsed.restart();
+    switch (transition) {
+    case TRANSITION_1:
+        init(asListParam);
+        sys_timeWaitMSec = 300000;
+        sys_timeElapsed.restart();
+        timer.restart();
+        confirmTimer.restart();
+        trigger = false;
+        transition = TRANSITION_2;
+        if(m_sActionName != "DEBUG")
+            qDebug() << "START " << m_sActionName;
     [[clang::fallthrough]];
-    case TRANS_2:
-        qint64 elaps = timeElapsed.elapsed();
-        if(elaps < timeWaitMsec) {
-            if(logic(asListParam)) {
+    case TRANSITION_2:
+        qint64 elaps = sys_timeElapsed.elapsed();
+        if(elaps < sys_timeWaitMSec) {
+            sys_resulLogic = logic(asListParam);
+            printDebug();
+            if(sys_resulLogic) {
                 asListParam[1] = "1";
-                trans = TRANS_1;
+                transition = TRANSITION_1;
+                if(m_sActionName != "DEBUG")
+                    qDebug() << "END   " << m_sActionName;
                 return true;
             }
         } else {
-            trans = TRANS_1;
+            transition = TRANSITION_1;
             asListParam[1] = "0";
             return true;
         }
@@ -52,7 +69,7 @@ void BaseAction::printDebug()
 
 void BaseAction::resetBase()
 {
-    trans = TRANS_1;
+    transition = TRANSITION_1;
     reset();
 }
 
@@ -76,63 +93,17 @@ void BaseAction::typingText(QString asText)
     m_sock->typingText(asText);
 }
 
+QString BaseAction::getName()
+{
+    return m_sActionName;
+}
 
+void BaseAction::move_mouse_rel(int x, int y)
+{
+    m_sock->move_mouse_rel(x, y);
+}
 
-//    bool LowLvlEngineScript::panel1CaseNav(QString sName, bool &abCheck, int anMSec)
-//    {
-
-//            timeWaitMsec = anMSec;
-//            timeElapsed.restart();
-//            check = false;
-//            panel1CaseNavTrans = PANEL_1_CASE_NAV_TRANS_2;
-
-//            qint64 elaps = timeElapsed.elapsed();
-//            if(elaps < timeWaitMsec) {
-//                CursorPanel *pan = capture->panel1Body();
-//                if(pan->activeBody) {
-//                    qDebug() << "RECOGNIZE: "<< pan->sBodyName << " сравниваем с" << sName;
-//                    QStringList list = buttonLeftNav.filter(pan->sBodyName);
-//                    if(list.isEmpty()) {
-//                        int res = comparisonStr(pan->sBodyName, sName);
-//                        if(res <= 2) {
-//                            push_key(" ");
-//                            abCheck = true;
-//                            panel1CaseNavReset();
-//                            return true;
-//                        } else {
-//                            push_key("s");
-//                        }
-//                    } else {
-//                        push_key("d");
-//                    }
-//                }
-//            } else {
-//                abCheck = false;
-//                panel1CaseNavReset();
-//                return true;
-//            }
-//            break;
-
-
-//bool BaseAction::proc()
-//{
-//        return proc();
-//        CursorPanel *pan = capture->panel1Body();
-//        if(pan->activeBody) {
-//            qDebug() << "RECOGNIZE: "<< pan->sBodyName << " сравниваем с" << sName;
-//            QStringList list = buttonLeftNav.filter(pan->sBodyName);
-//            if(list.isEmpty()) {
-//                int res = comparisonStr(pan->sBodyName, sName);
-//                if(res <= 2) {
-//                    push_key(" ");
-//                    abCheck = true;
-//                    panel1CaseNavReset();
-//                    return true;
-//                } else {
-//                    push_key("s");
-//                }
-//            } else {
-//                push_key("d");
-//            }
-//        }
-
+void BaseAction::mouse_move_click(int x, int y)
+{
+    m_sock->mouse_move_click(x, y);
+}

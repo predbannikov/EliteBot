@@ -67,6 +67,7 @@ class GuiInfo : public QWidget
 //  Engine control
     QCheckBox       *chckBoxEngine;
     QComboBox       *cmbCurStation;
+    QPushButton     *pbTest;
 
     //
     QHBoxLayout     *hblEngineControl;
@@ -113,6 +114,10 @@ public:
                         }
                     }
                 }
+            } else if(keyEvent->key() == Qt::Key_R) {
+                emit signalResizeImage();
+            } else if(keyEvent->key() == Qt::Key_S) {
+                emit signalFreeze();
             } else if(keyEvent->key() == Qt::Key_D) {
                 QWidget *wid;
                 QList<QWidget*> mylineEdits = this->findChildren<QWidget*>();
@@ -150,9 +155,12 @@ signals:
     void signalSendMinNumber(int nMin);
     void signalSendMidNumber(int nMid);
     void signalSendMaxNumber(int nMax);
+    void signalFreeze();
+    void signalResizeImage();
     void signalSendMaxContourForLength(int i);
     void signalEngineEnable(bool aState);
     void signalEngineSetCurStation(QString asStation);
+    void signalEngineEnableTest();
     void closeWindow();
 public slots:
     void slotReadKey(QChar aChar);

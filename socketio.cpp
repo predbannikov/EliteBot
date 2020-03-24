@@ -9,6 +9,7 @@
 SocketIO::SocketIO(QPoint aPointOffset)
 {
     sock = new QTcpSocket;
+//    qDebug() << "sock create" << sock->thread()->currentThreadId();
     m_pointOffset = aPointOffset;
 //    sock->connectToHost("192.168.16.128", 10101);
     sock->connectToHost("127.0.0.1", 10101);
@@ -16,6 +17,7 @@ SocketIO::SocketIO(QPoint aPointOffset)
 
 void SocketIO::send(QByteArray a_data)
 {
+//    qDebug() << "socket id =" <<sock->thread()->currentThreadId();
     sock->write(a_data);
     sock->waitForBytesWritten();
 }

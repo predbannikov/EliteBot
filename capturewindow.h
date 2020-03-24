@@ -99,7 +99,7 @@ static void my_mouse_callback(int event, int x, int y, int flags, void *param);
 public:
     CaptureWindow(std::map<std::string, ImageROI> *ap_dataSet, int x = 0, int y = 0, int width = 0, int heith = 0, QObject *parent = nullptr);
     ~CaptureWindow();
-    int nWaitKey;
+//    int nWaitKey;
     void update();
     cv::Mat *getSelectMatROI();
     cv::Rect *getNamedRect(QString asName);
@@ -111,7 +111,7 @@ public:
     cv::Point getPointAreaInMat(std::string asImageROI, cv::Mat acvMat, double factor = 0.99);
     cv::Point getPointOfPattern(cv::Mat acvMat, std::string sPattern, double factor = 0.25);
     cv::Point getPointAndFactorOfSPattern(cv::Mat acvMat, std::string sPattern, double &factor);
-    bool srchAreaOnceInRect(std::string as_imageROI, cv::Rect acvRect, double coeff = 0.99);
+    bool srchAreaOnceInRect(std::string asImageROI, int anCount = 3, int anStart = 0, int anEnd = 8, double coeff = 0.99);
     bool srchAreaOnceInRect(std::string as_rectWhichInLook, std::string as_imageROI);
     cv::Point getPointAfterLookAreaOnceInRect(std::string as_rectWhichInLook, std::string as_imageROI);
     cv::Point getPointAfterLookAreaInRect(std::string asImageROI, cv::Rect acvRect);
@@ -146,6 +146,8 @@ public:
     CursorPanel *panel1Body();
     CursorPanel *panelBodyNav();
     CursorPanel *panelBodyCont();
+    CursorPanel *panelBodyContNotice();
+
     std::vector<cv::Point> findPoints(std::vector< cv::Point>  contours, cv::Mat &dst);
     bool transformMenu1(cv::Mat &acvMatRet);
     bool transformSubNavMenu1(cv::Mat &acvMatRet);
@@ -183,8 +185,15 @@ public:
 
     quint16     m_nNextBlockSize;
 
+    // Получение данных из DataSet
+    QRect getRect(QString sName);
+    QPoint getPoint(QString sName);
+
 
     // Вспомогательные функции
+    bool resizeImage = false;
+    void enableResizeImage();
+    void freeze();
     bool blackLessWhite(cv::Mat &aBinMat, int &anWhite, int &anBlack);
 
     // Функции для подготовки матриц

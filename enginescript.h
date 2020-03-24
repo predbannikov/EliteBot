@@ -35,7 +35,7 @@ public:
     cv::Point getPointAfterLookAreaInRect(QString asImageROI, int anCount = 3, int anStart = 0, int anEnd = 8);
     // Нумерация с 0
 //    bool srchAreaOnceInPart(QString as_imageROI, int anXCount = 3, int anYCount = 3, int anXStart = 0, int anYStart = 0, int anXEnd = 2, int anYEnd = 2);
-    bool srchAreaOnceInPart(QString as_imageROI, int anCount = 3, int anStart = 0, int anEnd = 8, double coeff = 0.9);
+//    bool srchAreaOnceInPart(QString as_imageROI, int anCount = 3, int anStart = 0, int anEnd = 8, double coeff = 0.9);
     cv::Rect calcRectFromPart(int anXCount = 3, int anYCount = 3, int anXStart = 0, int anYStart = 0, int anXEnd = 2, int anYEnd = 2);
     cv::Rect calcRectFromPartOfIndex(int anCount = 3, int aiStart = 1, int aiEnd = 0);
     QString getImageMoreSimilarInRect(QStringList alistsStations, int anCount = 3, int anStart = 0, int anEnd = 8);
@@ -71,6 +71,9 @@ public slots:
 //    void performScript(QJsonArray t_jArray);
 //    void parsePushKey(QChar ac_key);
     void run();
+    void slotFreeze();
+    void slotResizeImage();
+    void slotStartTest();
     void slotSaveImage(cv::Mat acvMat, QString asName);
     void slotEngineEnable(bool aState);
     void slotSetCurStation(QString asStation);
@@ -82,8 +85,7 @@ public slots:
     void setMinNumber(int aNumber);
     void setMidNumber(int aNumber);
     void setMaxNumber(int aNumber);
-signals:
-    void signalOpenGui();
+
 };
 
 
