@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ControlPanel</class>
+ <widget class="QMainWindow" name="ControlPanel">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>530</width>
+    <height>428</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout_3">
+    <item row="0" column="0">
+     <widget class="QGroupBox" name="groupBox_2">
+      <property name="title">
+       <string>Полёты внутри системы</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
+        <widget class="QCheckBox" name="checkBox">
+         <property name="text">
+          <string>Включить</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QComboBox" name="comboBox">
+         <item>
+          <property name="text">
+           <string>Celebi City</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Gabriel Enterprise</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QGroupBox" name="groupBox">
+      <property name="title">
+       <string>Полёты между системами</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="1" column="0">
+        <widget class="QCheckBox" name="checkBox_3">
+         <property name="text">
+          <string>Зациклить</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QRadioButton" name="radioButton_2">
+         <property name="text">
+          <string>Harma</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QCheckBox" name="checkBox_2">
+         <property name="text">
+          <string>Включить</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QRadioButton" name="radioButton">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="text">
+          <string>Bluford Orbital</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QComboBox" name="comboBox_2">
+         <item>
+          <property name="text">
+           <string>Anedjete</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Tehuevi</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Fan Cechehe</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Apteti</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Kachirigin</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Pandinus</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Kakmbutan</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Mandii</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Birreti</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Devata Baru</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Djabijabus</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QGroupBox" name="groupBox_3">
+      <property name="title">
+       <string>GroupBox</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_4">
+       <item row="1" column="0">
+        <widget class="QRadioButton" name="radioButton_6">
+         <property name="text">
+          <string>left</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QRadioButton" name="radioButton_4">
+         <property name="text">
+          <string>top</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QRadioButton" name="radioButton_7">
+         <property name="text">
+          <string>right</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QRadioButton" name="radioButton_3">
+         <property name="text">
+          <string>center</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
