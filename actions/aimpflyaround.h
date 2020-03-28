@@ -11,21 +11,23 @@ class AimpFlyAround : public BaseAction
     enum {TRANS_1, TRANS_2, TRANS_3} trans;
 
 
-    bool offSet = false;
     QString key;
-    cv::Rect lastRect;
     QString sSide;
 
-    bool waitCompasActive = false;
+    double lastRadius = 0;
 
     int powerX;
     int seekY;
     int seekX;
+    int mapSide = 0;
+
+    bool waitCompasActive = false;
+    bool offSet = false;
+
     bool pickup = false;
     bool pickdownX = false;
     bool pickdownY = false ;
     bool rotate = false ;
-    int mapSide = 0;
 //    bool rotation(int anSide = 0);
     bool moveAway(Primitives *aPrim);
     bool compassAimp();

@@ -47,7 +47,7 @@ bool AimpFlyAround::moveAway(Primitives *aPrim)
     return false;
 }
 
-#define COMPARRADIUS_FOR_COMPAS     4
+#define COMPARRADIUS_FOR_COMPAS     5
 #define COMPARGRAD_FOR_COMPAS       10
 
 
@@ -201,6 +201,13 @@ bool AimpFlyAround::aimpSideWays()
             aimpSideWaysTrans = AIMPSIDEWAY_TRANS_1;
             return true;
         }
+        if(abs(lastRadius) < (abs(radius) - 3)) {
+            qDebug() << "Требуется поправка, метка остановки пропущена, TEST!!! radius ="
+                     << QString::number(radius, 'f', 2) << " lastRadius =" << lastRadius;
+            push_key("x");
+            reset();
+        }
+        lastRadius = radius;
         break;
     case AIMPSIDEWAY_TRANS_4:
         if(!prim->found) {
@@ -225,10 +232,7 @@ bool AimpFlyAround::aimpTarget()
         qint64 timerConfirmElapse = confirmTimer.elapsed();
         qDebug() << "target not active ms =" << timerConfirmElapse;
         if(confirmTimer.elapsed() > waitMSec) {
-            qDebug() << "target RESET ms =" << timerConfirmElapse;
-            push_key(" ");
-            QThread::msleep(1000);   // Ожидание завершения инерционных движений
-            init(sys_listCommand);
+            reset();
         }
         return false;
     }
@@ -324,6 +328,7 @@ void AimpFlyAround::init(QStringList &asListParam)
     rotate = false ;
     mapSide = 0;
     waitMSec = 6000;
+    lastRadius = 0;
 }
 
 bool AimpFlyAround::logic(QStringList &asListParam)
@@ -363,4 +368,8 @@ bool AimpFlyAround::logic(QStringList &asListParam)
 
 void AimpFlyAround::reset()
 {
+    qDebug() << "RESET";
+    push_key(" ");
+    QThread::msleep(2000);   // Ожидание завершения инерционных движений
+    init(sys_listCommand);
 }
