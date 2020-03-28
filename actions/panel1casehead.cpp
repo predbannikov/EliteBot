@@ -7,7 +7,6 @@ Panel1CaseHead::Panel1CaseHead(CaptureWindow *aCapture, SocketIO *aSock) : BaseA
 
 void Panel1CaseHead::init(QStringList &asListParam)
 {
-    trigger = false;
 }
 
 bool Panel1CaseHead::logic(QStringList &asListParam)

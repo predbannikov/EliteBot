@@ -7,7 +7,6 @@ Panel1SubNav::Panel1SubNav(CaptureWindow *aCapture, SocketIO *aSock) : BaseActio
 
 void Panel1SubNav::init(QStringList &asListParam)
 {
-    trigger = false;
 }
 
 bool Panel1SubNav::logic(QStringList &asListParam)

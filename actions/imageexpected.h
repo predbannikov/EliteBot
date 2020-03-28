@@ -8,6 +8,7 @@ public:
     ImageExpected(CaptureWindow *aCapture, SocketIO *aSock);
     void init(QStringList &asListParam) override;
     bool logic(QStringList &asListParam) override;
+    void printDebug() override;
     void reset() override;
 };
 

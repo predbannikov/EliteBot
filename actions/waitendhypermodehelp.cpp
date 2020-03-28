@@ -18,11 +18,13 @@ void WaitEndHyperModeHelp::init(QStringList &asListParam)
 
 bool WaitEndHyperModeHelp::logic(QStringList &asListParam)
 {
-    if(!srchAreaOnceInPart()) {
+    coeff = 0;
+    srchAreaOnceInPart();
+    if(coeff < 0.88) {
         if(timer.elapsed() - lastElapse > whileWaitMsec) {
             return true;
         }
-        qDebug() << "pattern image hide" << lastElapse << timer.elapsed() - lastElapse << "  whileWaitMSed =" << whileWaitMsec;
+        qDebug() << "pattern image hide" << lastElapse << timer.elapsed() - lastElapse << "  whileWaitMSed =" << whileWaitMsec << " coeff =" << coeff;
     } else {
         lastElapse = timer.elapsed();
     }

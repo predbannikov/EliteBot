@@ -34,11 +34,11 @@ CaptureWindow::CaptureWindow(std::map<std::string, ImageROI> *ap_dataSet, int x,
     mp_dataSet = ap_dataSet;
 
 
-    cv::namedWindow("win1", cv::WND_PROP_FULLSCREEN);
-//    cv::namedWindow("win1", cv::WND_PROP_AUTOSIZE);
+//    cv::namedWindow("win1", cv::WND_PROP_FULLSCREEN);
+    cv::namedWindow("win1", cv::WND_PROP_AUTOSIZE);
     cv::moveWindow("win1", 0, -STANDART_FULLHD_HEIGHT);
 
-    cv::setWindowProperty("win1", cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN);
+//    cv::setWindowProperty("win1", cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN);
     cv::setMouseCallback("win1", my_mouse_callback, this);
 //    cv::namedWindow("win2", cv::WND_PROP_AUTOSIZE );
 //    cv::namedWindow("win3", cv::WND_PROP_AUTOSIZE );
@@ -80,6 +80,10 @@ CaptureWindow::CaptureWindow(std::map<std::string, ImageROI> *ap_dataSet, int x,
 
 //    qDebug() << myOCREng->GetUTF8Text() << myOCRRus->GetUTF8Text();
     m_cursorPan.sHeaderName ="навигация";
+    enableResizeImage();
+    cv::moveWindow("win1", 0, -STANDART_FULLHD_HEIGHT);
+//    resizeImage = true;
+    m_side = 0;
 //    m_cursorPan.rectBody = cv::Rect(796, 424, 414, 77);
 //    m_cursorPan.activeBody = true;
 }
@@ -113,7 +117,7 @@ void CaptureWindow::update()
     drawLines();
     showRoi();
 
-
+//    test(m_side);
 //    panel1Body();
 //    panelBodyCont();
 //    panelBodyContNotice();
@@ -124,10 +128,12 @@ void CaptureWindow::update()
 //    menuDocking();
 //    recognizDistance();
     if(resizeImage) {
-//        cv::Mat winResize;
-        cv::resize(win, win, win.size() / 2);
-    }
-    imshow("win1", win);
+        cv::Mat winResize;
+        cv::resize(win, winResize, win.size() / 2);
+        imshow("win1", winResize);
+
+    } else
+        imshow("win1", win);
 }
 
 cv::Mat CaptureWindow::checkRoiMat()
@@ -302,8 +308,10 @@ cv::Point CaptureWindow::getPointAndFactorOfSPattern(cv::Mat acvMat, std::string
     return _point;
 }
 
-bool CaptureWindow::srchAreaOnceInRect(std::string asImageROI, int anCount, int anStart, int anEnd, double coeff)
+bool CaptureWindow::srchAreaOnceInRect(std::string asImageROI, double &coeff, QPoint &aPoint, int anCount, int anStart, int anEnd)
 {
+//    if(DEBUG2)
+//        qDebug() << ".";
     if(mp_dataSet->find(asImageROI) == mp_dataSet->end()) {
         return false;
     }
@@ -314,6 +322,8 @@ bool CaptureWindow::srchAreaOnceInRect(std::string asImageROI, int anCount, int 
     win(cvRect).copyTo(_matXRoi);
     _roiMat = mp_dataSet->at(asImageROI).mat;
     if(findPointRoi(_roiMat, _matXRoi, _point, coeff)) {
+        aPoint.setX(_point.x + cvRect.x + _roiMat.size().width / 2);
+        aPoint.setY(_point.y + cvRect.y + _roiMat.size().height / 2);
         return true;
     } else
         return false;
@@ -323,6 +333,8 @@ bool CaptureWindow::srchAreaOnceInRect(std::string asImageROI, int anCount, int 
 
 void CaptureWindow::callBackMouse(int event, int x, int y, int flags)
 {
+    if(DEBUG2)
+        qDebug() << ".";
     mouse.flag = flags & 7;
     switch (event) {
     case cv::EVENT_MOUSEMOVE: {
@@ -379,24 +391,26 @@ void CaptureWindow::callBackMouse(int event, int x, int y, int flags)
     }
 }
 
-bool CaptureWindow::srchAreaOnceInRect(std::string as_rectWhichInLook, std::string as_imageROI)
-{
-    cv::Mat _matXRoi;
-    cv::Rect _rect = mp_dataSet->at(as_rectWhichInLook).rect;
-    cv::Point _point;
-    cv::Mat _roiMat;
-    win(_rect).copyTo(_matXRoi);
+//bool CaptureWindow::srchAreaOnceInRect(std::string as_rectWhichInLook, std::string as_imageROI)
+//{
+//    cv::Mat _matXRoi;
+//    cv::Rect _rect = mp_dataSet->at(as_rectWhichInLook).rect;
+//    cv::Point _point;
+//    cv::Mat _roiMat;
+//    win(_rect).copyTo(_matXRoi);
 
-    _roiMat = mp_dataSet->at(as_imageROI).mat;
-
-    if(findPointRoi(_roiMat, _matXRoi, _point, MIN_COEFF_FOR_FIND)) {
-        return true;
-    } else
-        return false;
-}
+//    _roiMat = mp_dataSet->at(as_imageROI).mat;
+//    double coeff = MIN_COEFF_FOR_FIND;
+//    if(findPointRoi(_roiMat, _matXRoi, _point, coeff)) {
+//        return true;
+//    } else
+//        return false;
+//}
 
 cv::Point CaptureWindow::getPointAfterLookAreaOnceInRect(std::string as_rectWhichInLook, std::string as_imageROI)
 {
+    if(DEBUG2)
+        qDebug() << ".";
     cv::Mat _matXRoi;
     cv::Rect _rect = mp_dataSet->at(as_rectWhichInLook).rect;
     cv::Point _point;
@@ -404,8 +418,8 @@ cv::Point CaptureWindow::getPointAfterLookAreaOnceInRect(std::string as_rectWhic
     win(_rect).copyTo(_matXRoi);
 
     _roiMat = mp_dataSet->at(as_imageROI).mat;
-
-    if(findPointRoi(_roiMat, _matXRoi, _point, MIN_COEFF_FOR_FIND)) {
+    double coeff = MIN_COEFF_FOR_FIND;
+    if(findPointRoi(_roiMat, _matXRoi, _point, coeff)) {
         cv::Rect rectMatch(_rect.x + _point.x , _rect.y + _point.y, _roiMat.size().width, _roiMat.size().height);
         // Внести найденый квадрат для отрисовки
         {
@@ -421,16 +435,17 @@ cv::Point CaptureWindow::getPointAfterLookAreaOnceInRect(std::string as_rectWhic
     return _point;  //cv::Point(_point.x + m_nXOffset, _point.y + m_nYOffset);
 }
 
-cv::Point CaptureWindow::getPointAfterLookAreaInRect(std::string asImageROI, cv::Rect acvRect)
+cv::Point CaptureWindow::getPointAfterLookAreaInRect(std::string asImageROI, cv::Rect acvRect, double &factor)
 {
+    if(DEBUG2)
+        qDebug() << ".";
     cv::Mat _matXRoi;
     cv::Point _point;
     cv::Mat _roiMat;
     win(acvRect).copyTo(_matXRoi);
 
     _roiMat = mp_dataSet->at(asImageROI).mat;
-
-    if(findPointRoi(_roiMat, _matXRoi, _point, MIN_COEFF_FOR_FIND)) {
+    if(findPointRoi(_roiMat, _matXRoi, _point, factor)) {
         cv::Rect rectMatch(acvRect.x + _point.x , acvRect.y + _point.y, _roiMat.size().width, _roiMat.size().height);
         // Внести найденый квадрат для отрисовки
         {
@@ -448,6 +463,8 @@ cv::Point CaptureWindow::getPointAfterLookAreaInRect(std::string asImageROI, cv:
 
 double CaptureWindow::getCoeffImageInRect(std::string asImageROI, cv::Rect acvRect)
 {
+    if(DEBUG2)
+        qDebug() << ".";
     cv::Mat _matXRoi;
     cv::Mat _roiMat;
     win(acvRect).copyTo(_matXRoi);
@@ -485,6 +502,8 @@ double CaptureWindow::getCoeffImageInRect(std::string asImageROI, cv::Rect acvRe
 
 CursorPanel *CaptureWindow::panel1Body()
 {
+    if(DEBUG2)
+        qDebug() << ".";
     m_cursorPan.activeBody = false;
 
     if(comparisonStr(m_cursorPan.sHeaderName, "навигация") <= 2) {
@@ -497,10 +516,12 @@ CursorPanel *CaptureWindow::panel1Body()
 
 CursorPanel *CaptureWindow::panelBodyNav()
 {
+    if(DEBUG2)
+        qDebug() << ".";
     qDebug() << "CursorPanel *CaptureWindow::panelBodyNav()";
     cv::Mat hsv;
     cv::Mat rectMat;
-    win(cv::Rect(100, 100, m_screen.width() - 500, m_screen.height() - 200)).copyTo(rectMat);
+    win(cv::Rect(100, 100, g_screen.width() - 500, g_screen.height() - 200)).copyTo(rectMat);
     cv::cvtColor( rectMat, hsv, CV_BGR2HSV );
     cv::Mat mask;
     cv::inRange(hsv, cv::Scalar(10, 210, 230), cv::Scalar(50, 255, 255), mask);
@@ -686,9 +707,11 @@ CursorPanel *CaptureWindow::panelBodyNav()
 
 CursorPanel *CaptureWindow::panelBodyCont()
 {
+    if(DEBUG2)
+        qDebug() << ".";
     cv::Mat hsv;
     cv::Mat rectMat;
-    win(cv::Rect(100, 100, m_screen.width() - 500, m_screen.height() - 200)).copyTo(rectMat);
+    win(cv::Rect(100, 100, g_screen.width() - 500, g_screen.height() - 200)).copyTo(rectMat);
     cv::cvtColor( rectMat, hsv, CV_BGR2HSV );
     cv::Mat mask;
     cv::inRange(hsv, cv::Scalar(10, 210, 230), cv::Scalar(50, 255, 255), mask);
@@ -812,12 +835,14 @@ CursorPanel *CaptureWindow::panelBodyCont()
 
 CursorPanel *CaptureWindow::panelBodyContNotice()
 {
+    if(DEBUG2)
+        qDebug() << ".";
     if(m_cursorPan.activeBody) {
         cv::Mat hsv;
         cv::Mat rectMat;
         cv::Mat rotateMat;
         cv::Mat mask;
-        win(cv::Rect(100, 100, m_screen.width() - 500, m_screen.height() - 200)).copyTo(rectMat);
+        win(cv::Rect(100, 100, g_screen.width() - 500, g_screen.height() - 200)).copyTo(rectMat);
         cv::cvtColor( rectMat, hsv, CV_BGR2HSV );
         cv::Rect rect(m_cursorPan.rectBody.x, m_cursorPan.rectBody.y, m_cursorPan.rectBody.width, m_cursorPan.rectBody.height + 90);
         rectMat(rect).copyTo(rotateMat);
@@ -853,10 +878,12 @@ CursorPanel *CaptureWindow::panelBodyContNotice()
 
 CursorPanel *CaptureWindow::panel1Header()
 {
+    if(DEBUG2)
+        qDebug() << ".";
     m_cursorPan.activeHeader = false;
     cv::Mat hsv;
     cv::Mat rectMat;
-    win(cv::Rect(100, 100, m_screen.width() - 500, m_screen.height() - 200)).copyTo(rectMat);
+    win(cv::Rect(100, 100, g_screen.width() - 500, g_screen.height() - 200)).copyTo(rectMat);
     cv::cvtColor( rectMat, hsv, CV_BGR2HSV );
     cv::Mat mask;
     cv::inRange(hsv, cv::Scalar(10, 210, 230), cv::Scalar(50, 255, 255), mask);
@@ -959,6 +986,8 @@ CursorPanel *CaptureWindow::panel1Header()
 }
 
 std::vector<cv::Point> CaptureWindow::findPoints(std::vector< cv::Point>  contours, cv::Mat &dst) {
+    if(DEBUG2)
+        qDebug() << ".";
     std::vector<cv::Point> vec;
     std::vector<cv::Point> min_x;
     min_x.push_back(cv::Point(STANDART_HD_WIDTH, STANDART_HD_HEIGHT));
@@ -1043,6 +1072,8 @@ std::vector<cv::Point> CaptureWindow::findPoints(std::vector< cv::Point>  contou
 
 bool CaptureWindow::transformMenu1(cv::Mat &acvMatRet)
 {
+    if(DEBUG2)
+        qDebug() << ".";
 #define PANEL_1_WIDTH       1020
 #define PANEL_1_HEIGHT      680
 #define PANEL_1_Y_SEEK      50
@@ -1111,6 +1142,8 @@ bool CaptureWindow::transformMenu1(cv::Mat &acvMatRet)
 
 bool CaptureWindow::transformSubNavMenu1(cv::Mat &acvMatRet)
 {
+    if(DEBUG2)
+        qDebug() << ".";
 #define PANEL_1_WIDTH_SUBNAV       119
 #define PANEL_1_HEIGHT_SUBNAV      65
     cv::Mat tmp(win.size().height, win.size().width, win.depth(), win.channels());
@@ -1183,6 +1216,8 @@ bool CaptureWindow::transformSubNavMenu1(cv::Mat &acvMatRet)
 
 void CaptureWindow::addDrawRect(cv::Rect acvRect)
 {
+    if(DEBUG2)
+        qDebug() << ".";
     m_rectMap["test"] = acvRect;
 }
 
@@ -1231,18 +1266,21 @@ void CaptureWindow::drawRectangles()
 
 void CaptureWindow::drawLines()
 {
+
     if(m_bDrawLine) {
-        int partWidth = m_screen.width() / m_nCountCell;
-        int partHeight = m_screen.height() / m_nCountCell;
+        if(DEBUG2)
+            qDebug() << ".";
+        int partWidth = g_screen.width() / m_nCountCell;
+        int partHeight = g_screen.height() / m_nCountCell;
     //    qDebug() << USING_WIDTH - partWidth * anCount << " " << USING_HEIGHT - partHeight * anCount;
         int x1 = 1, y1 = 1, x2 = 0, y2 = 0;
-        while(x1 < m_screen.width()) {
-            cv::line(win, cv::Point(x1, 0), cv::Point(x1, m_screen.height()), cvScalar(0x0, 0xFF, 0x0));
+        while(x1 < g_screen.width()) {
+            cv::line(win, cv::Point(x1, 0), cv::Point(x1, g_screen.height()), cvScalar(0x0, 0xFF, 0x0));
             x1 += partWidth;
         }
 
-        while(y1 < m_screen.height()) {
-            cv::line(win, cv::Point(0, y1), cv::Point(m_screen.width(), y1), cvScalar(0x0, 0xFF, 0x0));
+        while(y1 < g_screen.height()) {
+            cv::line(win, cv::Point(0, y1), cv::Point(g_screen.width(), y1), cvScalar(0x0, 0xFF, 0x0));
             y1 += partHeight;
         }
 
@@ -1284,8 +1322,10 @@ void CaptureWindow::drawDataSet()
 //    Q_UNUSED(_mat)
 //}
 
-bool CaptureWindow::findPointRoi(cv::Mat &t_mat, cv::Mat &t_whereFind, cv::Point &t_point, double t_factor)
+bool CaptureWindow::findPointRoi(cv::Mat &t_mat, cv::Mat &t_whereFind, cv::Point &t_point, double &aFactor)
 {
+    if(DEBUG2)
+        qDebug() << ".";
     if(t_whereFind.size().height < t_mat.size().height)
         return false;
     cv::Mat result[count_match_methods];
@@ -1308,7 +1348,7 @@ bool CaptureWindow::findPointRoi(cv::Mat &t_mat, cv::Mat &t_whereFind, cv::Point
 //        if(tmp.m2 < 0.9)
 //            qDebug() << tmp.m2;
     }
-    cv::Point match = findMatchPoint(vec, t_factor);
+    cv::Point match = findMatchPoint(vec, aFactor);
     t_point = match;
     //cv::imshow("win4", t_whereFind);
     if(match != cv::Point(0,0)) {
@@ -1326,6 +1366,8 @@ bool CaptureWindow::findPointRoi(cv::Mat &t_mat, cv::Mat &t_whereFind, cv::Point
 
 bool CaptureWindow::findRectRoi(cv::Mat t_mat, cv::Rect &t_rect, double t_factor)
 {
+    if(DEBUG2)
+        qDebug() << ".";
     cv::Mat result[count_match_methods];
     std::vector<VarForTemplateMatch> vec;
     std::vector<int> const_vec;
@@ -1363,7 +1405,7 @@ bool CaptureWindow::findRectRoi(cv::Mat t_mat, cv::Rect &t_rect, double t_factor
     }
 }
 
-cv::Point CaptureWindow::findMatchPoint(std::vector<VarForTemplateMatch> _vec, double t_factor)
+cv::Point CaptureWindow::findMatchPoint(std::vector<VarForTemplateMatch> _vec, double &aFactor)
 {
 //    cv::Point point[count_match_methods * 2];
 //    std::vector<cv::Point> point;
@@ -1441,13 +1483,17 @@ cv::Point CaptureWindow::findMatchPoint(std::vector<VarForTemplateMatch> _vec, d
 ////            if(it->m2 < 0.6)
 ////                _vec.erase(it--);
 //    }
-    _vec.erase(std::remove_if(_vec.begin(), _vec.end(), [_vec, t_factor] (VarForTemplateMatch aItem) -> bool {
-                   return aItem.m2 < t_factor;
+    _vec.erase(std::remove_if(_vec.begin(), _vec.end(), [_vec, aFactor] (VarForTemplateMatch aItem) -> bool {
+                   return aItem.m2 < aFactor;
                }), _vec.end());
 //    qDebug() << QString::number(_vec[0].m1, 'f', 2) << QString::number(_vec[0].m2, 'f', 2);
-    if(_vec.size() == 2) {
-        return _vec[0].m2 > _vec[1].m2 ? _vec[0].p2 : _vec[0].p2;
-    } else if(_vec.size() == 1 && _vec[0].m2 >  t_factor) {
+    double diffCoeff = aFactor;
+    if(!_vec.empty())
+        aFactor = _vec.front().m2;
+//    if(_vec.size() == 2) {
+//        return _vec[0].m2 > _vec[1].m2 ? _vec[0].p2 : _vec[0].p2;
+//    } else
+    if(_vec.size() == 1 && _vec[0].m2 >  diffCoeff) {
 //        qDebug() << QString::number(_vec[0].m1, 'f', 2) << QString::number(_vec[0].m2, 'f', 2);
         return _vec[0].p2;
     } else {
@@ -1469,7 +1515,8 @@ cv::Point CaptureWindow::findMatchPoint(std::vector<VarForTemplateMatch> _vec, d
 
 CursorTarget *CaptureWindow::takeAimp()
 {
-
+    if(DEBUG2)
+        qDebug() << ".";
     cv::Rect fieldSpace(calcRectFromPartOfIndex(11, 25, 84));
     cv::Mat dst;
     win(fieldSpace).copyTo(dst);
@@ -1479,12 +1526,17 @@ CursorTarget *CaptureWindow::takeAimp()
     cv::circle(dst, m_cursorTarget.pointCenter, 3, cv::Scalar(0, 255, 0));
     cv::Mat mask(dst.size(), CV_8U, 1);
     cv::Mat hsv;
-    cv::cvtColor(dst, hsv, CV_BGR2HSV);
+//    cv::cvtColor(dst, hsv, CV_BGR2HSV);
     int targetSatMax = 246;
-    while(!m_cursorTarget.active && targetSatMax <= 255) {
+    int targetValMax = 253;
+    int targetVal2 = 240;
+    int targetVal3 = 240;
+//    while(!m_cursorTarget.active && targetSatMax <= 255 && targetValMax <= 255) {
+    while(!m_cursorTarget.active && targetVal2 >= 100 && targetVal3 >= 100) {
         //    cv::inRange(hsv, minScalar, maxScalar, mask);                         // hsv
-            cv::inRange(hsv, cv::Scalar(15, 43, 117), cv::Scalar(48, targetSatMax, 253), mask);                         // hsv
-        //    cv::inRange(dst, cv::Scalar(0, 106, 179), cv::Scalar(22, 255, 255), mask);                    // bgr
+//        cv::inRange(hsv, cv::Scalar(15, 43, 117), cv::Scalar(48, targetSatMax, targetValMax), mask);                         // hsv
+//        cv::inRange(dst, minScalar, maxScalar, mask);                         // hsv
+        cv::inRange(dst, cv::Scalar(0, targetVal2, targetVal3), cv::Scalar(255, 255, 255), mask);                         // hsv
         //    cv::Mat maskBlur;
         //    cv::blur(mask, maskBlur, cv::Size(3, 3));
             std::vector< std::vector< cv::Point> > contoursSrc;
@@ -1510,9 +1562,19 @@ CursorTarget *CaptureWindow::takeAimp()
                                                        m_cursorTarget.rectTarget.y + m_cursorTarget.rectTarget.height / 2);
                 cv::rectangle(dst, m_cursorTarget.rectTarget, cv::Scalar(0xFF, 0x0, 0x0));
             }
-            targetSatMax++;
+            targetVal2 -= 15;
+            if(targetVal2 <= 100) {
+                targetVal2 = 240;
+                targetVal3 -= 15;
+            }
+//            targetSatMax++;
+//            if(targetSatMax == 255) {
+//                targetValMax++;
+//                targetSatMax = 246;
+//            }
     }
-
+//    qDebug() << "targetSatMax =" << targetSatMax << " targetValMax =" << targetValMax;
+//    qDebug() << targetVal2 << targetVal3;
     cv::circle(dst, m_cursorTarget.pointTarget, 3, cv::Scalar(0, 255, 0));
 
 
@@ -1523,13 +1585,93 @@ CursorTarget *CaptureWindow::takeAimp()
     return &m_cursorTarget;
 }
 
+Primitives *CaptureWindow::test(int aSide)
+{
+    if(DEBUG2)
+        qDebug() << ".";
+    primitives.found = false;
+    cv::Mat dst;
+    cv::Mat mask(dst.size(), CV_8U, 1);
+    cv::Mat hsv;
+    cv::Rect fieldSpace;
+    if(aSide == 0) {
+        fieldSpace = cv::Rect(calcRectFromPartOfIndex(11, 25, 84));
+    } else if(aSide == 3) { // right
+        fieldSpace = cv::Rect(calcRectFromPartOfIndex(11, 28, 87));
+    } else if(aSide == 2) { // top
+        fieldSpace = cv::Rect(calcRectFromPartOfIndex(11, 3, 62));
+    } else if(aSide == 1) { // left
+        fieldSpace = cv::Rect(calcRectFromPartOfIndex(11, 22, 81));
+    }
+    enum {HOT_STAR} barrier = HOT_STAR;
+
+    for(int k = 0; k < 1; k++) {
+        if(k == barrier) {
+            win(fieldSpace).copyTo(dst);
+        //    m_cursorTarget.active = false;
+        //    m_cursorTarget.rectSrc = fieldSpace;
+        //    m_cursorTarget.pointCenter = cv::Point(fieldSpace.width / 2, fieldSpace.height / 2);
+        //    cv::circle(dst, m_cursorTarget.pointCenter, 3, cv::Scalar(0, 255, 0));
+        //    cv::cvtColor(dst, hsv, CV_BGR2HSV);
+        //    cv::inRange(hsv, minScalar, maxScalar, mask);                         // hsv
+
+            std::vector<cv::Rect> rects;
+            cv::inRange(dst, cv::Scalar(0, 0, 0), cv::Scalar(50, 255, 255), mask);                         // hsv
+            cv::bitwise_not(mask, mask);
+//            cv::inRange(dst, minScalar, maxScalar, mask);                         // hsv
+            //            cv::Mat maskBlur;
+            //            cv::GaussianBlur(mask, mask, cv::Size(5, 5), 0, 0);
+            cv::medianBlur(mask, mask, 7);
+            std::vector< std::vector< cv::Point> > contours;
+            cv::findContours(mask, contours, cv::noArray(), cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+            if(contours.empty()) {
+                qDebug() << "Нет объектов";
+                return &primitives;
+            }
+            cv::drawContours(dst, contours, -1, cvBlue);
+            std::vector<size_t> idx;
+            std::vector<double> areas;
+            areas.resize(contours.size());
+            idx.resize(contours.size());
+            for(size_t i = 0; i < contours.size(); i++) {
+                areas[i] = cv::contourArea(contours[i]);
+                idx[i] = i;
+
+            }
+
+            std::sort(idx.begin(), idx.end(), AreaCmp(areas));
+            if(areas[idx.front()] > 20000) {
+                cv::Rect rect = cv::boundingRect(contours[idx.front()]);
+//                    qDebug() << "area =" << QString::number(area, 'f', 2) << rect.width << rect.height;
+                primitives.found = true;
+                primitives.area = areas[idx.front()];
+                primitives.contour = contours[idx.front()];
+                primitives.rect = cv::boundingRect(contours[idx.front()]);
+                primitives.screen = fieldSpace;
+
+                cv::rectangle(dst, rect, cvRad);
+            }
+        }
+
+    }
+
+
+
+//    imshow("win4", maskBlur);
+    imshow("win3", mask);
+    imshow("win2", dst);
+    return &primitives;
+}
+
 Compass *CaptureWindow::compass()
 {
+    if(DEBUG2)
+        qDebug() << ".";
 #define     COMPAS_SIDE     90
     m_compas.active = false;
     cv::Rect compasRect;        // Основной квадрат компаса
     cv::Mat dst;
-    cv::Rect fieldCompass(calcRectFromPartOfIndex(27, 467, 660));
+    cv::Rect fieldCompass(calcRectFromPartOfIndex(27, 494, 633));
     win(fieldCompass).copyTo(dst);
 
 
@@ -1540,90 +1682,186 @@ Compass *CaptureWindow::compass()
     int hue = 15;
     std::vector<cv::Vec3f> circles;
     std::vector<cv::Rect> compassRects;
-    while (hue > 9) {
-        circles.clear();    compassRects.clear();
+//    qDebug() << "******* поиск кругов *********";
+    while (hue >= 5) {
+        circles.clear();
+        compassRects.clear();
         bin.deallocate();
         img_blur.deallocate();
-        getMaskOfMat(dst, bin, cv::Scalar(hue, 150, 126), cv::Scalar(27, 243, 254));
+//        getMaskOfMat(dst, bin, cv::Scalar(hue, 150, 126), maxScalar);
+        getMaskOfMat(dst, bin, cv::Scalar(hue, 150, 126), cv::Scalar(27, 250, 254));
         std::vector< std::vector <cv::Point> > cont;
         std::vector<int > sort_idx;
         cv::blur(bin, img_blur, cv::Size(3, 3));
-        cv::HoughCircles(img_blur, circles, cv::HOUGH_GRADIENT, 1, dst.rows / 1, 200, 15, 25, 35);
+        cv::HoughCircles(img_blur, circles, cv::HOUGH_GRADIENT, 1, dst.rows / 1, 200, 15, 28, 30);
         if(circles.empty())  {
 //            qDebug() << " hue =" << hue;
 //            imshow("win5", dst);
 //            imshow("win4", img_blur);
-            hue--;
-        } else
-            break;
+        } else {
+            for(size_t i = 0; i < circles.size(); i++) {
+                cv::Rect rectFound(cvRound(circles[i][0]) - COMPAS_SIDE/2, cvRound(circles[i][1]) - COMPAS_SIDE/2, COMPAS_SIDE, COMPAS_SIDE);
+                if(rectFound.x < 0 || rectFound.y < 0
+                        || rectFound.x + rectFound.width > dst.size().width
+                        || rectFound.y + rectFound.height > dst.size().height) {
+//                    qDebug() << "noise либо на границе либо по размерам не подходит";
+                    continue;
+                }
+//                cv::circle(dst, cv::Point(cvRound(circles[i][0]), cvRound(circles[i][1])), cvRound(circles[i][2]), cvGreen, 2);
+                compassRects.push_back(rectFound);
+//                cv::rectangle(dst, rectFound, cv::Scalar(255, 0, 0), 2);
+            }
+            if(!compassRects.empty())
+                break;
+        }
+        hue--;
     }
-    if(circles.empty()) {
+//    qDebug() << "hue = " << hue << " compassRects =" << compassRects.size();
+    if(compassRects.empty()) {
+//        imshow("win5", img_blur);
         qDebug() << "Круги компаса не найдены hue =" << hue;
         return &m_compas;
     }
 
 //    imshow("win3", dst);
-//    imshow("win4", bin);
-//    imshow("win5", img_blur);
+//    imshow("win4", img_blur);
 //    return &m_compas;
 
             // Убираем лишние круги
-    for(size_t i = 0; i < circles.size(); i++) {
-        cv::Rect rectFound(cvRound(circles[i][0]) - COMPAS_SIDE/2, cvRound(circles[i][1]) - COMPAS_SIDE/2, COMPAS_SIDE, COMPAS_SIDE);
-        if(rectFound.x < 0 || rectFound.y < 0
-                || rectFound.x + rectFound.width > dst.size().width
-                || rectFound.y + rectFound.height > dst.size().height) {
-            qDebug() << "noise";
-            continue;
-        }
-        compassRects.push_back(rectFound);
+//    for(size_t i = 0; i < circles.size(); i++) {
+//        cv::circle(dst, cv::Point(cvRound(circles[i][0]), cvRound(circles[i][1])), cvRound(circles[i][2]), cvGreen, 2);
+//        cv::Rect rectFound(cvRound(circles[i][0]) - COMPAS_SIDE/2, cvRound(circles[i][1]) - COMPAS_SIDE/2, COMPAS_SIDE, COMPAS_SIDE);
+//        if(rectFound.x < 0 || rectFound.y < 0
+//                || rectFound.x + rectFound.width > dst.size().width
+//                || rectFound.y + rectFound.height > dst.size().height) {
+//            qDebug() << "noise либо на границе либо по размерам не подходит";
+//            continue;
+//        }
+//        compassRects.push_back(rectFound);
 //        cv::rectangle(dst, rectFound, cv::Scalar(255, 0, 0), 2);
-    }
+//    }
+//    imshow("win4", dst);
+//    imshow("win5", bin);
+//    return &m_compas;
+
 
 
     //  ---------------------------       Поиск по паттерну       ----------------------
-    std::vector<cv::Rect> vecRects;
-    std::vector<size_t> fact_idx;
-    std::vector<double> factors;
-    for(size_t i = 0; i < compassRects.size(); i++) {
-        cv::Mat compasMatSrc;
-        cv::Mat oreolCompasMask;
-        cv::Mat oreolCompasMaskGray;
-        dst(compassRects[0]).copyTo(compasMatSrc);
-        getMaskOfMat(compasMatSrc, oreolCompasMask, cv::Scalar(15, 148, 126), cv::Scalar(27, 243, 254));
-        cv::cvtColor(oreolCompasMask, oreolCompasMaskGray, cv::COLOR_GRAY2BGR);
-        double factor = 0.1;
-        cv::Point srchPoint;
-        srchPoint = getPointAndFactorOfSPattern(oreolCompasMaskGray, "compasOreol", factor);
-        fact_idx.push_back(i);
-        factors.push_back(factor);
-        vecRects.push_back(cv::Rect(compassRects[i].x + srchPoint.x - COMPAS_SIDE/2, compassRects[i].y + srchPoint.y - COMPAS_SIDE/2, COMPAS_SIDE, COMPAS_SIDE));
-    }
-    if(vecRects.empty()) {
-        cv::drawContours(dst, vecRects, -1, cvGreen, 1);
-        qDebug() << "Паттерн компаса в найденом круге не найдены";
-//        imshow("win5", img_blur);
-        imshow("win4", bin);
-        imshow("win2", dst);
-        return &m_compas;
-    }
+//    std::vector<cv::Rect> vecRects;
+//    std::vector<size_t> fact_idx;
+//    std::vector<double> factors;
+//    for(size_t i = 0; i < compassRects.size(); i++) {
+//        cv::Mat compasMatSrc;
+//        cv::Mat oreolCompasMask;
+//        cv::Mat oreolCompasMaskGray;
+//        dst(compassRects[0]).copyTo(compasMatSrc);
+//        getMaskOfMat(compasMatSrc, oreolCompasMask, cv::Scalar(15, 148, 126), cv::Scalar(27, 243, 254));
+////        getMaskOfMat(compasMatSrc, oreolCompasMask, minScalar, maxScalar);
+//        cv::cvtColor(oreolCompasMask, oreolCompasMaskGray, cv::COLOR_GRAY2BGR);
+//        double factor = 0.1;
+//        cv::Point srchPoint;
+//        srchPoint = getPointAndFactorOfSPattern(oreolCompasMaskGray, "compasOreol", factor);
+//        fact_idx.push_back(i);
+//        factors.push_back(factor);
+//        vecRects.push_back(cv::Rect(compassRects[i].x + srchPoint.x - COMPAS_SIDE/2, compassRects[i].y + srchPoint.y - COMPAS_SIDE/2, COMPAS_SIDE, COMPAS_SIDE));
+//    }
+//    if(vecRects.empty()) {
+//        cv::drawContours(dst, vecRects, -1, cvGreen, 1);
+//        qDebug() << "Паттерн компаса в найденом круге не найдены";
+////        imshow("win5", img_blur);
+//        imshow("win5", bin);
+////        imshow("win2", dst);
+//        return &m_compas;
+//    }
+////    imshow("win4", bin);
+////    return &m_compas;
 
-    std::sort( fact_idx.begin(), fact_idx.end(), FactorCmp(factors ));                        // Сортируем
-    compasRect = vecRects[fact_idx[0]];
-    if(compasRect.x < 0 || compasRect.y < 0
-            || compasRect.x + compasRect.width > dst.size().width
-            || compasRect.y + compasRect.height > dst.size().height) {
-        qDebug() << "Паттерн компаса в найденом круге не найдены";
-        imshow("win5", img_blur);
-        imshow("win4", bin);
-        imshow("win2", dst);
-        return &m_compas;
-    }
+//    std::sort( fact_idx.begin(), fact_idx.end(), FactorCmp(factors ));                        // Сортируем
+//    compasRect = vecRects[fact_idx[0]];
+//    if(compasRect.x < 0 || compasRect.y < 0
+//            || compasRect.x + compasRect.width > dst.size().width
+//            || compasRect.y + compasRect.height > dst.size().height) {
+//        qDebug() << "Паттерн компаса в найденом круге не найдены";
+//        imshow("win5", bin);
+////        imshow("win2", dst);
+//        return &m_compas;
+//    }
 //    qDebug() << factors[fact_idx[0]];
+//    imshow("win4", dst);
+//    imshow("win5", bin);
+//    return &m_compas;
 
 
+    //**********************       Выравнивание компаса      **************************
+//    qDebug() << "******* Выравнивание компаса *********";
+    compasRect = compassRects.front();
+    cv::Mat matPlus;
+    cv::Mat maskPlus;
+    cv::Point centerPlus(compasRect.x + compasRect.width / 2, compasRect.y + compasRect.height / 2);
+    dst(cv::Rect(centerPlus.x - 15, centerPlus.y - 15, 30, 30)).copyTo(matPlus);
+    int valfour = 250;
+//    bool check_four = false;
+    std::vector<std::vector<cv::Point> > plusContours;
+    cv::Point centerCompass;
+    while(valfour >= 0) {
+        plusContours.clear();
+//        cv::inRange(matPlus, minScalar, maxScalar, maskPlus);
+        cv::inRange(matPlus, cv::Scalar(0, 0, valfour), cv::Scalar(35, 255, 255), maskPlus);
+        cv::findContours(maskPlus, plusContours, cv::noArray(), cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
+        if(plusContours.size() > 1) {
+            cv::Point p1, p2;
+            cv::Rect rectInit = cv::boundingRect(plusContours[0]);
+            p1 = cv::Point(rectInit.x, rectInit.y);
+            bool bX = false;
+            bool bY = false;
+            for(size_t i = 0; i < plusContours.size(); i++) {
+                cv::Rect rect_ = cv::boundingRect(plusContours[i]);
+                cv::Point point_ = cv::Point(rect_.x, rect_.y);
 
+                if(abs(p1.x - point_.x) > 3) {
+                    if(p1.y > point_.y) {
+                        cv::Point tmp = p1;
+                        p1 = point_;
+                        point_ = tmp;
+                    }
+                    p2.y = p1.y > (matPlus.size().height - point_.y) ? p1.y : point_.y;
+                    bX = true;
+                }
+                if(abs(p1.y - point_.y) > 3) {
+                    if(p1.x > point_.x) {
+                        cv::Point tmp = p1;
+                        p1 = point_;
+                        point_ = tmp;
+                    }
+                    p2.x = p1.x > (matPlus.size().width - point_.x) ? p1.x : point_.x;
+                    bY = true;
+                }
+
+            }
+
+
+            if(bX && bY) {
+//                qDebug() << "p=" << p2.x << p2.y;
+                centerCompass = cv::Point(p2.x - 15, p2.y - 15);
+                cv::circle(matPlus, p2, 2, cvBlue, 2);
+                break;
+            }
+        }
+        valfour-= 1;
+    }
+    if(valfour <= 0) {
+        qDebug() << "Выравнивание компаса не удалось, выходим из просчёта";
+        return &m_compas;
+    }
+    compasRect = cv::Rect(compasRect.x + centerCompass.x, compasRect.y + centerCompass.y, compasRect.width, compasRect.height);
+
+//    imshow("win4", matPlus);
+//    imshow("win5", maskPlus);
+//    return &m_compas;
     //**********************       Поиск точки      **************************
+
+
+//    qDebug() << "******* Поиск точки *********";
     cv::Mat compasMat;
     cv::Mat compasMask;
     cv::Mat compasBlueMask;
@@ -1632,14 +1870,75 @@ Compass *CaptureWindow::compass()
     circl[1] = compasRect.height / 2;
     circl[2] = 30;
 
+    if(compasRect.x < 0 || compasRect.y < 0) {
+        qDebug() << "точка скорее всего не действительна";
+//        imshow("win4", matPlus);
+//        imshow("win5", maskPlus);
+        return &m_compas;
+    }
+
+
     dst(compasRect).copyTo(compasMat);
     cv::rectangle(dst, compasRect, cvBlue, 2);
     bool foundDot = false;
-    int satDot = 0;
     std::vector<cv::Point> dotContour;
+//    qDebug() << "******* Начало первой стадии *********";
+
+    int valtrid = 200;
+    int valtridMinTrid = 100;
+    while(valtrid > 0 && valtridMinTrid > 0 && !foundDot) {
+//        getMaskOfMat(compasMat, compasMask, minScalar, maxScalar);
+//        getMaskOfMat(compasMat, compasMask, cv::Scalar( 0 , 0 , valDot), cv::Scalar(255 , 255 , 255));
+//        cv::inRange(compasMat, minScalar, maxScalar, compasMask);
+//        cv::inRange(compasMat, cv::Scalar(150, valtrid, minNumber), cv::Scalar(255, 255, 255), compasMask);
+        cv::inRange(compasMat, cv::Scalar(150, valtrid, valtridMinTrid), cv::Scalar(255, 255, 255), compasMask);
+        std::vector <std::vector <cv::Point> > compasContours;
+        std::vector<size_t> idx;
+        cv::bitwise_not(compasMask, compasMask);
+//        cv::medianBlur(compasMask, compasBlueMask, 3);
+        if(!getContoursIndexSort(compasMask, compasContours, idx, cv::RETR_LIST)) {
+
+        }
+//        cv::drawContours(compasMat, compasContours, -1, cvGreen);
+        foundDot = false;
+        dotContour.clear();
+        for(size_t i = 0; i < idx.size(); i++) {
+            cv::RotatedRect rotRect = cv::minAreaRect(compasContours[idx[i]]);
+//            cv::Rect rotRect = cv::minAreaRect(compasContours[idx[i]]);
+            cv::Rect dotRect = cv::boundingRect(compasContours[idx[i]]);
+//            qDebug() << "dotRect=" << dotRect.width << dotRect.height;
+//            double area = cv::contourArea(compasContours[idx[i]]);
+            if(isPointInsideElypse(circl, rotRect.center)) {
+//                if(area > 1 && area < 100 && dotRect.width < 25 && dotRect.height < 25) {
+                if(dotRect.width < 25 && dotRect.height < 25 && dotRect.width > 5 && dotRect.height > 5) {
+                    dotContour = compasContours[idx[i]];
+                    foundDot = true;
+                    break;
+                }
+            }
+        }
+
+        valtrid -= 5;
+        if(valtrid <= 0) {
+            valtrid = 200;
+            valtridMinTrid -= 10;
+        }
+    }
+//    qDebug() << "valTrid =" << valtrid;
+//    std::vector <std::vector <cv::Point> > tmpvec;
+//    tmpvec.push_back(dotContour);
+//    cv::drawContours(compasMat, tmpvec, -1, cvBlue);
+//    imshow("win4", compasMat);
+//    imshow("win5", compasMask);
+//    return &m_compas;
+
+//    qDebug() << "******* Начало второй стадии *********";
+
+    int satDot = 0;
     while(satDot < 100 && !foundDot) {
 //        getMaskOfMat(compasMat, compasMask, minScalar, maxScalar);
         getMaskOfMat(compasMat, compasMask, cv::Scalar( 0 , satDot , 0), cv::Scalar(21 , 255 , 255));
+//        getMaskOfMat(compasMat, compasMask, cv::Scalar( 0 , minNumber , 0), maxScalar);
         std::vector <std::vector <cv::Point> > compasContours;
         std::vector<size_t> idx;
         cv::bitwise_not(compasMask, compasMask);
@@ -1664,9 +1963,12 @@ Compass *CaptureWindow::compass()
         }
         satDot += 5;
     }
+
+//    qDebug() << "******* Начало третьей стадии *********";
     int valDot = 250;
-    while(valDot > 100 && !foundDot) {
+    while(valDot > 125 && !foundDot) {
 //        getMaskOfMat(compasMat, compasMask, minScalar, maxScalar);
+//        getMaskOfMat(compasMat, compasMask, cv::Scalar( 0 , 0 , minNumber), cv::Scalar(255 , 255 , 255));
         getMaskOfMat(compasMat, compasMask, cv::Scalar( 0 , 0 , valDot), cv::Scalar(255 , 255 , 255));
         std::vector <std::vector <cv::Point> > compasContours;
         std::vector<size_t> idx;
@@ -1692,12 +1994,14 @@ Compass *CaptureWindow::compass()
         }
         valDot -= 5;
     }
+
+
     if(!foundDot) {
-        imshow("win2", dst);
-        imshow("win3", compasMat);
-        imshow("win4", compasBlueMask);
+//        imshow("win2", dst);
+        imshow("win4", compasMat);
+//        imshow("win4", compasBlueMask);
         imshow("win5", compasMask);
-        qDebug() << "Контуры точки не найдены sat =" << satDot << " val =" << valDot;
+        qDebug() << "Контуры точки не найдены sat =" << satDot << " val =" << valDot << " valtrid =" << valtrid;
         return &m_compas;
     }
 //    cv::circle(compasMat, cv::minAreaRect(dotContour).center, 2, cvRad, 2);
@@ -1705,6 +2009,14 @@ Compass *CaptureWindow::compass()
 
     cv::RotatedRect dotRot = cv::minAreaRect(dotContour);
     cv::Rect dotRect = cv::boundingRect(dotContour);
+    if(dotRect.width < 7) {
+        dotRect.x = dotRect.x - 3;
+        dotRect.width = dotRect.width +3;
+    }
+    if(dotRect.height < 7) {
+        dotRect.y = dotRect.y - 3;
+        dotRect.height = dotRect.height +3;
+    }
     cv::Mat dotMat;
     compasMat(dotRect).copyTo(dotMat);
     cv::circle(compasMat, dotRot.center, 2, cvBlue, 2);
@@ -1748,18 +2060,20 @@ Compass *CaptureWindow::compass()
 //    qDebug() << hierarchy[idx_dot.front()][0] << hierarchy[idx_dot.front()][1]  << hierarchy[idx_dot.front()][2]  << hierarchy[idx_dot.front()][3];
     cv::drawContours(dotMat, dotContours, hierarchy[idx_dot.front()][2], cvGreen, 1);
 //    cv::circle(compasMat, dot.center, 2, cvGreen, 2);
-    imshow("win2", dst);
+//    imshow("win2", dst);
     cv::resize(dotMask, dotMask, dotMask.size() * 5);
 
-    imshow("win3", compasMat);
+    imshow("win4", compasMat);
     cv::resize(dotMat, dotMat, dotMat.size() * 5);
-    imshow("win4", dotMat);
+//    imshow("win4", dotMat);
     imshow("win5", dotMask);
     return &m_compas;
 }
 
 Distance *CaptureWindow::recognizDistance()
 {
+    if(DEBUG2)
+        qDebug() << ".";
     cv::Mat dst;
     cv::Mat mask;
     cv::Rect recognizRect;
@@ -1944,12 +2258,14 @@ Distance *CaptureWindow::recognizDistance()
 
 bool CaptureWindow::checkContour(std::vector<cv::Point> &acvVecPointCont, cv::Mat &cvMatOut)
 {
+    if(DEBUG2)
+        qDebug() << ".";
     cv::Point min_x;
-    min_x.x = m_screen.width();
+    min_x.x = g_screen.width();
     cv::Point max_x;
     max_x.x = 0;
     cv::Point min_y;
-    min_y.y = m_screen.height();
+    min_y.y = g_screen.height();
     cv::Point max_y;
     max_y.y = 0;
     for(size_t i = 0; i < acvVecPointCont.size(); i++) {
@@ -1986,6 +2302,8 @@ bool CaptureWindow::checkContour(std::vector<cv::Point> &acvVecPointCont, cv::Ma
 
 bool CaptureWindow::findLeftPoint(std::vector<std::vector<cv::Point> > &acvVecPointCont, cv::Mat &cvMatOut, cv::Point &acvpRight, cv::Point &acvpLeft)
 {
+    if(DEBUG2)
+        qDebug() << ".";
     cv::Point min_x;
     min_x.x = cvMatOut.size().width;
     cv::Point max_x;
@@ -2016,6 +2334,8 @@ bool CaptureWindow::findLeftPoint(std::vector<std::vector<cv::Point> > &acvVecPo
 
 bool CaptureWindow::checkApproximRect(const cv::Rect acRectSrs, const cv::Rect acRectCurCMP, int anDelta)
 {
+    if(DEBUG2)
+        qDebug() << ".";
     int wnDelta = anDelta + 1;
     if(         acRectCurCMP.x          > acRectSrs.x - anDelta         && acRectCurCMP.x       < acRectSrs.x + anDelta
             &&  acRectCurCMP.y          > acRectSrs.y - anDelta         && acRectCurCMP.y       < acRectSrs.y + anDelta
@@ -2028,17 +2348,19 @@ bool CaptureWindow::checkApproximRect(const cv::Rect acRectSrs, const cv::Rect a
 
 void CaptureWindow::getRectsInContour(std::vector<std::vector<cv::Point> > &acvVecPointCont, std::vector<cv::Rect> &vecRects)
 {
+    if(DEBUG2)
+        qDebug() << ".";
     vecRects.clear();
     for(size_t j = 0; j < acvVecPointCont.size(); j++) {
         std::vector<cv::Point> vectmp = acvVecPointCont[j];
         if(vectmp.size() < 3)
             continue;
         cv::Point min_x;
-        min_x.x = m_screen.width();
+        min_x.x = g_screen.width();
         cv::Point max_x;
         max_x.x = 0;
         cv::Point min_y;
-        min_y.y = m_screen.height();
+        min_y.y = g_screen.height();
         cv::Point max_y;
         max_y.y = 0;
         for(size_t i = 0; i < vectmp.size(); i++) {
@@ -2062,6 +2384,8 @@ void CaptureWindow::getRectsInContour(std::vector<std::vector<cv::Point> > &acvV
 
 void CaptureWindow::getRectsOfPatternMenu1(std::vector<std::vector<cv::Point> > &acvVecPointCont, std::vector<cv::Rect> &vecRects, std::vector<cv::Rect> &vecRectsShort)
 {
+    if(DEBUG2)
+        qDebug() << ".";
     vecRectsShort.clear();
     vecRects.clear();
     for(size_t j = 0; j < acvVecPointCont.size(); j++) {
@@ -2069,11 +2393,11 @@ void CaptureWindow::getRectsOfPatternMenu1(std::vector<std::vector<cv::Point> > 
         if(vectmp.size() < 3)
             continue;
         cv::Point min_x;
-        min_x.x = m_screen.width();
+        min_x.x = g_screen.width();
         cv::Point max_x;
         max_x.x = 0;
         cv::Point min_y;
-        min_y.y = m_screen.height();
+        min_y.y = g_screen.height();
         cv::Point max_y;
         max_y.y = 0;
         for(size_t i = 0; i < vectmp.size(); i++) {
@@ -2111,17 +2435,19 @@ void CaptureWindow::getRectsOfPatternMenu1(std::vector<std::vector<cv::Point> > 
 
 void CaptureWindow::getRectsOfPatternMenu1SubNav(std::vector<std::vector<cv::Point> > &acvVecPointCont, std::vector<cv::Rect> &vecRects)
 {
+    if(DEBUG2)
+        qDebug() << ".";
     vecRects.clear();
     for(size_t j = 0; j < acvVecPointCont.size(); j++) {
         std::vector<cv::Point> vectmp = acvVecPointCont[j];
         if(vectmp.size() < 3)
             continue;
         cv::Point min_x;
-        min_x.x = m_screen.width();
+        min_x.x = g_screen.width();
         cv::Point max_x;
         max_x.x = 0;
         cv::Point min_y;
-        min_y.y = m_screen.height();
+        min_y.y = g_screen.height();
         cv::Point max_y;
         max_y.y = 0;
         for(size_t i = 0; i < vectmp.size(); i++) {
@@ -2149,8 +2475,10 @@ void CaptureWindow::getRectsOfPatternMenu1SubNav(std::vector<std::vector<cv::Poi
 
 bool CaptureWindow::getLeftAndUpInVecRects(const std::vector<cv::Rect> &vecRects, int &nXLeft, int &nYUp)
 {
-    nXLeft = m_screen.width();
-    nYUp = m_screen.height();
+    if(DEBUG2)
+        qDebug() << ".";
+    nXLeft = g_screen.width();
+    nYUp = g_screen.height();
     for(size_t i = 0; i < vecRects.size(); i++) {
         if(vecRects[i].x < nXLeft)
             nXLeft = vecRects[i].x;
@@ -2158,23 +2486,25 @@ bool CaptureWindow::getLeftAndUpInVecRects(const std::vector<cv::Rect> &vecRects
             nYUp = vecRects[i].y;
     }
 
-    if(nXLeft == m_screen.width())
+    if(nXLeft == g_screen.width())
         return false;
-    if(nYUp == m_screen.height())
+    if(nYUp == g_screen.height())
         return false;
     return true;
 }
 
 cv::Rect CaptureWindow::getRectInContour(std::vector<cv::Point> &acvVecPoint)
 {
+    if(DEBUG2)
+        qDebug() << ".";
     if(acvVecPoint.size() < 3)
         return cv::Rect(0, 0, 0, 0);
     cv::Point min_x;
-    min_x.x = m_screen.width();
+    min_x.x = g_screen.width();
     cv::Point max_x;
     max_x.x = 0;
     cv::Point min_y;
-    min_y.y = m_screen.height();
+    min_y.y = g_screen.height();
     cv::Point max_y;
     max_y.y = 0;
     for(size_t i = 0; i < acvVecPoint.size(); i++) {
@@ -2192,6 +2522,8 @@ cv::Rect CaptureWindow::getRectInContour(std::vector<cv::Point> &acvVecPoint)
 
 cv::Mat CaptureWindow::makeBinHeadMenu(cv::Mat &aMatWord, cv::Rect aRectCursor)
 {
+    if(DEBUG2)
+        qDebug() << ".";
     cv::Mat matCursor;
     aMatWord(aRectCursor).copyTo(matCursor);
 
@@ -2206,6 +2538,8 @@ cv::Mat CaptureWindow::makeBinHeadMenu(cv::Mat &aMatWord, cv::Rect aRectCursor)
 
 cv::Mat CaptureWindow::parsBinLineNavList(cv::Mat &aMatList, cv::Rect aRectCursor)
 {
+    if(DEBUG2)
+        qDebug() << ".";
     cv::Mat matCursor;
     aMatList(aRectCursor).copyTo(matCursor);
 
@@ -2253,6 +2587,8 @@ cv::Mat CaptureWindow::parsBinLineNavList(cv::Mat &aMatList, cv::Rect aRectCurso
 
 std::vector<cv::Rect> CaptureWindow::getRectsBigInContours(cv::Mat &binMat)
 {
+    if(DEBUG2)
+        qDebug() << ".";
     std::vector< std::vector< cv::Point> > contoursSrc;
     std::vector< std::vector< cv::Point> > contMoreLength;
     std::vector< cv::Vec4i > hierarchy;
@@ -2266,6 +2602,8 @@ std::vector<cv::Rect> CaptureWindow::getRectsBigInContours(cv::Mat &binMat)
 
 CursorPanel *CaptureWindow::subPanel1Nav()
 {
+    if(DEBUG2)
+        qDebug() << ".";
     m_cursorPan.rectSubNavList.y = -1;
     m_cursorPan.activeSubNav = false;
     cv::Mat dst;
@@ -2326,6 +2664,8 @@ CursorPanel *CaptureWindow::subPanel1Nav()
 
 void CaptureWindow::transformSubMenu(cv::Mat &acvMat)
 {
+    if(DEBUG2)
+        qDebug() << ".";
     cv::Point2f srcTri[4], dstQuad[4];
     srcTri[0].x = 0;
     srcTri[0].y = 0;
@@ -2356,6 +2696,8 @@ void CaptureWindow::transformSubMenu(cv::Mat &acvMat)
 
 CursorPanel *CaptureWindow::menuDocking()
 {
+    if(DEBUG2)
+        qDebug() << ".";
 
     m_cursorPan.activeMenuDocking = false;
     cv::Mat hsv;
@@ -2438,6 +2780,8 @@ QPoint CaptureWindow::getPoint(QString sName)
 
 void CaptureWindow::enableResizeImage()
 {
+    if(DEBUG2)
+        qDebug() << ".";
 //    cv::namedWindow("win1", cv::WND_PROP_FULLSCREEN);
     resizeImage = resizeImage ? false : true;
     if(resizeImage) {
@@ -2459,6 +2803,8 @@ void CaptureWindow::freeze()
 
 bool CaptureWindow::blackLessWhite(cv::Mat &aBinMat, int &anWhite, int &anBlack)       // Только для бинарных матриц
 {
+    if(DEBUG2)
+        qDebug() << ".";
     anWhite = 0;
     anBlack = 0;
     for(int i = 0; i < aBinMat.rows; i++) {
@@ -2472,9 +2818,16 @@ bool CaptureWindow::blackLessWhite(cv::Mat &aBinMat, int &anWhite, int &anBlack)
     return anBlack < anWhite;
 }
 
+void CaptureWindow::setSide(int aSide)
+{
+    m_side = aSide;
+}
+
 void CaptureWindow::getPrepMatsForMenu(cv::Mat &aColorMat, cv::Mat &aMaskMat)
 {
-    win(cv::Rect(100, 100, m_screen.width() - 500, m_screen.height() - 200)).copyTo(aColorMat);
+    if(DEBUG2)
+        qDebug() << ".";
+    win(cv::Rect(100, 100, g_screen.width() - 500, g_screen.height() - 200)).copyTo(aColorMat);
     cv::Mat hsv;
     cv::cvtColor(aColorMat, hsv, CV_BGR2HSV );
     cv::inRange(hsv, cv::Scalar(10, 210, 230), cv::Scalar(50, 255, 255), aMaskMat);
@@ -2482,6 +2835,8 @@ void CaptureWindow::getPrepMatsForMenu(cv::Mat &aColorMat, cv::Mat &aMaskMat)
 
 void CaptureWindow::getMaskOfMat(cv::Mat &aColorMat, cv::Mat &aMaskMat, cv::Scalar aMinScalar, cv::Scalar aMaxScalar)
 {
+    if(DEBUG2)
+        qDebug() << ".";
     cv::Mat hsvTmp;
     cv::cvtColor(aColorMat, hsvTmp, CV_BGR2HSV);
     cv::inRange(hsvTmp, aMinScalar, aMaxScalar, aMaskMat);
@@ -2489,6 +2844,8 @@ void CaptureWindow::getMaskOfMat(cv::Mat &aColorMat, cv::Mat &aMaskMat, cv::Scal
 
 bool CaptureWindow::getMatsOfContour(cv::Mat &aColorMat, cv::Mat &aMaskMat, std::vector<cv::Point> contour)
 {
+    if(DEBUG2)
+        qDebug() << ".";
     cv::Mat rotateMat;
     aColorMat(cv::boundingRect(contour)).copyTo(rotateMat);
     cv::Mat mask;
@@ -2536,6 +2893,8 @@ bool CaptureWindow::getMatsOfContour(cv::Mat &aColorMat, cv::Mat &aMaskMat, std:
 
 bool CaptureWindow::getContoursIndexSort(cv::Mat &aMaskMat, std::vector<std::vector<cv::Point> > &contours, std::vector<size_t> &idx, cv::RetrievalModes aAlgoType)
 {
+    if(DEBUG2)
+        qDebug() << ".";
     cv::findContours(aMaskMat, contours, cv::noArray(), aAlgoType, cv::CHAIN_APPROX_SIMPLE);  // из маски вытягиваем контуры
     if(contours.empty())
         return false;
@@ -2551,8 +2910,10 @@ bool CaptureWindow::getContoursIndexSort(cv::Mat &aMaskMat, std::vector<std::vec
 
 cv::Rect CaptureWindow::calcRectFromPartOfIndex(int anCount, int aiStart, int aiEnd)
 {
-    int partWidth = m_screen.width() / anCount;
-    int partHeight = m_screen.height() / anCount;
+//    if(DEBUG2)
+//        qDebug() << ".";
+    int partWidth = g_screen.width() / anCount;
+    int partHeight = g_screen.height() / anCount;
 //    qDebug() << USING_WIDTH - partWidth * anCount << " " << USING_HEIGHT - partHeight * anCount;
     int x1 = 1, y1 = 1, x2 = 0, y2 = 0;
     int i_start = 0;

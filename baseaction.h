@@ -25,7 +25,8 @@ public:
     void press_key(QString aChar);
     void release_key(QString aChar);
     void typingText(QString asText);
-    void move_mouse_rel(int x, int y);
+    void mouse_move(int x, int y);
+    void mouse_move_rel(int x, int y);
     void mouse_move_click(int x, int y);
 
     QString         m_sActionName;
@@ -35,15 +36,16 @@ public:
     CaptureWindow   *capture;
 
     QElapsedTimer   sys_timeElapsed;
+    QElapsedTimer   sys_elapsedFunc;
     int             sys_timeWaitMSec;
     bool            sys_resulLogic;
+    bool            sys_debugLog;
+    QStringList     sys_listCommand;
+
     bool            m_bCompass;
     bool            target;
-    bool            check;
     bool            trigger;
-//    QString         sPush_key;
-//    QString         sPress_key;
-//    QString         sRelease_key;
+    QPoint          point;
     QString         sPanHeadName;
     QString         sSearchImage;
     QString         sName;
@@ -52,13 +54,14 @@ public:
     QStringList     listForSearch;
     QElapsedTimer   timer;
     QElapsedTimer   confirmTimer;
+    double          diffCoef;
     double          coeff;
     double          radius;
     double          distance;
-    int             waitEnable;
-    int             confirmTime;
-    int             waitMSec;
-    int             whileWaitMsec;
+    ulong           waitEnable;
+    ulong           waitMSec;
+    ulong           confirmTime;
+    ulong           whileWaitMsec;
     int             nCount;
     int             iStart;
     int             iEnd;

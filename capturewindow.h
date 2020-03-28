@@ -21,7 +21,7 @@
 
 
 
-extern QRect m_screen;
+extern QRect g_screen;
 
 
 struct AreaCmp {
@@ -83,12 +83,14 @@ class CaptureWindow : public  QObject, Displays
     int minNumber;
     int midNumber;
     int maxNumber;
+    int m_side;
     QElapsedTimer timeElapse;
 //    int maxContours;
     CursorPanel m_cursorPan;
     CursorTarget m_cursorTarget;
     Compass m_compas;
     Distance distance;
+    Primitives primitives;
 //    std::vector< std::vector<cv::Point > > m_veclinesMenu;
 
 //    void sendData();
@@ -111,10 +113,10 @@ public:
     cv::Point getPointAreaInMat(std::string asImageROI, cv::Mat acvMat, double factor = 0.99);
     cv::Point getPointOfPattern(cv::Mat acvMat, std::string sPattern, double factor = 0.25);
     cv::Point getPointAndFactorOfSPattern(cv::Mat acvMat, std::string sPattern, double &factor);
-    bool srchAreaOnceInRect(std::string asImageROI, int anCount = 3, int anStart = 0, int anEnd = 8, double coeff = 0.99);
-    bool srchAreaOnceInRect(std::string as_rectWhichInLook, std::string as_imageROI);
+    bool srchAreaOnceInRect(std::string asImageROI, double &coeff, QPoint &aPoint, int anCount = 3, int anStart = 0, int anEnd = 8);
+//    bool srchAreaOnceInRect(std::string as_rectWhichInLook, std::string as_imageROI);
     cv::Point getPointAfterLookAreaOnceInRect(std::string as_rectWhichInLook, std::string as_imageROI);
-    cv::Point getPointAfterLookAreaInRect(std::string asImageROI, cv::Rect acvRect);
+    cv::Point getPointAfterLookAreaInRect(std::string asImageROI, cv::Rect acvRect, double &factor);
     double getCoeffImageInRect(std::string asImageROI, cv::Rect acvRect);
 
 
@@ -126,10 +128,10 @@ public:
     void drawLines();
     void drawDataSet();
 //    void findImage(cv::Mat _mat);
-    bool findPointRoi(cv::Mat &t_mat, cv::Mat &t_whereFind, cv::Point &t_point, double t_factor = 0.97);
+    bool findPointRoi(cv::Mat &t_mat, cv::Mat &t_whereFind, cv::Point &t_point, double &aFactor);
     bool findRectRoi(cv::Mat t_mat, cv::Rect &t_rect, double t_factor = 0.97);
 //    void setCaptureImage(QJsonObject jobj);
-    cv::Point findMatchPoint(std::vector<VarForTemplateMatch> _vec, double t_factor = 0.97);
+    cv::Point findMatchPoint(std::vector<VarForTemplateMatch> _vec, double &aFactor);
 
 
     // ----------------------- Целенапарвленные для игы функции ----------------------------
@@ -138,6 +140,7 @@ public:
     Distance *recognizDistance();
     //      Наводка
     CursorTarget *takeAimp();
+    Primitives *test(int aSide);
     Compass *compass();
 
 
@@ -195,6 +198,7 @@ public:
     void enableResizeImage();
     void freeze();
     bool blackLessWhite(cv::Mat &aBinMat, int &anWhite, int &anBlack);
+    void setSide(int aSide);
 
     // Функции для подготовки матриц
     void getPrepMatsForMenu(cv::Mat &aColorMat, cv::Mat &aMaskMat);

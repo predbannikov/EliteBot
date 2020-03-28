@@ -46,6 +46,7 @@ public:
     int             iEnd;
     void init();
     void test();
+    void setQueue(QQueue<QStringList> aQueue);
 private:
     QString         m_fixCurrBugs;
     QStringList     m_slistStations;

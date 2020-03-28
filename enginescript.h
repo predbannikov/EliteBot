@@ -30,9 +30,9 @@ public:
 
     void readCommand(QStringList &aslistCommand);
 
-    bool srchAreaOnceInRect(QString as_ImageROI, QString as_rectInWhichLook);
+//    bool srchAreaOnceInRect(QString as_ImageROI, QString as_rectInWhichLook);
     cv::Point getPointAfterLookAreaOnceInRect(QString as_ImageROI, QString as_rectInWhichLook);
-    cv::Point getPointAfterLookAreaInRect(QString asImageROI, int anCount = 3, int anStart = 0, int anEnd = 8);
+//    cv::Point getPointAfterLookAreaInRect(QString asImageROI, int anCount = 3, int anStart = 0, int anEnd = 8);
     // Нумерация с 0
 //    bool srchAreaOnceInPart(QString as_imageROI, int anXCount = 3, int anYCount = 3, int anXStart = 0, int anYStart = 0, int anXEnd = 2, int anYEnd = 2);
 //    bool srchAreaOnceInPart(QString as_imageROI, int anCount = 3, int anStart = 0, int anEnd = 8, double coeff = 0.9);
@@ -47,6 +47,8 @@ public:
 
 
 private:
+
+
     void push_key();
     void push_key(QString aChar);
     void press_key(QString aChar);
@@ -65,13 +67,17 @@ private:
     QElapsedTimer   timeElapsedForFunc;
 
     void sendDataToSlave(QByteArray a_data);
+signals:
+    void signalReturnCommand(QStringList sList);
 
 
 public slots:
 //    void performScript(QJsonArray t_jArray);
 //    void parsePushKey(QChar ac_key);
     void run();
+    void slotSetSide(int aSide);
     void slotFreeze();
+    void slotSetQueue(QQueue<QStringList> aQueue);
     void slotResizeImage();
     void slotStartTest();
     void slotSaveImage(cv::Mat acvMat, QString asName);
@@ -86,31 +92,32 @@ public slots:
     void setMidNumber(int aNumber);
     void setMaxNumber(int aNumber);
 
-};
-
-
-class key_filter : public QObject
-{
-    Q_OBJECT
-public:
-    key_filter(QObject *parent = nullptr) : QObject(parent) {}
-    bool eventFilter(QObject *obj, QEvent *event) override {
-        if(event->type() == QEvent::KeyPress) {
-            QKeyEvent *ke = static_cast<QKeyEvent*>(event);
-            if(ke->key() == Qt::Key_A) {
-//                QKeyEvent * eve1 = new QKeyEvent (QEvent::KeyPress,Qt::Key_Left,Qt::NoModifier);
-//                QKeyEvent * eve2 = new QKeyEvent (QEvent::KeyRelease,Qt::Key_Left,Qt::NoModifier);
-
-
-//                qDebug() << "press arrow key left";
-            }
-        }
-        return QObject::eventFilter(obj, event);
-    }
-protected:
-
 
 };
+
+
+//class key_filter : public QObject
+//{
+//    Q_OBJECT
+//public:
+//    key_filter(QObject *parent = nullptr) : QObject(parent) {}
+//    bool eventFilter(QObject *obj, QEvent *event) override {
+//        if(event->type() == QEvent::KeyPress) {
+//            QKeyEvent *ke = static_cast<QKeyEvent*>(event);
+//            if(ke->key() == Qt::Key_A) {
+////                QKeyEvent * eve1 = new QKeyEvent (QEvent::KeyPress,Qt::Key_Left,Qt::NoModifier);
+////                QKeyEvent * eve2 = new QKeyEvent (QEvent::KeyRelease,Qt::Key_Left,Qt::NoModifier);
+
+
+////                qDebug() << "press arrow key left";
+//            }
+//        }
+//        return QObject::eventFilter(obj, event);
+//    }
+//protected:
+
+
+//};
 
 
 

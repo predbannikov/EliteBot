@@ -21,11 +21,11 @@
 #define     PATH_CONFIG_DISPLAY ".\\config\\display.json"
 
 #define     DEBUG1               0
-#define     DEBUG2               1
+#define     DEBUG2               0
 
 
 
-enum SYS_STATE{ DEBUG_STATE, RESTOR_GAME, AICONTROL, PUSH_KEY, PRESS_KEY, RELEASE_KEY, SEARCH_IMAGE_CONTINUOUS, WHILE_IMAGE_CONTINUOUS, WHICH_IMAGE_MORE_SIMILAR, CLICK_POINT_IMAGE_AFTER_LOOK,
+enum SYS_STATE{ DEBUG_STATE, RESTOR_GAME, AICONTROL, PUSH_KEY, PRESS_KEY, RELEASE_KEY, SEARCH_IMAGE_CONTINUOUS, WHILE_IMAGE_CONTINUOUS, CLICK_POINT_IMAGE_AFTER_LOOK,
                 TRANS_MENU_DOCKING,
                 TYPING_TEXT, TRANS_PANEL1, TRANS_BODY_CURSOR, TRANS_SUB_CURSOR,
                 WAIT_MSEC,
@@ -43,7 +43,7 @@ public:
 
 extern bool state_debug;
 
-extern QRect  m_screen;
+extern QRect  g_screen;
 
 
 const QStringList buttonLeftNav = {"push_filter", "close_push_filter", "push_galaxy_map", "push_system_map"};
@@ -93,6 +93,14 @@ struct CursorTarget {
     bool    active = false;
 };
 
+struct Primitives {
+    std::vector< cv::Point > contour;
+    cv::Rect rect;
+    cv::Rect screen;
+    double area;
+    bool found;
+};
+
 
 typedef struct {
     cv::Rect rect;
@@ -133,16 +141,16 @@ public:
         int height = getHeight();
 
 
-        if(width+x > m_screen.width() )
-            width = m_screen.width() - x;
+        if(width+x > g_screen.width() )
+            width = g_screen.width() - x;
         if(width <= 0) {
-            x = m_screen.width() - 1;
+            x = g_screen.width() - 1;
             width = 1;
         }
-        if(height+y > m_screen.height())
-            height = m_screen.height() - y;
+        if(height+y > g_screen.height())
+            height = g_screen.height() - y;
         if(height <= 0) {
-            y = m_screen.height() - 1;
+            y = g_screen.height() - 1;
             height = 1;
         }
 

@@ -16,7 +16,9 @@ public:
     void press_key(QString aChar);
     void release_key(QString aChar);
     void typingText(QString asText);
-    void move_mouse_rel(int x, int y);
+    void mouse_click();
+    void mouse_move(int x, int y);
+    void mouse_move_rel(int x, int y);
     void mouse_move_click(int x, int y);
 
 };

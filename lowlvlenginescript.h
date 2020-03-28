@@ -26,6 +26,11 @@
 #include "actions/waitmenudocking.h"
 #include "actions/imageexpected.h"
 #include "actions/servicemenu.h"
+#include "actions/mapsystemenable.h"
+#include "actions/mapsystem.h"
+#include "actions/aimpflyaround.h"
+#include "actions/sendeventcontrol.h"
+#include "actions/marker.h"
 
 
 
@@ -43,7 +48,8 @@ public:
     LowLvlEngineScript();
     void update();
     bool cycle = true;
-    virtual void init();
+    virtual void    init();
+    virtual void    readCommand(QStringList &aslistCommand) {}
     CaptureWindow   *capture;
     IOData          *m_pIOData;
     std::map<std::string, ImageROI> *m_pDataSet;
@@ -70,10 +76,10 @@ protected:
     int             iStart;
     int             iEnd;
 
-    virtual void    readCommand(QStringList &aslistCommand) {}
-public slots:
 
 private:
+
+
 
 };
 

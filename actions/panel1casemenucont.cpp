@@ -19,17 +19,12 @@ bool Panel1CaseMenuCont::logic(QStringList &asListParam)
         pan = capture->panel1Body();
         if(!trigger) {
             qDebug() << "RECOGNIZE: "<< pan->sBodyName << " сравниваем с" << sName;
-            if(check) {
-                int res = comparisonStr(pan->sBodyName, sName);
-                if(res <= 2) {
-                    push_key("d");
-                    trigger = true;
-                } else {
-                    push_key("s");
-                }
+            int res = comparisonStr(pan->sBodyName, sName);
+            if(res <= 2) {
+                push_key("d");
+                trigger = true;
             } else {
                 push_key("s");
-                qDebug() << "отсутствует курсор в контактах, пробуем нажать вниз" << sName;
             }
         } else {
             int res = comparisonStr(pan->sBodyName, "req_docking");                 // Требуется посадка

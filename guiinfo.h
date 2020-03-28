@@ -22,6 +22,7 @@
 #include <QSpinBox>
 #include "enginescript.h"
 #include "global.h"
+#include "controlpanel.h"
 
 class GuiInfo : public QWidget
 {
@@ -97,7 +98,7 @@ public:
     void sendAllNumbData();
     void updateGuiInfo();
     void saveRoi();
-
+    ControlPanel *panel;
     bool eventFilter(QObject *obj, QEvent *event) override {
         if(event->type() == QEvent::KeyPress) {
             QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);

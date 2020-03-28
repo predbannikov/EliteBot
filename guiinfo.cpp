@@ -25,7 +25,7 @@ GuiInfo::GuiInfo(IOData *t_ioData, QWidget *parent) : QWidget(parent)
 
 
     sliderMaxContours = new QSlider;
-    sliderMaxContours->setMaximumWidth(m_screen.width());
+    sliderMaxContours->setMaximumWidth(g_screen.width());
     sliderMaxContours->setValue(30);
     connect(sliderMaxContours, &QSlider::valueChanged, [this] (int anValue) {
         emit signalSendMaxContourForLength(anValue);
@@ -46,12 +46,12 @@ GuiInfo::GuiInfo(IOData *t_ioData, QWidget *parent) : QWidget(parent)
     thread = new QThread;
     engine->moveToThread(thread);
     connect(thread, &QThread::finished, engine, &QObject::deleteLater);
-    connect(thread, &QThread::isFinished, thread, &QThread::deleteLater);
+//    connect(thread, &QThread::isFinished, thread, &QThread::deleteLater);
     connect(thread, &QThread::started, engine, &EngineScript::run);
     thread->start();
 
-    connect(this, &GuiInfo::signalGetMatRoi, engine, &EngineScript::slotCheckRoiMat, Qt::QueuedConnection);
-    connect(this, &GuiInfo::signalGetRectRoi, engine, &EngineScript::slotCheckRoiRect, Qt::QueuedConnection);
+    connect(this, &GuiInfo::signalGetMatRoi, engine, &EngineScript::slotCheckRoiMat, Qt::DirectConnection);
+    connect(this, &GuiInfo::signalGetRectRoi, engine, &EngineScript::slotCheckRoiRect, Qt::DirectConnection);
     connect(this, &GuiInfo::signalDrawMesh, engine, &EngineScript::slotSetDrawLine, Qt::QueuedConnection);
     connect(this, &GuiInfo::signalSendMinScalar, engine, &EngineScript::setMinScalar, Qt::QueuedConnection);
     connect(this, &GuiInfo::signalSendMaxScalar, engine, &EngineScript::setMaxScalar, Qt::QueuedConnection);
@@ -67,6 +67,11 @@ GuiInfo::GuiInfo(IOData *t_ioData, QWidget *parent) : QWidget(parent)
     this->sendAllNumbData();
     qDebug() << "guiinfo id =" << this->thread->currentThreadId();
     chckBoxEngine->setFocus();
+    panel = new ControlPanel(engine, this);
+    panel->show();
+    move(0, 0);
+    panel->move(0, this->geometry().bottom());
+//    qDebug() << "test";
 }
 
 GuiInfo::~GuiInfo()
@@ -255,11 +260,11 @@ void GuiInfo::initLayoutManipulation()
     sliderMax2->setMaximum(255);
     sliderMax3->setMaximum(255);
 
-    sliderMin1->setValue(125);
-    sliderMin2->setValue(0);
-    sliderMin3->setValue(82);
-    sliderMax1->setValue(163);
-    sliderMax2->setValue(128);
+    sliderMin1->setValue(15);
+    sliderMin2->setValue(43);
+    sliderMin3->setValue(117);
+    sliderMax1->setValue(21 );
+    sliderMax2->setValue(255);
     sliderMax3->setValue(255);
 
     sliderMinNumber = new QSlider(Qt::Horizontal, this);

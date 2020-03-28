@@ -80,8 +80,12 @@ SOURCES += \
     actions/actiondebug.cpp \
     actions/actiongetcloser.cpp \
     actions/actionwait.cpp \
+    actions/aimpflyaround.cpp \
     actions/dockingmenucase.cpp \
     actions/imageexpected.cpp \
+    actions/mapsystem.cpp \
+    actions/mapsystemenable.cpp \
+    actions/marker.cpp \
     actions/panel1casehead.cpp \
     actions/panel1casemenucont.cpp \
     actions/panel1casemenunav.cpp \
@@ -89,6 +93,7 @@ SOURCES += \
     actions/panel1subnav.cpp \
     actions/pickupspeed.cpp \
     actions/restorgame.cpp \
+    actions/sendeventcontrol.cpp \
     actions/servicemenu.cpp \
     actions/stopafterautostart.cpp \
     actions/waitendhypermodehelp.cpp \
@@ -96,6 +101,7 @@ SOURCES += \
     aicontrol.cpp \
     baseaction.cpp \
     capturewindow.cpp \
+    controlpanel.cpp \
     displays.cpp \
     enginescript.cpp \
     guiinfo.cpp \
@@ -109,8 +115,12 @@ HEADERS += \
     actions/actiondebug.h \
     actions/actiongetcloser.h \
     actions/actionwait.h \
+    actions/aimpflyaround.h \
     actions/dockingmenucase.h \
     actions/imageexpected.h \
+    actions/mapsystem.h \
+    actions/mapsystemenable.h \
+    actions/marker.h \
     actions/panel1Enable.h \
     actions/panel1casehead.h \
     actions/panel1casemenucont.h \
@@ -118,6 +128,7 @@ HEADERS += \
     actions/panel1subnav.h \
     actions/pickupspeed.h \
     actions/restorgame.h \
+    actions/sendeventcontrol.h \
     actions/servicemenu.h \
     actions/stopafterautostart.h \
     actions/waitendhypermodehelp.h \
@@ -125,6 +136,7 @@ HEADERS += \
     aicontrol.h \
     baseaction.h \
     capturewindow.h \
+    controlpanel.h \
     displays.h \
     enginescript.h \
     global.h \
@@ -138,3 +150,6 @@ HEADERS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+FORMS += \
+    controlpanel.ui

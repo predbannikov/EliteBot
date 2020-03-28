@@ -7,8 +7,7 @@ PickUpSpeed::PickUpSpeed(CaptureWindow *aCapture, SocketIO *aSock) : BaseAction(
 
 void PickUpSpeed::init(QStringList &asListParam)
 {
-    waitMSec = 5000;
-    trigger = false;
+    waitMSec = asListParam[2].toInt();
 }
 
 bool PickUpSpeed::logic(QStringList &asListParam)

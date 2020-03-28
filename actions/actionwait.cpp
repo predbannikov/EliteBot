@@ -15,6 +15,7 @@ bool ActionWait::logic(QStringList &asListParam)
 {
     qint64 elaps = timer.elapsed();
     if(elaps > asListParam[2].toInt()) {
+        asListParam[1] = "0";
         return true;
     }
     return false;

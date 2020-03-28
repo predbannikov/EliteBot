@@ -19,9 +19,11 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
     #elif defined (Q_OS_LINUX)
     QFile logFile("./log/file.log");
     #endif
-
+    QString sContext = QString("%1%2%3").arg(context.file).arg(context.line).arg(context.function);
     QString localMsg;
-    localMsg = QString("%1\n%2\n%3\n").arg(msg)
+    localMsg = QString("%0\n%1\n%2\n%3\n")
+            .arg(sContext)
+            .arg(msg)
             .arg(QDateTime::currentDateTime().toString("yy.MM.dd hh:mm:ss"))
             .arg("------------------------------------------------------------");
     if (logFile.open(QFile::WriteOnly | QFile::Text | QFile::Append)) {

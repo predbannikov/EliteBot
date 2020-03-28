@@ -51,7 +51,7 @@ bool ActionAimp::logic(QStringList &asListParam)
                     powerX = SPEED_COMPAS_ROT * (dx / abs(dx));        // знак полярности
                     powerX *= -1;
                     qDebug() << "rotate dx =" << dx << powerX;
-                    move_mouse_rel(powerX, 0);
+                    mouse_move_rel(powerX, 0);
                 }
             } else {
                 powerX = 0;
@@ -63,7 +63,7 @@ bool ActionAimp::logic(QStringList &asListParam)
         if(grad > -15 && grad < 15)
             if(!pickdownX) {
                 powerX *= -1;
-                move_mouse_rel(powerX, 0);
+                mouse_move_rel(powerX, 0);
                 pickdownX = true;
                 qDebug() << "x rotate complate" << dx << powerX;
             }
@@ -81,7 +81,7 @@ bool ActionAimp::logic(QStringList &asListParam)
                 }
             }
             qDebug() << "move Y" << dy << seekY << " face=" << compass->face;
-            move_mouse_rel(0, seekY);
+            mouse_move_rel(0, seekY);
             pickup = true;
         }
         if(compass->face && pickdownX) {
@@ -89,7 +89,7 @@ bool ActionAimp::logic(QStringList &asListParam)
                 if(!pickdownY) {
                     qDebug() << "Делаем обратную силу";
                     seekY *= -1;
-                    move_mouse_rel(0, seekY);
+                    mouse_move_rel(0, seekY);
                     pickdownY = true;
                     qDebug() << "y complate" << dy << seekY << " face=" << compass->face;
                 }
@@ -241,7 +241,7 @@ bool ActionAimp::logic(QStringList &asListParam)
             seekY *= -1;
             seekX = dx / abs(dx);
             qDebug() << "START Y X move" << dy << seekY;
-            move_mouse_rel(0, seekY);
+            mouse_move_rel(0, seekY);
             QThread::msleep(30);
             pickup = true;
             if(dx > 0) {
@@ -277,14 +277,14 @@ bool ActionAimp::logic(QStringList &asListParam)
         if(seekY > 0 ) {
             if(dy > 0)
                 if(!pickdownY) {
-                    move_mouse_rel(0, -seekY);
+                    mouse_move_rel(0, -seekY);
                     pickdownY = true;
                 }
         }
         else if(seekY <= 0 ){
             if(dy < 0)
                 if(!pickdownY) {
-                    move_mouse_rel(0, -seekY);
+                    mouse_move_rel(0, -seekY);
                     pickdownY = true;
 
 

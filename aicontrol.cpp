@@ -63,6 +63,7 @@ void AIControl::init()
     queue.enqueue(QStringList {"WAITMENUDOCKING",       "0"});
     queue.enqueue(QStringList {"DOCKINGMENUCASE",       "0", "menu_docking_service"});
     queue.enqueue(QStringList {"IMAGEEXPECTED",         "0", "menuServiceExit"});
+    queue.enqueue(QStringList {"SERVICEMENU",           "0"});
 
 }
 
@@ -83,6 +84,11 @@ void AIControl::test()
     queue.enqueue(QStringList {"IMAGEEXPECTED",         "0", "menuServiceExit"});
     queue.enqueue(QStringList {"SERVICEMENU",           "0"});
 
+}
+
+void AIControl::setQueue(QQueue<QStringList> aQueue)
+{
+    queue = aQueue;
 }
 
 bool AIControl::smallRing()
@@ -687,100 +693,6 @@ bool AIControl:: toLanding(int anMSec)
     }
     return false;
 }
-
-
-//void AIControl::build_track()
-//{
-//    switch (stage) {
-//    case STAGE_1:
-//        push_key = "m";
-//        state = PUSH_KEY;
-//        stage = STAGE_2;
-//        break;
-//    case STAGE_2:
-//        check = false;
-//        timeElapsed.restart();
-//        searchImage = "menuM";
-//        timeWaitMsec = 3000;
-//        nCount = 4;
-//        iStart = 0;
-//        iEnd = 0;
-//        stage = STAGE_3;
-//        state = SEARCH_IMAGE_CONTINUOUS;
-//        break;
-//    case STAGE_3:
-//        if(check) {
-//            qDebug() << searchImage << "this picture found";
-//            timeElapsed.restart();
-//            check = false;
-//            searchImage = "searchTrack_push";
-//            state = SEARCH_IMAGE_CONTINUOUS;
-//            stage = STAGE_4;
-//        } else {
-//            qDebug() << "PANIC: this picture not found";
-//            action = WAIT;
-//        }
-//        break;
-//    case STAGE_4:
-//        if(check) {
-//            timeElapsed.restart();
-//            qDebug() << searchImage << "this picture found";
-//            state = CLICK_POINT_IMAGE_AFTER_LOOK;
-//            stage = STAGE_5;
-//        } else {
-//            qDebug() << "PANIC: this picture >" << searchImage << "not found";
-//            action = WAIT;
-//        }
-//        break;
-//    case STAGE_5:
-//        check = false;
-//        timeElapsed.restart();
-//        searchImage = "fieldSearch";
-//        timeWaitMsec = 3000;
-//        nCount = 3;
-//        iStart = 0;
-//        iEnd = 0;
-//        stage = STAGE_6;
-//        state = SEARCH_IMAGE_CONTINUOUS;
-//        break;
-//    case STAGE_6:
-//        if(check) {
-//            timeElapsed.restart();
-//            qDebug() << searchImage << "this picture found";
-//            state = CLICK_POINT_IMAGE_AFTER_LOOK;
-//            stage = STAGE_7;
-//        } else {
-//            qDebug() << "PANIC: this picture >" << searchImage << "not found";
-//            action = WAIT;
-//        }
-//        break;
-//    case STAGE_7:
-//        state = TYPING_TEXT;
-//        typingText = m_sTarget;
-//        stage = STAGE_8;
-//        break;
-//    case STAGE_8:
-//        check = false;
-//        timeElapsed.restart();
-//        searchImage = "push_search";
-//        stage = STAGE_9;
-//        state = SEARCH_IMAGE_CONTINUOUS;
-//        break;
-//    case STAGE_9:
-//        if(check) {
-//            timeElapsed.restart();
-//            qDebug() << searchImage << "this picture found";
-//            state = CLICK_POINT_IMAGE_AFTER_LOOK;
-//            stage = STAGE_1;
-//        } else {
-//            qDebug() << "PANIC: this picture >" << searchImage << "not found";
-//            action = WAIT;
-//        }
-//        action = WAIT;                                          // Незабыть заглушку!
-//        break;
-//    }
-//}
-
 
 bool AIControl::enabledPanel1(QString sName)                // *
 {

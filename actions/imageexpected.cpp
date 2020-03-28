@@ -9,19 +9,28 @@ ImageExpected::ImageExpected(CaptureWindow *aCapture, SocketIO *aSock) : BaseAct
 void ImageExpected::init(QStringList &asListParam)
 {
     sSearchImage = asListParam[2];
-    coeff = 0.9;
-    nCount = 4;
-    iStart = 12;
-    iEnd = 13;
+    nCount = asListParam[3].toInt();
+    iStart = asListParam[4].toInt();
+    iEnd = asListParam[5].toInt();
+    diffCoef = asListParam[6].toDouble();
+//    sys_debugLog = true;
 }
 
 bool ImageExpected::logic(QStringList &asListParam)
 {
-    if(srchAreaOnceInPart()) {
+    coeff = 0;
+    srchAreaOnceInPart();
+    if(coeff > diffCoef) {
         return true;
     } else {
+
         return false;
     }
+}
+
+void ImageExpected::printDebug()
+{
+    qDebug() << QString::number(coeff, 'f', 2);
 }
 
 void ImageExpected::reset()

@@ -37,7 +37,7 @@ void LowLvlEngineScript::update()
 
 void LowLvlEngineScript::init()
 {
-    m_sock = new SocketIO(QPoint( m_screen.x(), m_screen.y()));
+    m_sock = new SocketIO(QPoint( g_screen.x(), g_screen.y()));
 
     actions.append( new Panel1Enable(capture, m_sock));
     actions.append( new Panel1CaseHead(capture, m_sock));
@@ -56,6 +56,11 @@ void LowLvlEngineScript::init()
     actions.append( new WaitMenuDocking(capture, m_sock));
     actions.append( new ImageExpected(capture, m_sock));
     actions.append( new ServiceMenu(capture, m_sock));
+    actions.append( new MapSystemEnable(capture, m_sock));
+    actions.append( new MapSystem(capture, m_sock));
+    actions.append( new AimpFlyAround(capture, m_sock));
+    actions.append( new SendEventControl(capture, m_sock));
+    actions.append( new Marker(capture, m_sock));
 }
 
 LowLvlEngineScript::~LowLvlEngineScript()

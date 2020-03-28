@@ -1,10 +1,11 @@
 #include "socketio.h"
 
 
-#define     WAIT_MSEC_PUSH_KEY      35
-#define     WAIT_MSEC_PRESS_KEY     30
-#define     WAIT_MSEC_RELEASE_KEY   5
-#define     WAIT_MSEC_MOUSE_EVENT   5
+#define     WAIT_MSEC_PUSH_KEY      70
+#define     WAIT_MSEC_PRESS_KEY     35
+#define     WAIT_MSEC_RELEASE_KEY   35
+#define     WAIT_MSEC_MOUSE_EVENT   35
+#define     WAIT_MSEC_MOUSE_CLICK   70
 
 SocketIO::SocketIO(QPoint aPointOffset)
 {
@@ -61,19 +62,39 @@ void SocketIO::typingText(QString asText)
         jMsg["method"] = "push_key";
         jMsg["code"] = aChar;
         send(QJsonDocument(jMsg).toJson());
-        QThread::msleep(WAIT_MSEC_PRESS_KEY);
-        QThread::msleep(WAIT_MSEC_RELEASE_KEY);
-
+        QThread::msleep(WAIT_MSEC_PUSH_KEY);
+        QThread::msleep(100);
     }
 }
 
-void SocketIO::move_mouse_rel(int x, int y)
+void SocketIO::mouse_click()
+{
+    QJsonObject jMsg;
+    jMsg["target"] = "mouse";
+    jMsg["method"] = "click";
+    jMsg["code"] = "BTN_LEFT";
+    send(QJsonDocument(jMsg).toJson());
+    QThread::msleep(WAIT_MSEC_MOUSE_CLICK);
+}
+
+void SocketIO::mouse_move(int x, int y)
+{
+    QJsonObject jMsg;
+    jMsg["target"] = "mouse";
+    jMsg["method"] = "move";
+    jMsg["x"] = x + m_pointOffset.x();
+    jMsg["y"] = y + m_pointOffset.y();
+    send(QJsonDocument(jMsg).toJson());
+    QThread::msleep(WAIT_MSEC_MOUSE_EVENT);
+}
+
+void SocketIO::mouse_move_rel(int x, int y)
 {
     QJsonObject jMsg;
     jMsg["target"] = "mouse";
     jMsg["method"] = "move";
     jMsg["move_type"] = "REL";
-    jMsg["x"] = x ;
+    jMsg["x"] = x;
     jMsg["y"] = y;
     send(QJsonDocument(jMsg).toJson());
     QThread::msleep(WAIT_MSEC_MOUSE_EVENT);
@@ -89,5 +110,5 @@ void SocketIO::mouse_move_click(int x, int y)
     jMsg["x"] = x + m_pointOffset.x();
     jMsg["y"] = y + m_pointOffset.y();
     send(QJsonDocument(jMsg).toJson());
-    QThread::msleep(WAIT_MSEC_MOUSE_EVENT);
+    QThread::msleep(WAIT_MSEC_MOUSE_CLICK);
 }
