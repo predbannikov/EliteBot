@@ -29,13 +29,17 @@ ControlPanel::~ControlPanel()
 void ControlPanel::test()
 {
     queue.clear();
-//    queue.enqueue(QStringList {"MAPSYSTEMENABLE",           "0" });
-//    queue.enqueue(QStringList {"MAPSYSTEM",                 "0", m_sTarget});
+    queue.enqueue(QStringList {"MAPSYSTEMENABLE",           "0", "," });
+
+    queue.enqueue(QStringList {"MARKER",                    "0", "test"});
+}
+
+void ControlPanel::moveToTarget()
+{
+    queue.clear();
     queue.enqueue(QStringList {"AIMPFLYAROUND",             "0", "0"});
     queue.enqueue(QStringList {"PICKUPSPEED",               "0", "6000"});
     queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "push_key", "k" });
-//    queue.enqueue(QStringList {"ACTIONWAIT",                "0", "7000"});
-//    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "push_key", "k" });
     queue.enqueue(QStringList {"IMAGEEXPECTED",             "0", "pic_hypermodResetPull", "9", "6", "26", "0.93"});
     queue.enqueue(QStringList {"MARKER",                    "0", "test"});
 }
@@ -78,6 +82,7 @@ void ControlPanel::ring()
 
 void ControlPanel::setTrack()
 {
+    qDebug() << "создаём новый скрипт setTrack";
     int iTarget = slistSystems.indexOf(m_sTarget);
     if(iTarget == slistSystems.size() - 1)
         iTarget = 0;
@@ -85,8 +90,7 @@ void ControlPanel::setTrack()
         iTarget++;
     m_sTarget = slistSystems[iTarget];
     queue.clear();
-    queue.enqueue(QStringList {"MAPSYSTEMENABLE",           "0" });
-//    queue.enqueue(QStringList {"ACTIONWAIT",                "0", "1000"});
+    queue.enqueue(QStringList {"MAPSYSTEMENABLE",           "0", "m" });
     queue.enqueue(QStringList {"MAPSYSTEM",                 "0", m_sTarget});
     queue.enqueue(QStringList {"MARKER",                    "0", "setTrack"});
 
@@ -95,8 +99,8 @@ void ControlPanel::setTrack()
 
 void ControlPanel::init()
 {
-
-    slistSystems << "Bluford orbital" << "Karex" << "Harma";
+        // Bluford orbital
+    slistSystems << "HIP 112400" << "Harma";
     ui->comboBox_2->addItems(slistSystems);
 }
 
@@ -120,7 +124,7 @@ void ControlPanel::slotReceivReturnCommand(QStringList aList)
                     m_sTarget = ui->radioButton_2->text();
 
 
-                test();
+                moveToTarget();
                 emit signalSetQueue(queue);
             } else {
                 qDebug() << "Control panel not recognize return value";
@@ -130,9 +134,15 @@ void ControlPanel::slotReceivReturnCommand(QStringList aList)
             qDebug() << "receiv return command " << aList;
             if(aList[1] == "1") {
                 if(aList[0] == "AIMPFLYAROUND") {
-                    qDebug() << "создаём новый скрипт setTrack";
-                    setTrack();
-                    emit signalSetQueue(queue);
+                    if(aList[2] == "compass not found") {
+                        qDebug() << "Пропал компас - прилетели на пункт назначения / помехи в данных";
+                        qDebug() << "Текущее решение, устанавливаем новый пункт назначения";
+                        setTrack();
+                        emit signalSetQueue(queue);
+                    } else if(aList[2] == "") {
+                        qDebug() << "Не обработыннй выход из процедуры" << aList[0];
+                        setTrack();
+                    }
                 } else {
                     qDebug() << "slotReceivReturnCommand" << " if(aList[1] == 1) не обработанные состояния";
                 }
@@ -140,11 +150,11 @@ void ControlPanel::slotReceivReturnCommand(QStringList aList)
                 if(aList[0] == "MARKER") {
                     if(aList[2] == "test") {
                         qDebug() << "создаём скрипт setTrack";
-                        test();
+                        moveToTarget();
 //                        setTrack();
                     } else if(aList[2] == "setTrack") {
                         qDebug() << "создаём скрипт test";
-                        test();
+                        moveToTarget();
 //                        setTrack();
                     }
                     emit signalSetQueue(queue);

@@ -14,8 +14,8 @@ class AimpFlyAround : public BaseAction
     QString key;
     QString sSide;
 
-    double lastRadius = 0;
-
+    double lastRadius;
+    int lastRadiusError = 0;
     int powerX;
     int seekY;
     int seekX;

@@ -4,7 +4,9 @@
 #define SPEED_COMPAS_Y      230
 #define SPEED_COMPAS_ROT    210
 
+#define MSEC_WAIT_INERT     2000
 
+#define MSEC_WAIT_PICKPUT_SPEED   7000
 
 AimpFlyAround::AimpFlyAround(CaptureWindow *aCapture, SocketIO *aSock) : BaseAction(aCapture, aSock)
 {
@@ -36,7 +38,7 @@ bool AimpFlyAround::moveAway(Primitives *aPrim)
             moveAwayTrans = MOVEAWAY_TRANS_1;
             release_key(key);
             press_key("w");
-            QThread::msleep(5000);
+            QThread::msleep(MSEC_WAIT_PICKPUT_SPEED);
             release_key("w");
             mapSide = 0;
             offSet = true;
@@ -77,7 +79,7 @@ bool AimpFlyAround::compassAimp()
     const int approxim = COMPARRADIUS_FOR_COMPAS;            // Расстояние до центра до которого компас реагирует
     //  Выравнивание по ротации
     if(!rotate) {
-        qDebug() << "Rotate: radius =" << radius;
+        qDebug() << "Rotate: radius =" << radius << " approxim =" << approxim << " grad =" << QString::number(grad, 'f', 2);
         if(approxim <= radius) {
             if((grad > COMPARGRAD_FOR_COMPAS || grad < -COMPARGRAD_FOR_COMPAS)) {         // выровнять по градусам
                 if(dx == 0)
@@ -86,6 +88,8 @@ bool AimpFlyAround::compassAimp()
                 powerX *= -1;
                 qDebug() << "rotate dx =" << dx << powerX;
                 mouse_move_rel(powerX, 0);
+            } else {
+                pickdownX = true;
             }
         } else {
             powerX = 0;
@@ -133,7 +137,7 @@ bool AimpFlyAround::compassAimp()
     {
         qDebug() << "success compass" ;
         push_key(" ");
-        QThread::msleep(700);   // Ожидание завершения инерционных движений
+        QThread::msleep(MSEC_WAIT_INERT);   // Ожидание завершения инерционных движений
 
         pickdownX = false;
         pickdownY = false;
@@ -150,6 +154,16 @@ bool AimpFlyAround::aimpSideWays()
     int sign = 0;
     Compass *compass = capture->compass();
     Primitives *prim = capture->test(mapSide);
+
+    if(!compass->active) {
+        if(timer.elapsed() > waitMSec) {
+            waitCompasActive = true;
+        }
+        return false;
+    }
+    timer.restart();
+
+
     cv::Point a(compass->pCenter.x - compass->pDot.x, compass->pCenter.y - compass->pDot.y);
     cv::Point b(0, 1);
     int dx = compass->pCenter.x - compass->pDot.x;
@@ -197,23 +211,27 @@ bool AimpFlyAround::aimpSideWays()
             qDebug() << "Пришли к цели ожидания radius =" << radius << " prim =" << prim->found << " отпускаем клавишу" << key;
             release_key(key);
             push_key(" ");
-            QThread::msleep(2000);
+            QThread::msleep(MSEC_WAIT_INERT);
             aimpSideWaysTrans = AIMPSIDEWAY_TRANS_1;
             return true;
         }
-        if(abs(lastRadius) < (abs(radius) - 3)) {
+        if(abs(lastRadius) < (abs(radius))) {
+            lastRadiusError++;
             qDebug() << "Требуется поправка, метка остановки пропущена, TEST!!! radius ="
-                     << QString::number(radius, 'f', 2) << " lastRadius =" << lastRadius;
-            push_key("x");
-            reset();
+                     << QString::number(radius, 'f', 2) << " lastRadius =" << lastRadius << " lastRadiusError =" << lastRadiusError;
+            if(lastRadiusError > 7) {
+                push_key("x");
+                reset();
+            }
         }
+        lastRadiusError = 0;
         lastRadius = radius;
         break;
     case AIMPSIDEWAY_TRANS_4:
         if(!prim->found) {
             release_key(key);
             push_key(" ");
-            QThread::msleep(2000);
+            QThread::msleep(MSEC_WAIT_INERT);
             aimpSideWaysTrans = AIMPSIDEWAY_TRANS_2;
         }
         break;
@@ -223,6 +241,8 @@ bool AimpFlyAround::aimpSideWays()
 
 bool AimpFlyAround::aimpTarget()
 {
+
+#define DISTANCE_FOR_TARGET       25
     CursorTarget *tar = capture->takeAimp();
 
     int dx = tar->pointCenter.x - tar->pointTarget.x;
@@ -246,45 +266,63 @@ bool AimpFlyAround::aimpTarget()
         seekY = dy / abs(dy) * 150;
         seekY *= -1;
         seekX = dx / abs(dx);
-        qDebug() << "START Y  X move" << dy << seekY;
+        qDebug() << "START Y  X move dx =" << dx << " dy =" << dy << " seekY =" << seekY;
         mouse_move_rel(0, seekY);
         pickup = true;
         if(dx > 0) {
             press_key("a");
         } else if(dx < 0) {
             press_key("d");
+        } else if(dx == 0) {
+            pickdownX = true;
         }
     }
     if(seekX > 0 && !pickdownX) {
-        if(dx < 25)
+        if(dx > -DISTANCE_FOR_TARGET && dx < DISTANCE_FOR_TARGET)
         {
             release_key("a");
             pickdownX = true;
             qDebug() << "X move complate dx =" << dx << " dy =" << dy;
+        } else if(dx < -DISTANCE_FOR_TARGET){
+            qDebug() << "Пропустили метку по оси X dx =" << dx << " dy =" << dy;
+            release_key("a");
+            reset();
         }
     } else if(seekX < 0 && !pickdownX) {
-        if(dx > -25)
+        if(dx > -DISTANCE_FOR_TARGET && dx < DISTANCE_FOR_TARGET)
         {
             release_key("d");
             pickdownX = true;
             qDebug() << "X move complate dx =" << dx << " dy =" << dy;
+        } else if(dx > DISTANCE_FOR_TARGET){
+            qDebug() << "Пропустили метку по оси X dx =" << dx << " dy =" << dy;
+            pickdownX = true;
+            release_key("d");
+            reset();
         }
     }
     if(seekY > 0 ) {
-        if(dy > 0)
-            if(!pickdownY) {
-                mouse_move_rel(0, -seekY);
-                pickdownY = true;
-                qDebug() << "Y move complate dy =" << dy << " dx =" << dx;
-            }
-    }
-    else if(seekY <= 0 ){
-        if(dy < 0)
-            if(!pickdownY) {
-                mouse_move_rel(0, -seekY);
-                pickdownY = true;
-                qDebug() << "Y move complate dy =" << dy << " dx =" << dx;
-            }
+        if(dy > 0 && dy < DISTANCE_FOR_TARGET && !pickdownY) {
+            mouse_move_rel(0, -seekY);
+            pickdownY = true;
+            qDebug() << "Y move complate dy =" << dy << " dx =" << dx;
+        } else if(dy > DISTANCE_FOR_TARGET){
+            qDebug() << "Пропустили метку по оси Y dy =" << dy << " dx =" << dx;
+            pickdownX = true;
+            mouse_move_rel(0, -seekY);
+            reset();
+        }
+    } else if(seekY <= 0 ){
+        if(dy < 0 && dy > -DISTANCE_FOR_TARGET && !pickdownY) {
+            mouse_move_rel(0, -seekY);
+            pickdownY = true;
+            qDebug() << "Y move complate dy =" << dy << " dx =" << dx;
+        } else if(dy < -DISTANCE_FOR_TARGET){
+            qDebug() << "Пропустили метку по оси Y dy =" << dy << " dx =" << dx;
+            pickdownY = true;
+            mouse_move_rel(0, -seekY);
+            reset();
+        }
     }
 //    qDebug() << "dx =" << dx << " dy =" << dy << " radius =" << radius;
     if(pickdownX && pickdownY)
@@ -308,7 +346,7 @@ bool AimpFlyAround::foundPrimitive(Primitives *aPrim)
             }
             qDebug() << sSide;
             push_key(" ");
-            QThread::msleep(1500);
+            QThread::msleep(MSEC_WAIT_INERT);
             return true;
         }
     }
@@ -327,8 +365,9 @@ void AimpFlyAround::init(QStringList &asListParam)
     pickdownY = false ;
     rotate = false ;
     mapSide = 0;
-    waitMSec = 6000;
-    lastRadius = 0;
+    waitMSec = 7000;
+    lastRadius = 99999;
+    lastRadiusError = 0;
 }
 
 bool AimpFlyAround::logic(QStringList &asListParam)
@@ -337,8 +376,9 @@ bool AimpFlyAround::logic(QStringList &asListParam)
         qDebug() << "Компас не найден";
         push_key("x");
         push_key(" ");
+        QThread::msleep(MSEC_WAIT_INERT);
         asListParam[1] = "1";
-        asListParam[2] = "compas not found";
+        asListParam[2] = "compass not found";
         return true;
     }
 
@@ -346,13 +386,15 @@ bool AimpFlyAround::logic(QStringList &asListParam)
     case TRANS_1:
         if(compassAimp()) {
             trans = TRANS_2;
+            timer.restart();
+            qDebug() << "Закончили первую стадию прицеливания";
         }
         break;
     case TRANS_2:
         if(aimpSideWays()) {
             trans = TRANS_3;
             confirmTimer.restart();
-            qDebug() << "Закончили последнюю стадию прицеливания";
+            qDebug() << "Закончили вторую стадию прицеливания";
         }
         break;
     case TRANS_3:
@@ -369,7 +411,13 @@ bool AimpFlyAround::logic(QStringList &asListParam)
 void AimpFlyAround::reset()
 {
     qDebug() << "RESET";
+    press_key("a");
+    release_key("a");
+    press_key("d");
+    release_key("d");
+    press_key("w");
+    release_key("w");
     push_key(" ");
-    QThread::msleep(2000);   // Ожидание завершения инерционных движений
+    QThread::msleep(MSEC_WAIT_INERT);   // Ожидание завершения инерционных движений
     init(sys_listCommand);
 }

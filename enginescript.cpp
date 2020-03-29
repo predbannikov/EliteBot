@@ -22,7 +22,7 @@ void EngineScript::readCommand(QStringList &aslistCommand)
 {
     if(!aslistCommand.isEmpty()) {
         if(aslistCommand[0] != "DEBUG" && aslistCommand[1] == "1") {
-            qDebug() << "Сбрасываю скрипт";
+            qDebug() << "Код возврата '1' - сбрасываю скрипт";
             m_pControl->queue.clear();
             emit signalReturnCommand(aslistCommand);
         }

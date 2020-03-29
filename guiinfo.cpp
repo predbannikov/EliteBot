@@ -263,9 +263,9 @@ void GuiInfo::initLayoutManipulation()
     sliderMin1->setValue(15);
     sliderMin2->setValue(43);
     sliderMin3->setValue(117);
-    sliderMax1->setValue(21 );
-    sliderMax2->setValue(255);
-    sliderMax3->setValue(255);
+    sliderMax1->setValue(27 );
+    sliderMax2->setValue(250);
+    sliderMax3->setValue(254);
 
     sliderMinNumber = new QSlider(Qt::Horizontal, this);
     sliderMidNumber = new QSlider(Qt::Horizontal, this);
@@ -274,7 +274,7 @@ void GuiInfo::initLayoutManipulation()
     sliderMaxNumber->setMaximum(255);
     sliderMidNumber->setMaximum(255);
     sliderMinNumber->setValue(0);
-    sliderMinNumber->setValue(127);
+    sliderMidNumber->setValue(127);
     sliderMaxNumber->setValue(250);
 
 

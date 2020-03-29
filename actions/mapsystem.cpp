@@ -65,13 +65,21 @@ bool MapSystem::logic(QStringList &asListParam)
                 _point = capture->getPoint("push_search");
                 qDebug() << "push_search" << _point;
                 mouseClick(_point);
-                QThread::msleep(300);
-                push_key("a");
+                QThread::msleep(50);
+                press_key("a");
+                QThread::msleep(100);
+                release_key("a");
                 QThread::msleep(3000);
                 push_search_trigger = true;
-
+                timer.restart();
             } else {
                 if(!trigger) {
+                    if(timer.elapsed() > 17000) {
+                        qDebug() << "Требуется сброс, похоже на зависание TEST!!! выходим из процедуры";
+                        push_key("m");
+                        QThread::msleep(2000);
+                        return true;
+                    }
                     sSearchImage = "pic_setToTarget";
                     srchAreaOnceInPart();
                     qDebug() << QString::number(coeff, 'f', 2) << "first";

@@ -1,11 +1,11 @@
 #include "socketio.h"
 
 
-#define     WAIT_MSEC_PUSH_KEY      70
-#define     WAIT_MSEC_PRESS_KEY     35
-#define     WAIT_MSEC_RELEASE_KEY   35
-#define     WAIT_MSEC_MOUSE_EVENT   35
-#define     WAIT_MSEC_MOUSE_CLICK   70
+#define     WAIT_MSEC_PUSH_KEY      80
+#define     WAIT_MSEC_PRESS_KEY     40
+#define     WAIT_MSEC_RELEASE_KEY   40
+#define     WAIT_MSEC_MOUSE_EVENT   40
+#define     WAIT_MSEC_MOUSE_CLICK   80
 
 SocketIO::SocketIO(QPoint aPointOffset)
 {

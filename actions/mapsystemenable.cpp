@@ -15,13 +15,14 @@ void MapSystemEnable::init(QStringList &asListParam)
     iEnd = 1;
     coeff = 0.1;
     diffCoef = 0.9;
+    key = asListParam[2];
 }
 
 bool MapSystemEnable::logic(QStringList &asListParam)
 {
     if(!trigger) {
         qDebug() << "open map";
-        push_key("m");
+        push_key(key);
         trigger = true;
     }
     srchAreaOnceInPart();

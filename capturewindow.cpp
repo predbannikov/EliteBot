@@ -1616,7 +1616,7 @@ Primitives *CaptureWindow::test(int aSide)
         //    cv::inRange(hsv, minScalar, maxScalar, mask);                         // hsv
 
             std::vector<cv::Rect> rects;
-            cv::inRange(dst, cv::Scalar(0, 0, 0), cv::Scalar(50, 255, 255), mask);                         // hsv
+            cv::inRange(dst, cv::Scalar(0, 0, 0), cv::Scalar(30, 255, 255), mask);                         // hsv
             cv::bitwise_not(mask, mask);
 //            cv::inRange(dst, minScalar, maxScalar, mask);                         // hsv
             //            cv::Mat maskBlur;
@@ -1665,13 +1665,18 @@ Primitives *CaptureWindow::test(int aSide)
 
 Compass *CaptureWindow::compass()
 {
+    static int count_error = 0;
     if(DEBUG2)
         qDebug() << ".";
 #define     COMPAS_SIDE     90
     m_compas.active = false;
     cv::Rect compasRect;        // Основной квадрат компаса
     cv::Mat dst;
-    cv::Rect fieldCompass(calcRectFromPartOfIndex(27, 494, 633));
+    cv::Rect fieldCompass(calcRectFromPartOfIndex(26, 476, 557));
+    fieldCompass.y = fieldCompass.y - 15;
+    fieldCompass.height = fieldCompass.height + 35;
+    fieldCompass.x = fieldCompass.x - 55;
+    fieldCompass.width = fieldCompass.width + 115;
     win(fieldCompass).copyTo(dst);
 
 
@@ -1689,10 +1694,12 @@ Compass *CaptureWindow::compass()
         bin.deallocate();
         img_blur.deallocate();
 //        getMaskOfMat(dst, bin, cv::Scalar(hue, 150, 126), maxScalar);
-        getMaskOfMat(dst, bin, cv::Scalar(hue, 150, 126), cv::Scalar(27, 250, 254));
+        getMaskOfMat(dst, bin, cv::Scalar(hue, 127, 126), cv::Scalar(27, 250, 254));
+//        getMaskOfMat(dst, bin, cv::Scalar(hue, minNumber, maxNumber), maxScalar);
         std::vector< std::vector <cv::Point> > cont;
         std::vector<int > sort_idx;
         cv::blur(bin, img_blur, cv::Size(3, 3));
+//        cv::GaussianBlur(bin, img_blur, cv::Size(9, 9), 2, 2);
         cv::HoughCircles(img_blur, circles, cv::HOUGH_GRADIENT, 1, dst.rows / 1, 200, 15, 28, 30);
         if(circles.empty())  {
 //            qDebug() << " hue =" << hue;
@@ -1701,9 +1708,9 @@ Compass *CaptureWindow::compass()
         } else {
             for(size_t i = 0; i < circles.size(); i++) {
                 cv::Rect rectFound(cvRound(circles[i][0]) - COMPAS_SIDE/2, cvRound(circles[i][1]) - COMPAS_SIDE/2, COMPAS_SIDE, COMPAS_SIDE);
-                if(rectFound.x < 0 || rectFound.y < 0
-                        || rectFound.x + rectFound.width > dst.size().width
-                        || rectFound.y + rectFound.height > dst.size().height) {
+                if(rectFound.x <= 0 || rectFound.y <= 0
+                        || rectFound.x + rectFound.width >= dst.size().width
+                        || rectFound.y + rectFound.height >= dst.size().height) {
 //                    qDebug() << "noise либо на границе либо по размерам не подходит";
                     continue;
                 }
@@ -1718,8 +1725,10 @@ Compass *CaptureWindow::compass()
     }
 //    qDebug() << "hue = " << hue << " compassRects =" << compassRects.size();
     if(compassRects.empty()) {
-//        imshow("win5", img_blur);
-        qDebug() << "Круги компаса не найдены hue =" << hue;
+        imshow("win3", dst);
+        imshow("win5", img_blur);
+        count_error++;
+        qDebug() << "Круги компаса не найдены hue =" << hue << " count_error =" << count_error;
         return &m_compas;
     }
 
@@ -1870,7 +1879,7 @@ Compass *CaptureWindow::compass()
     circl[1] = compasRect.height / 2;
     circl[2] = 30;
 
-    if(compasRect.x < 0 || compasRect.y < 0) {
+    if(compasRect.x < 0 || compasRect.y < 0 || compasRect.x + compasRect.width > dst.size().width || compasRect.y + compasRect.height > dst.size().height) {
         qDebug() << "точка скорее всего не действительна";
 //        imshow("win4", matPlus);
 //        imshow("win5", maskPlus);

@@ -4,6 +4,7 @@
 
 class MapSystemEnable : public BaseAction
 {
+    QString key;
 public:
     MapSystemEnable(CaptureWindow *aCapture, SocketIO *aSock);
     void init(QStringList &asListParam) override;

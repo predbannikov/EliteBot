@@ -22,6 +22,7 @@ public:
     ~ControlPanel();
 
     void test();
+    void moveToTarget();
     void ring();
     void setTrack();
     void init();
