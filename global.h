@@ -58,6 +58,7 @@ static const QMap<int, QString> subNamePicMenu1NavList = { {0, "subMenuNavFix"},
 struct Compass {
     cv::Point pDot;
     cv::Point pCenter;
+    cv::Size size;
     bool face = 0;
     bool active = false;
 };
@@ -254,6 +255,9 @@ inline void deleteCharExtra(QString &aStr) {
 
 inline int comparisonStr(QString asSrc, QString asCurStr)
 {
+    qDebug() << "Сравнивание " << asSrc << " и " << asCurStr;
+    asSrc = asSrc.toLower();
+    asCurStr = asCurStr.toLower();
     if(asSrc.indexOf("<") != -1) {
         asSrc.remove(0, asSrc.indexOf("<") + 1);
     }

@@ -8,7 +8,7 @@ class AimpFlyAround : public BaseAction
 
     enum {MOVEAWAY_TRANS_1, MOVEAWAY_TRANS_2} moveAwayTrans;
     enum {AIMPSIDEWAY_TRANS_1, AIMPSIDEWAY_TRANS_2, AIMPSIDEWAY_TRANS_3, AIMPSIDEWAY_TRANS_4} aimpSideWaysTrans;
-    enum {TRANS_1, TRANS_2, TRANS_3} trans;
+    enum {LOGICTRANS_1, LOGICTRANS_2, LOGICTRANS_3} logicTrans;
 
 
     QString key;
@@ -16,10 +16,13 @@ class AimpFlyAround : public BaseAction
 
     double lastRadius;
     int lastRadiusError = 0;
+    int countResetToCompass = 0;
     int powerX;
     int seekY;
     int seekX;
     int mapSide = 0;
+
+    bool modeMoveAvay = false;
 
     bool waitCompasActive = false;
     bool offSet = false;

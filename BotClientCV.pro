@@ -21,6 +21,9 @@ CONFIG += c+14
 #QMAKE_CXXFLAGS_DEBUG += Od
 #QMAKE_CXXFLAGS_DEBUG += -Zi
 
+RC_FILE     = resource.rc
+
+
 
 unix: !macx {
     LIBS += -lX11   -lopencv_core
@@ -78,11 +81,15 @@ win32-msvc* {
 SOURCES += \
     actions/actionaimp.cpp \
     actions/actiondebug.cpp \
+    actions/actiondeliverypaper.cpp \
     actions/actiongetcloser.cpp \
     actions/actionwait.cpp \
     actions/aimpflyaround.cpp \
     actions/dockingmenucase.cpp \
+    actions/getstrstaticfield.cpp \
+    actions/gettextstaticfield.cpp \
     actions/imageexpected.cpp \
+    actions/imageexpectedclose.cpp \
     actions/mapsystem.cpp \
     actions/mapsystemenable.cpp \
     actions/marker.cpp \
@@ -96,7 +103,6 @@ SOURCES += \
     actions/sendeventcontrol.cpp \
     actions/servicemenu.cpp \
     actions/stopafterautostart.cpp \
-    actions/waitendhypermodehelp.cpp \
     actions/waitmenudocking.cpp \
     aicontrol.cpp \
     baseaction.cpp \
@@ -113,11 +119,15 @@ SOURCES += \
 HEADERS += \
     actions/actionaimp.h \
     actions/actiondebug.h \
+    actions/actiondeliverypaper.h \
     actions/actiongetcloser.h \
     actions/actionwait.h \
     actions/aimpflyaround.h \
     actions/dockingmenucase.h \
+    actions/getstrstaticfield.h \
+    actions/gettextstaticfield.h \
     actions/imageexpected.h \
+    actions/imageexpectedclose.h \
     actions/mapsystem.h \
     actions/mapsystemenable.h \
     actions/marker.h \
@@ -131,7 +141,6 @@ HEADERS += \
     actions/sendeventcontrol.h \
     actions/servicemenu.h \
     actions/stopafterautostart.h \
-    actions/waitendhypermodehelp.h \
     actions/waitmenudocking.h \
     aicontrol.h \
     baseaction.h \
@@ -144,6 +153,7 @@ HEADERS += \
     iodata.h \
     lowlvlenginescript.h \
     main.h \
+    resource.rc \
     socketio.h
 
 # Default rules for deployment.

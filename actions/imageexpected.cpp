@@ -9,10 +9,10 @@ ImageExpected::ImageExpected(CaptureWindow *aCapture, SocketIO *aSock) : BaseAct
 void ImageExpected::init(QStringList &asListParam)
 {
     sSearchImage = asListParam[2];
-    nCount = asListParam[3].toInt();
-    iStart = asListParam[4].toInt();
-    iEnd = asListParam[5].toInt();
-    diffCoef = asListParam[6].toDouble();
+    diffCoef = asListParam[3].toDouble();
+    nCount = asListParam[4].toInt();
+    iStart = asListParam[5].toInt();
+    iEnd = asListParam[6].toInt();
 //    sys_debugLog = true;
 }
 

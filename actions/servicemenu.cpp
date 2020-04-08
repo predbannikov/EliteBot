@@ -15,7 +15,7 @@ bool ServiceMenu::logic(QStringList &asListParam)
 
     QPoint point = capture->getPoint("rectServiceFuel");
     mouse_move_click(point.x(), point.y());
-    QThread::msleep(1000);
+    QThread::msleep(2000);
     QPoint point2 = capture->getPoint("rectServiceExit");
     mouse_move_click(point2.x(), point2.y());
     QThread::msleep(3000);

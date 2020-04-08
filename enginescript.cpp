@@ -21,6 +21,10 @@ EngineScript::~EngineScript()
 void EngineScript::readCommand(QStringList &aslistCommand)
 {
     if(!aslistCommand.isEmpty()) {
+        if(aslistCommand[1] == "2") {
+            qDebug() << "aslistCommand[1] = 2";
+            m_sRetFunction = aslistCommand[2];
+        }
         if(aslistCommand[0] != "DEBUG" && aslistCommand[1] == "1") {
             qDebug() << "Код возврата '1' - сбрасываю скрипт";
             m_pControl->queue.clear();
@@ -28,10 +32,16 @@ void EngineScript::readCommand(QStringList &aslistCommand)
         }
     }
     QStringList command = m_pControl->readCommand();
-    if(command[0] == "MARKER") {
-        qDebug() << "MARKER";
 
-        emit signalReturnCommand(command);
+    if(command[0] == "MARKER") {
+        qDebug() << "MARKER" << command;
+        QStringList tmpList = command;
+        if(!m_sRetFunction.isEmpty()) {
+            tmpList[1] = "2";
+            tmpList.append(m_sRetFunction);
+            m_sRetFunction.clear();
+        }
+        emit signalReturnCommand(tmpList);
     }
 
     aslistCommand = command;
@@ -48,6 +58,7 @@ void EngineScript::initDisplay()
     int number = 0;
     if(!configDisplayFile.exists()) {
         auto screens = QGuiApplication::screens();
+
         for(int i = 0; i < screens.size(); i++) {
             QMessageBox msgBox;
             QRect rect = screens[i]->availableGeometry();

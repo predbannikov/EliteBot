@@ -24,19 +24,13 @@ GuiInfo::GuiInfo(IOData *t_ioData, QWidget *parent) : QWidget(parent)
 
 
 
-    sliderMaxContours = new QSlider;
-    sliderMaxContours->setMaximumWidth(g_screen.width());
-    sliderMaxContours->setValue(30);
-    connect(sliderMaxContours, &QSlider::valueChanged, [this] (int anValue) {
-        emit signalSendMaxContourForLength(anValue);
-    });
+
 
     vboxlayout->addLayout(hboxProjects);
     vboxlayout->addLayout(hboxRegion);
     vboxlayout->addLayout(hboxManipulation);
     vboxlayout->addLayout(hblEngineControl);
     vboxlayout->addLayout(hblSlider);
-    vboxlayout->addWidget(sliderMaxContours);
 
 
 
@@ -69,8 +63,8 @@ GuiInfo::GuiInfo(IOData *t_ioData, QWidget *parent) : QWidget(parent)
     chckBoxEngine->setFocus();
     panel = new ControlPanel(engine, this);
     panel->show();
-    move(0, 0);
-    panel->move(0, this->geometry().bottom());
+    move(2500, 800);
+    panel->move(0, g_screen.height() - panel->geometry().height() - 50);
 //    qDebug() << "test";
 }
 
@@ -88,21 +82,20 @@ GuiInfo::~GuiInfo()
 void GuiInfo::sendAllNumbData()
 {
 
-//    cv::Scalar minNumber( 0, 0, 0 );
-//    cv::Scalar maxNumber (255, 255, 255 );
+    cv::Scalar minScalar( 0, 0, 0 );
+    cv::Scalar maxScalar (1, 1, 1 );
 
+    sliderMin1->setValue(  static_cast<int>(minScalar[0] ) );
+    sliderMin2->setValue(  static_cast<int>(minScalar[1] ) );
+    sliderMin3->setValue(  static_cast<int>(minScalar[2] ) );
 
-//    sliderMin1->setValue(  static_cast<int>(minScalar[0] ) );
-//    sliderMin2->setValue(  static_cast<int>(minScalar[1] ) );
-//    sliderMin3->setValue(  static_cast<int>(minScalar[2] ) );
+    sliderMax1->setValue(  static_cast<int>(maxScalar[0] ) );
+    sliderMax2->setValue(  static_cast<int>(maxScalar[1] ) );
+    sliderMax3->setValue(  static_cast<int>(maxScalar[2] ) );
 
-//    sliderMax1->setValue(  static_cast<int>(maxScalar[0] ) );
-//    sliderMax2->setValue(  static_cast<int>(maxScalar[1] ) );
-//    sliderMax3->setValue(  static_cast<int>(maxScalar[2] ) );
-
-    sliderMinNumber->setValue( 30 );
-    sliderMidNumber->setValue( 40 );
-    sliderMaxNumber->setValue( 1 );
+    sliderMinNumber->setValue( 50 );
+    sliderMidNumber->setValue( 1 );
+    sliderMaxNumber->setValue( 100 );
 
     emit signalSendMinNumber(sliderMinNumber->value());
     emit signalSendMidNumber(sliderMidNumber->value());
@@ -269,11 +262,12 @@ void GuiInfo::initLayoutManipulation()
 
     sliderMinNumber = new QSlider(Qt::Horizontal, this);
     sliderMidNumber = new QSlider(Qt::Horizontal, this);
+    sliderMidNumber->setObjectName("for odd number");
     sliderMaxNumber = new QSlider(Qt::Horizontal, this);
     sliderMinNumber->setMaximum(255);
     sliderMaxNumber->setMaximum(255);
     sliderMidNumber->setMaximum(255);
-    sliderMinNumber->setValue(0);
+    sliderMinNumber->setValue(1);
     sliderMidNumber->setValue(127);
     sliderMaxNumber->setValue(250);
 
@@ -300,11 +294,20 @@ void GuiInfo::initLayoutManipulation()
         emit signalSendMinNumber(anValue);
     });
     connect(sliderMidNumber, &QSlider::valueChanged, [this](int anValue) {
+        if(chckOddNumber->isChecked()) {
+            if(!(anValue % 2)) {
+                anValue++;
+            }
+        }
         emit signalSendMidNumber(anValue);
     });
     connect(sliderMaxNumber, &QSlider::valueChanged, [this](int anValue) {
         emit signalSendMaxNumber(anValue);
     });
+
+    chckOddNumber = new QCheckBox("Не чётные");
+
+
 
 
     vblMinSlider = new QVBoxLayout;
@@ -318,6 +321,7 @@ void GuiInfo::initLayoutManipulation()
     vblMaxSlider->addWidget(sliderMax1);
     vblMaxSlider->addWidget(sliderMax2);
     vblMaxSlider->addWidget(sliderMax3);
+    vblMinSlider->addWidget(chckOddNumber);
     hblSlider = new QHBoxLayout;
     hblSlider->addLayout(vblMinSlider);
     hblSlider->addLayout(vblMaxSlider);

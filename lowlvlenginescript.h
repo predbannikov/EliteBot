@@ -20,7 +20,7 @@
 #include "actions/stopafterautostart.h"
 #include "actions/pickupspeed.h"
 #include "actions/actionaimp.h"
-#include "actions/waitendhypermodehelp.h"
+#include "actions/imageexpectedclose.h"
 #include "actions/actiongetcloser.h"
 #include "actions/panel1casemenucont.h"
 #include "actions/waitmenudocking.h"
@@ -31,6 +31,8 @@
 #include "actions/aimpflyaround.h"
 #include "actions/sendeventcontrol.h"
 #include "actions/marker.h"
+#include "actions/getstrstaticfield.h"
+#include "actions/actiondeliverypaper.h"
 
 
 
@@ -55,27 +57,8 @@ public:
     std::map<std::string, ImageROI> *m_pDataSet;
 
 protected:
-    bool            compass;
-    bool            target;
-    bool            check;
-    QString         sPush_key;
-    QString         sPress_key;
-    QString         sRelease_key;
-    QString         sPanHeadName;
-    QString         sSearchImage;
-    QString         sTypingText;
-    QStringList     listForSearch;
-    QElapsedTimer   timeElapsed;
-    double          coeff;
-    double          radius;
-    double          distance;
-    int             frameFreq;
-    int             timeWaitMsec;
-    int             whileWaitMsec;
-    int             nCount;
-    int             iStart;
-    int             iEnd;
 
+    QString m_sRetFunction;
 
 private:
 

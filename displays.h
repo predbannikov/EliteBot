@@ -1,6 +1,8 @@
 #ifndef DISPLAYS_H
 #define DISPLAYS_H
 #include <QPixmap>
+#include <QThread>
+
 #include <vector>
 #include <iostream>
 #include "global.h"

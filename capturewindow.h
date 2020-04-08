@@ -109,7 +109,7 @@ public:
     void drawLine(cv::Point p1, cv::Point p2);
 
 
-    bool srchAreaOnceInMat(std::string asImageROI, cv::Mat acvMat, double factor = 0.99);
+    bool srchAreaOnceInMat(std::string asImageROI, cv::Mat acvMat, double &coeff);
     cv::Point getPointAreaInMat(std::string asImageROI, cv::Mat acvMat, double factor = 0.99);
     cv::Point getPointOfPattern(cv::Mat acvMat, std::string sPattern, double factor = 0.25);
     cv::Point getPointAndFactorOfSPattern(cv::Mat acvMat, std::string sPattern, double &factor);
@@ -136,13 +136,20 @@ public:
 
     // ----------------------- Целенапарвленные для игы функции ----------------------------
 
-
+    QString getStrStaticField(std::string asImageROI);
+    QString getTextStaticField(std::string asImageROI, cv::Scalar aMinScalar, cv::Scalar aMaxScalar, QString asLang = "ru");
+    QString getTextApproximArea(cv::Rect aRect, cv::Point &aPoint, QString asLang = "ru");
+    bool imageExpectedCloseAutoPilot(std::string asImageROI, double &coeff, int anCount = 3, int anStart = 0, int anEnd = 8);
     Distance *recognizDistance();
+    void testColor();
+
+
+
     //      Наводка
     CursorTarget *takeAimp();
-    Primitives *test(int aSide);
+    Primitives *getPrimitives(int aSide);
     Compass *compass();
-
+    void testTarget2();
 
 
     CursorPanel *panel1Header();
@@ -189,7 +196,7 @@ public:
     quint16     m_nNextBlockSize;
 
     // Получение данных из DataSet
-    QRect getRect(QString sName);
+    cv::Rect getRect(QString sName);
     QPoint getPoint(QString sName);
 
 
@@ -202,7 +209,7 @@ public:
 
     // Функции для подготовки матриц
     void getPrepMatsForMenu(cv::Mat &aColorMat, cv::Mat &aMaskMat);
-    void getMaskOfMat(cv::Mat &aColorMat, cv::Mat &aMaskMat, cv::Scalar aMinScalar =  cv::Scalar(10, 210, 230), cv::Scalar aMaxScalar = cv::Scalar(50, 255, 255));
+    void getMaskOfMatHSV(cv::Mat &aColorMat, cv::Mat &aMaskMat, cv::Scalar aMinScalar =  cv::Scalar(10, 210, 230), cv::Scalar aMaxScalar = cv::Scalar(50, 255, 255));
     bool getMatsOfContour(cv::Mat &aColorMat, cv::Mat &aMaskMat, std::vector<cv::Point> contour);
     bool getContoursIndexSort(cv::Mat &aMaskMat, std::vector <std::vector <cv::Point> > &contours, std::vector<size_t> &idx, cv::RetrievalModes aAlgoType = cv::RETR_EXTERNAL);
 

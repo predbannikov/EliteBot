@@ -18,6 +18,8 @@ public:
     virtual void reset() = 0;
     virtual void printDebug();
 
+    bool expectedImage(QString asStr, double aDiffCoeff, int anCount, int anStart, int anEnd);
+//    bool expectedImageClose(QString sStr);
     bool srchAreaOnceInPart();
     bool perform(QStringList &asListParam);
     void resetBase();
@@ -26,6 +28,7 @@ public:
     void release_key(QString aChar);
     void typingText(QString asText);
     void mouse_move(int x, int y);
+    void mouse_wheel(int anCount);
     void mouse_move_rel(int x, int y);
     void mouse_move_click(int x, int y);
 
@@ -61,7 +64,7 @@ public:
     ulong           waitEnable;
     ulong           waitMSec;
     ulong           confirmTime;
-    ulong           whileWaitMsec;
+    ulong           whileWaitMSec;
     int             nCount;
     int             iStart;
     int             iEnd;

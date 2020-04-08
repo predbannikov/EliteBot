@@ -24,7 +24,7 @@ void LowLvlEngineScript::update()
             qDebug() << "";
             qDebug() << "";
             qDebug() << "";
-            qDebug() << "new action" << action->getName();
+//            qDebug() << "new action" << action->getName();
         }
         do {
             capture->update();
@@ -50,17 +50,19 @@ void LowLvlEngineScript::init()
     actions.append( new StopAfterAutoStart(capture, m_sock));
     actions.append( new PickUpSpeed(capture, m_sock));
     actions.append( new ActionAimp(capture, m_sock));
-    actions.append( new WaitEndHyperModeHelp(capture, m_sock));
+    actions.append( new ImageExpectedClose(capture, m_sock));
+    actions.append( new ImageExpected(capture, m_sock));
     actions.append( new ActionGetCloser(capture, m_sock));
     actions.append( new Panel1CaseMenuCont(capture, m_sock));
     actions.append( new WaitMenuDocking(capture, m_sock));
-    actions.append( new ImageExpected(capture, m_sock));
     actions.append( new ServiceMenu(capture, m_sock));
     actions.append( new MapSystemEnable(capture, m_sock));
     actions.append( new MapSystem(capture, m_sock));
     actions.append( new AimpFlyAround(capture, m_sock));
     actions.append( new SendEventControl(capture, m_sock));
     actions.append( new Marker(capture, m_sock));
+    actions.append( new GetStrStaticField(capture, m_sock));
+    actions.append( new ActionDeliveryPaper(capture, m_sock));
 }
 
 LowLvlEngineScript::~LowLvlEngineScript()

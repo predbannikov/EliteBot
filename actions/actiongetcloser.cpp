@@ -9,7 +9,7 @@ void ActionGetCloser::init(QStringList &asListParam)
 {
     trigger = false;
     timer.restart();
-    waitMSec = 5000;
+    waitMSec = 6300;
 }
 
 bool ActionGetCloser::logic(QStringList &asListParam)

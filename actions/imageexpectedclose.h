@@ -3,10 +3,10 @@
 #include "baseaction.h"
 
 
-class WaitEndHyperModeHelp : public BaseAction
+class ImageExpectedClose : public BaseAction
 {
 public:
-    WaitEndHyperModeHelp(CaptureWindow *aCapture, SocketIO *aSock);
+    ImageExpectedClose(CaptureWindow *aCapture, SocketIO *aSock);
     void init(QStringList &asListParam) override;
     bool logic(QStringList &asListParam) override;
     void reset() override;

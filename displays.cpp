@@ -41,7 +41,12 @@ cv::Mat Displays::imageFromDisplay(int _format)
 //    QList<QPixmap> scrs;
 //    int w = 0, h = 0;
     auto screens = QGuiApplication::primaryScreen();
-    QPixmap pix = screens->grabWindow(0, m_x, m_y, m_width, m_height);
+    QPixmap pix;    // = screens->grabWindow(0, m_x, m_y, m_width, m_height);
+    while(pix.isNull()) {
+        pix = screens->grabWindow(0, m_x, m_y, m_width, m_height);
+        if(pix.isNull())
+            QThread::msleep(100);
+    }
 //    foreach (auto scr, screens) {
 //        QPixmap pix = scr->grabWindow(, Y, 210, 1240, 700);
 //        w += pix.width();

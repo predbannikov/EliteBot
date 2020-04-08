@@ -8,7 +8,7 @@ Panel1CaseMenuCont::Panel1CaseMenuCont(CaptureWindow *aCapture, SocketIO *aSock)
 void Panel1CaseMenuCont::init(QStringList &asListParam)
 {
     sName = asListParam[2];
-    waitMSec = 5000;
+    waitMSec = 7000;
     triggerForNotice = false;
 }
 
@@ -16,6 +16,7 @@ bool Panel1CaseMenuCont::logic(QStringList &asListParam)
 {
 
     if(!triggerForNotice) {
+        qDebug() << "Panel1CaseMenuCont::logic ->     if(!triggerForNotice) {";
         pan = capture->panel1Body();
         if(!trigger) {
             qDebug() << "RECOGNIZE: "<< pan->sBodyName << " сравниваем с" << sName;
@@ -35,22 +36,44 @@ bool Panel1CaseMenuCont::logic(QStringList &asListParam)
                 qDebug() << "Нажал вправо но несработало, пытаемся нажать пробел и проверить что получится" << pan->sBodyName << sName;
             }
             triggerForNotice = true;
+            timer.restart();
         }
     } else {
-        qDebug() << pan->sBodyNameNotice;
+        qDebug() << "TEST!!!pan->sBodyNameNotice;" << pan->sBodyNameNotice;
         pan = capture->panelBodyContNotice();
-        int res = comparisonStr(pan->sBodyNameNotice, "отказановстыковке");
-        if(res <= 2) {
+        qDebug() << "начало сравниваний";
+        if(timer.elapsed() < waitMSec) {
+            int res;
+            res = comparisonStr(pan->sBodyNameNotice, "отказановстыковке");
+            if(res <= 2) {
+                qDebug() << "ждём 15сек";
+    //            QThread::msleep(waitMSec);
+                triggerForNotice = false;
+                trigger = false;
+                QThread::msleep(waitMSec);
+                return false;
+            }
+            res = comparisonStr(pan->sBodyNameNotice, "стыковкаразрешена");
+            if(res <= 2){
+                qDebug() << "садимся";
+                return true;
+            }
+            res = comparisonStr(pan->sBodyNameNotice, "Notice: not active");
+            if(res <= 2){
+                push_key("s");
+                qDebug() << "ждём 15сек";
+                triggerForNotice = false;
+                trigger = false;
+                QThread::msleep(waitMSec);
+                return false;
+            }
+        } else {
             triggerForNotice = false;
             trigger = false;
-            qDebug() << "ждём 15сек";
-            QThread::msleep(waitMSec);
         }
-        res = comparisonStr(pan->sBodyNameNotice, "стыковкаразрешена");
-        if(res <= 2){
-            qDebug() << "садимся";
-            return true;
-        }
+//        QThread::msleep(waitMSec);
+//        triggerForNotice = false;
+//        trigger = false;
     }
     QThread::msleep(100);
     return false;

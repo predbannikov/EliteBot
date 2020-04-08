@@ -30,7 +30,7 @@ bool BaseAction::perform(QStringList &asListParam)
     switch (transition) {
     case TRANSITION_1:
         transition = TRANSITION_2;
-        sys_timeWaitMSec = 300000;
+        sys_timeWaitMSec = 1000000;
         sys_timeElapsed.restart();
         sys_elapsedFunc.restart();
         sys_listCommand = asListParam;
@@ -48,7 +48,7 @@ bool BaseAction::perform(QStringList &asListParam)
         waitEnable = 0;
         waitMSec = 0;
         confirmTime = 0;
-        whileWaitMsec = 0;
+        whileWaitMSec = 0;
         nCount = 0;
         iStart = 0;
         iEnd = 0;
@@ -91,8 +91,33 @@ bool BaseAction::perform(QStringList &asListParam)
 
 void BaseAction::printDebug()
 {
-//    qDebug() << "elapse =" << sys_timeElapsed.elapsed();
+    //    qDebug() << "elapse =" << sys_timeElapsed.elapsed();
 }
+
+bool BaseAction::expectedImage(QString asStr, double aDiffCoeff, int anCount, int anStart, int anEnd)
+{
+    double coefficient = 0;
+    capture->srchAreaOnceInRect(asStr.toStdString(), coefficient, point, anCount, anStart, anEnd);
+    qDebug() << QString::number(coefficient, 'f', 2 ) << QString::number(aDiffCoeff, 'f', 2 );
+    if(coefficient > aDiffCoeff) {
+        return true;
+    } else {
+
+        return false;
+    }
+}
+
+//bool BaseAction::expectedImageClose(QString sStr)
+//{
+//    sSearchImage = sStr;
+//    whileWaitMSec = asListParam[3].toUInt();
+//    diffCoef = asListParam[4].toDouble();
+////    coeff = asListParam[4].toDouble();
+//    nCount = asListParam[5].toInt();
+//    iStart = asListParam[6].toInt();
+//    iEnd = asListParam[7].toInt();
+
+//}
 
 void BaseAction::resetBase()
 {
@@ -128,6 +153,11 @@ void BaseAction::mouse_move(int x, int y)
 {
     qDebug() << "mouse_move(" << x << y << ")";
     m_sock->mouse_move(x, y);
+}
+
+void BaseAction::mouse_wheel(int anCount)
+{
+    m_sock->mouse_wheel(anCount);
 }
 
 QString BaseAction::getName()

@@ -77,6 +77,16 @@ void SocketIO::mouse_click()
     QThread::msleep(WAIT_MSEC_MOUSE_CLICK);
 }
 
+void SocketIO::mouse_wheel(int nCount)
+{
+    QJsonObject jMsg;
+    jMsg["target"] = "mouse";
+    jMsg["method"] = "wheel";
+    jMsg["count"] = nCount;
+    send(QJsonDocument(jMsg).toJson());
+    QThread::msleep(WAIT_MSEC_MOUSE_CLICK);
+}
+
 void SocketIO::mouse_move(int x, int y)
 {
     QJsonObject jMsg;

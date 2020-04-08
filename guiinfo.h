@@ -61,8 +61,8 @@ class GuiInfo : public QWidget
     QSlider         *sliderMinNumber;
     QSlider         *sliderMidNumber;
     QSlider         *sliderMaxNumber;
+    QCheckBox       *chckOddNumber;
 
-    QSlider         *sliderMaxContours;
 
 
 //  Engine control
@@ -158,7 +158,6 @@ signals:
     void signalSendMaxNumber(int nMax);
     void signalFreeze();
     void signalResizeImage();
-    void signalSendMaxContourForLength(int i);
     void signalEngineEnable(bool aState);
     void signalEngineSetCurStation(QString asStation);
     void signalEngineEnableTest();
