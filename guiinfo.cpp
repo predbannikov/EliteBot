@@ -56,6 +56,7 @@ GuiInfo::GuiInfo(IOData *t_ioData, QWidget *parent) : QWidget(parent)
     connect(this, &GuiInfo::signalEngineSetCurStation, engine, &EngineScript::slotSetCurStation, Qt::QueuedConnection);
     connect(this, &GuiInfo::signalEngineEnableTest, engine, &EngineScript::slotStartTest, Qt::QueuedConnection);
     connect(this, &GuiInfo::signalFreeze, engine, &EngineScript::slotFreeze, Qt::QueuedConnection);
+    connect(this, &GuiInfo::signalSaveVideo, engine, &EngineScript::slotSaveVideo, Qt::QueuedConnection);
     connect(this, &GuiInfo::signalResizeImage, engine, &EngineScript::slotResizeImage, Qt::QueuedConnection);
 
     this->sendAllNumbData();

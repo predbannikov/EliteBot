@@ -77,7 +77,9 @@ bool ActionDeliveryPaper::logic(QStringList &asListParam)
             if(factor > 0.93) {
                 qDebug() << "found power";
                 cv::Rect rect = capture->getRect("rect_ContactPowerMenu");
-                rect.y = point.y() - 100;
+                rect.y = point.y() - (capture->getRect("pic_systemGain").height / 2);
+                rect.y = rect.y - (capture->getRect("rect_ContactPowerMenu").height / 2);
+
                 cv::Point findPoint;
                 sText = capture->getTextApproximArea(rect, findPoint, "ru");
                 qDebug() << "Get text" << sText;

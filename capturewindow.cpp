@@ -51,6 +51,10 @@ CaptureWindow::CaptureWindow(std::map<std::string, ImageROI> *ap_dataSet, int x,
     cv::moveWindow("win5", STANDART_FULLHD_WIDTH + 360, 920 / 2 + 130);
 
 
+//    cv::VideoCapture inputVideo(PATH_LOG"\\f.avi");              // Open input
+//    cv::VideoWriter  writeVideo;
+
+
 //    storage = cvCreateMemStorage(0);
 
     timeElapse.start();
@@ -84,6 +88,7 @@ CaptureWindow::CaptureWindow(std::map<std::string, ImageROI> *ap_dataSet, int x,
 //    qDebug() << myOCREng->GetUTF8Text() << myOCRRus->GetUTF8Text();
     m_cursorPan.sHeaderName ="навигация";
     enableResizeImage();
+//    enableSaveVideo();
     cv::moveWindow("win1", 0, -STANDART_FULLHD_HEIGHT);
 //    resizeImage = true;
     m_side = 0;
@@ -95,6 +100,7 @@ CaptureWindow::~CaptureWindow()
 {
 //    qDebug() << "begin Capture exit in destructor";
     win.release();
+    writeVideo.release();
 //    cvReleaseMemStorage(&storage);
 //    myOCREng->Clear();
 //    myOCREng->End();
@@ -122,7 +128,9 @@ void CaptureWindow::update()
 
 
 //    double factor = 0.8;
-//    imageExpectedCloseAutoPilot("pic_autoPilot", factor, 17, 92, 128);
+//    int ret = 0;
+//    imageExpectedCloseAutoPilot("pic_autoPilot", factor, ret, 17, 92, 128);
+
 //    testTarget2();
 //    getPrimitives(m_side);
 //    getStrStaticField("pic_fieldSystemName");
@@ -148,6 +156,27 @@ void CaptureWindow::update()
 
     } else
         imshow("win1", win);
+
+    if(saveVideo) {
+//        qDebug() << win.size().width << win.size().height;
+        if(timeElapseForVideoSave.elapsed() > 25) {
+            writeVideo << win;
+            timeElapseForVideoSave.restart();
+        }
+        if(timeElapseForVideoSave2.elapsed() > 5000) {
+            writeVideo.release();
+            QString fName;
+            fName = QString("%0\\%1.avi").arg(PATH_VIDEO_LOG).arg(QDateTime::currentDateTime().toString("dd-mmss"));
+            writeVideo.open(fName.toStdString(), 0, 0, cv::Size(g_screen.width(), g_screen.height()), true);              // Open input
+            if(!writeVideo.isOpened()) {
+                qDebug()  << "couldn't open video: " << fName;
+                saveVideo = false;
+                return;
+            }
+            qDebug() << "create new file" << fName;
+            timeElapseForVideoSave2.restart();
+        }
+    }
 }
 
 cv::Mat CaptureWindow::checkRoiMat()
@@ -985,13 +1014,13 @@ CursorPanel *CaptureWindow::panel1Header()
             m_cursorPan.sHeaderName = m_cursorPan.sHeaderName.simplified();
             m_cursorPan.sHeaderName = m_cursorPan.sHeaderName.toLower();
             deleteCharExtra(m_cursorPan.sHeaderName);
-            if(comparisonStr(m_cursorPan.sHeaderName, "службыкосмопорта") <= 2)
+            if(comparisonStr(m_cursorPan.sHeaderName, "службыкосмопорта") <= 1)
                 return &m_cursorPan;
-            if(comparisonStr(m_cursorPan.sHeaderName, "наповерхность") <= 2)
+            if(comparisonStr(m_cursorPan.sHeaderName, "наповерхность") <= 1)
                 return &m_cursorPan;
-            if(comparisonStr(m_cursorPan.sHeaderName, "вангар") <= 2)
+            if(comparisonStr(m_cursorPan.sHeaderName, "вангар") <= 1)
                 return &m_cursorPan;
-            if(comparisonStr(m_cursorPan.sHeaderName, "автозапуск") <= 2)
+            if(comparisonStr(m_cursorPan.sHeaderName, "автозапуск") <= 1)
                 return &m_cursorPan;
             m_cursorPan.activeHeader = true;
 
@@ -1641,16 +1670,18 @@ QString CaptureWindow::getTextApproximArea(cv::Rect aRect, cv::Point &aPoint, QS
     sText = sText.toLower();
     deleteCharExtra(sText);
     qDebug() << sText;
+    cv::imshow("win2", dst);
     cv::imshow("win3", mask);
     cv::imshow("win5", recognizMask);
     cv::imshow("win4", gray);
     return sText;
 }
 
-bool CaptureWindow::imageExpectedCloseAutoPilot(std::string asImageROI, double &coeff, int anCount, int anStart, int anEnd)
+bool CaptureWindow::imageExpectedCloseAutoPilot(std::string asImageROI, double &coeff, int &ret, int anCount, int anStart, int anEnd)
 {
     if(DEBUG2)
         qDebug() << ".";
+    ret = 0;
     cv::Rect fieldSpace(calcRectFromPartOfIndex(anCount, anStart, anEnd));
     cv::Mat dst;
     win(fieldSpace).copyTo(dst);
@@ -1679,9 +1710,18 @@ bool CaptureWindow::imageExpectedCloseAutoPilot(std::string asImageROI, double &
             targetMinVal1 -= 30;
         }
     }
-//    qDebug() << QString::number(factor, 'f', 2) << QString::number(coeff, 'f', 2) << targetMinVal1 << targetMaxVal3 << check;
+    qDebug() << QString::number(factor, 'f', 2) << QString::number(coeff, 'f', 2) << targetMinVal1 << targetMaxVal3 << check;
     imshow("win4", maskBlur);
     coeff = factor;
+    if(!check) {
+        double factor2 = 0;
+        QPoint _p;
+        srchAreaOnceInRect("pic_detectIntercept", factor2, _p, 10, 17, 28);
+        qDebug() << "factor2 =" << QString::number(factor2, 'f', 2);
+        if(factor2 > 0.8) {
+            ret = 1;
+        }
+    }
     return check;
 }
 
@@ -3045,6 +3085,28 @@ void CaptureWindow::enableResizeImage()
         cv::setMouseCallback("win1", my_mouse_callback, this);
         cv::moveWindow("win1", 0, -STANDART_FULLHD_HEIGHT);
     }
+}
+
+void CaptureWindow::enableSaveVideo()
+{
+    QString fName;
+    saveVideo = saveVideo ? false : true;
+    if(saveVideo) {
+        fName = QString("%0\\%1.avi").arg(PATH_VIDEO_LOG).arg(QDateTime::currentDateTime().toString("dd-mmss"));
+        writeVideo.open(fName.toStdString(), 0, 0, cv::Size(g_screen.width(), g_screen.height()), true);              // Open input
+        if(!writeVideo.isOpened()) {
+            qDebug()  << "couldn't open video: " << fName;
+            saveVideo = false;
+            return;
+        }
+        timeElapseForVideoSave.restart();
+        timeElapseForVideoSave2.restart();
+        qDebug() << "create video file " << fName;
+
+    } else {
+        writeVideo.release();
+    }
+    qDebug() << "save video is" << saveVideo;
 }
 
 void CaptureWindow::freeze()

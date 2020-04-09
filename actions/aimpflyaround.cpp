@@ -1,8 +1,9 @@
 #include "aimpflyaround.h"
 
 
-#define SPEED_COMPAS_Y      210
+#define SPEED_COMPAS_Y      220
 #define SPEED_COMPAS_ROT    210
+#define SPEED_TARGET_Y      180
 
 #define MSEC_WAIT_INERT     2000
 
@@ -314,7 +315,7 @@ bool AimpFlyAround::aimpTarget()
             dy = 1;
         if(dx == 0)
             dx = 1;
-        seekY = dy / abs(dy) * 150;
+        seekY = dy / abs(dy) * SPEED_TARGET_Y;
         seekY *= -1;
         seekX = dx / abs(dx);
         qDebug() << "START Y  X move dx =" << dx << " dy =" << dy << " seekY =" << seekY;

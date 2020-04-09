@@ -22,8 +22,14 @@ bool ImageExpectedClose::logic(QStringList &asListParam)
 {
     if(sSearchImage == "pic_autoPilot") {
         coeff = diffCoef;           // обязательно инициализировать коэффициэнт!!!
-        if(!capture->imageExpectedCloseAutoPilot(sSearchImage.toStdString(), coeff, nCount, iStart, iEnd)) {             // Обязательно передать коофициэнт по которому функция может выйти из цикла
+        int ret = 0;
+        if(!capture->imageExpectedCloseAutoPilot(sSearchImage.toStdString(), coeff, ret, nCount, iStart, iEnd)) {             // Обязательно передать коофициэнт по которому функция может выйти из цикла
             qDebug() << "pattern hide time =" << timer.elapsed() << " factor =" << coeff << " diff =" << diffCoef;
+            if(ret == 1) {          // Значит перехват
+                push_key("j");
+                push_key("j");
+                return true;
+            }
             if(timer.elapsed() > whileWaitMSec) {
                 return true;
             }

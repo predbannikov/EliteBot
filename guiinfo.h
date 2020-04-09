@@ -117,6 +117,8 @@ public:
                 }
             } else if(keyEvent->key() == Qt::Key_R) {
                 emit signalResizeImage();
+            } else if(keyEvent->key() == Qt::Key_P) {
+                emit signalSaveVideo();
             } else if(keyEvent->key() == Qt::Key_S) {
                 emit signalFreeze();
             } else if(keyEvent->key() == Qt::Key_D) {
@@ -157,6 +159,7 @@ signals:
     void signalSendMidNumber(int nMid);
     void signalSendMaxNumber(int nMax);
     void signalFreeze();
+    void signalSaveVideo();
     void signalResizeImage();
     void signalEngineEnable(bool aState);
     void signalEngineSetCurStation(QString asStation);

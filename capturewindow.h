@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QTcpSocket>
 #include <QJsonObject>
+#include <QDateTime>
 #include <QThread>
 #include <QRect>
 #include <QJsonDocument>
@@ -85,6 +86,8 @@ class CaptureWindow : public  QObject, Displays
     int maxNumber;
     int m_side;
     QElapsedTimer timeElapse;
+    QElapsedTimer timeElapseForVideoSave;
+    QElapsedTimer timeElapseForVideoSave2;
 //    int maxContours;
     CursorPanel m_cursorPan;
     CursorTarget m_cursorTarget;
@@ -139,7 +142,7 @@ public:
     QString getStrStaticField(std::string asImageROI);
     QString getTextStaticField(std::string asImageROI, cv::Scalar aMinScalar, cv::Scalar aMaxScalar, QString asLang = "ru");
     QString getTextApproximArea(cv::Rect aRect, cv::Point &aPoint, QString asLang = "ru");
-    bool imageExpectedCloseAutoPilot(std::string asImageROI, double &coeff, int anCount = 3, int anStart = 0, int anEnd = 8);
+    bool imageExpectedCloseAutoPilot(std::string asImageROI, double &coeff, int &ret, int anCount = 3, int anStart = 0, int anEnd = 8);
     Distance *recognizDistance();
     void testColor();
 
@@ -182,6 +185,7 @@ public:
     // Меню посадки
     CursorPanel *menuDocking();
 
+    cv::VideoWriter  writeVideo;
     cv::Mat win;
     cv::Mat m_srcWin;
     cv::Mat matroi;
@@ -203,6 +207,8 @@ public:
     // Вспомогательные функции
     bool resizeImage = false;
     void enableResizeImage();
+    bool saveVideo = false;
+    void enableSaveVideo();
     void freeze();
     bool blackLessWhite(cv::Mat &aBinMat, int &anWhite, int &anBlack);
     void setSide(int aSide);

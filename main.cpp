@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
         pathDir.setPath(pathDir.currentPath() + '/' + path);
         qDebug() << pathDir.path();
         if(!pathDir.mkdir(pathDir.path()))
-            qDebug() << "config create not success";
+            qDebug() << "log create not success";
 
     }
     QString config = PATH_CONFIG;
@@ -67,6 +67,15 @@ int main(int argc, char *argv[])
         qDebug() << pathDir.path();
         if(!pathDir.mkdir(pathDir.path()))
             qDebug() << "config create not success";
+
+    }
+    QString videlog = PATH_VIDEO_LOG;
+    if(!QFileInfo::exists(videlog)) {
+        QDir pathDir;
+        pathDir.setPath(pathDir.currentPath() + '/' + videlog);
+        qDebug() << pathDir.path();
+        if(!pathDir.mkdir(pathDir.path()))
+            qDebug() << "videlog create not success";
 
     }
 

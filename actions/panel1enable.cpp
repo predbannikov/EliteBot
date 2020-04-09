@@ -20,8 +20,10 @@ bool Panel1Enable::logic(QStringList &asListParam)
     CursorPanel *pan = capture->panel1Header();
     bool enable = static_cast<bool>(asListParam[2].toUInt());
     if(pan->activeHeader == enable) {
-        if(confirmTimer.elapsed() > confirmTime)
+        if(confirmTimer.elapsed() > confirmTime) {
+            qDebug() << "Панель 1 включена:";
             return true;
+        }
     } else {
         confirmTimer.restart();
         if(!trigger) {

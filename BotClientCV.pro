@@ -61,6 +61,7 @@ win32-msvc* {
             LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_imgproc$${VERSION_BUILD}d.lib"
             LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_features2d$${VERSION_BUILD}d.lib"
             LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_calib3d$${VERSION_BUILD}d.lib"
+            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_videoio$${VERSION_BUILD}d.lib"
     }
     CONFIG(release, debug|release) {
             LIBS += "F:\projects\vcpkg\installed\x86-windows\lib\tesseract41.lib"
@@ -72,6 +73,7 @@ win32-msvc* {
             LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_imgproc$${VERSION_BUILD}.lib"
             LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_features2d$${VERSION_BUILD}.lib"
             LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_calib3d$${VERSION_BUILD}.lib"
+            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_videoio$${VERSION_BUILD}.lib"
     }
 
 }

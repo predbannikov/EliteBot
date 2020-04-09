@@ -92,12 +92,13 @@ void ControlPanel::flytoStation()
 //    queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "0"});      // выключить панель
 
 
+
+    queue.enqueue(QStringList {"AIMPFLYAROUND",             "0", "station"});
     queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "1"});
     queue.enqueue(QStringList {"PANEL1CASEHEADER",          "0", "навигация"});
     queue.enqueue(QStringList {"PANEL1CASEMENUNAV",         "0", m_sStationTarget});
     queue.enqueue(QStringList {"PANEL1SUBNAV",              "0", "enable_hypermode_helper"});
     queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "0"});
-    queue.enqueue(QStringList {"AIMPFLYAROUND",             "0", "station"});
 //    queue.enqueue(QStringList {"PICKUPSPEED",               "0", "5000"});
 //    queue.enqueue(QStringList {"ACTIONAIMP",                "0"});
 //    queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "1"});
@@ -129,10 +130,13 @@ void ControlPanel::landing()
     if(m_jObject["actionRefuel"].toString() == "заправиться") {
         queue.enqueue(QStringList {"DOCKINGMENUCASE",           "0", "menu_docking_service"});
         queue.enqueue(QStringList {"IMAGEEXPECTED",             "0", "menuServiceExit", "0.9", "4", "12", "13"});
+        queue.enqueue(QStringList {"ACTIONWAIT",                "0", "1000"});
         queue.enqueue(QStringList {"SERVICEMENU",               "0"});
     }
     if(m_jObject["actionDeliver"].toString() == "доставка") {
-        queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", "LOADING", "2"});
+        queue.enqueue(QStringList {"DOCKINGMENUCASE",           "0", "menu_docking_service"});
+        queue.enqueue(QStringList {"IMAGEEXPECTED",             "0", "menuServiceExit", "0.9", "4", "12", "13"});
+        queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", "LOADING", "4"});
     }
     queue.enqueue(QStringList {"MARKER",                    "0", "landing"});
 
@@ -425,7 +429,7 @@ void ControlPanel::on_checkBox_2_clicked()          // Пуск
 
 //    flytoStation();
 //    test();
-
+    QThread::msleep(1000);
     started = false;
     prepScript();
     queue.prepend(QStringList {"RESTORGAME",                "0" });
@@ -488,7 +492,7 @@ void ControlPanel::on_pushButton_clicked()          //  ТЕСТ
 
 //    queue.enqueue(QStringList {"IMAGEEXPECTEDCLOSE",        "0", "pic_warningRadTriangle", "2000", "0.75", "10", "34", "35"});
 //    queue.enqueue(QStringList {"DOCKINGMENUCASE",           "0", "menu_docking_service"});
-    queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", "LOADING", "2"});
+    queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", "LOADING", "8"});
 
 
 
@@ -551,4 +555,22 @@ void ControlPanel::on_checkBox_2_clicked(bool checked)
 void ControlPanel::on_checkBox_4_clicked()
 {
     textOutInfo();
+}
+
+void ControlPanel::on_pushButton_5_clicked()
+{
+    if(ui->listWidget->count() == 2) {
+        if(ui->spinBox->value() >= 2) {
+            QListWidgetItem *item1 = ui->listWidget->takeItem(0);
+            QListWidgetItem *item2 = ui->listWidget->takeItem(0);
+            QByteArray array1 = item1->text().toUtf8();
+            QByteArray array2 = item2->text().toUtf8();
+            QJsonDocument jDoc1 = QJsonDocument::fromJson(array1);
+            QJsonDocument jDoc2 = QJsonDocument::fromJson(array2);
+            for(int i = 0; i < ui->spinBox->value(); i++) {
+                ui->listWidget->addItem(jDoc1.toJson());
+                ui->listWidget->addItem(jDoc2.toJson());
+            }
+        }
+    }
 }

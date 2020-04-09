@@ -372,6 +372,11 @@ void EngineScript::slotSaveImage(cv::Mat acvMat, QString asName)
     m_pIOData->saveImageForDebug(acvMat, asName);
 }
 
+void EngineScript::slotSaveVideo()
+{
+    capture->enableSaveVideo();
+}
+
 void EngineScript::slotEngineEnable(bool aState)
 {
 //    m_sock->mouse_move_click(cv::Point(m_screen.width()/2, m_screen.height()/2));

@@ -81,6 +81,7 @@ public slots:
     void slotResizeImage();
     void slotStartTest();
     void slotSaveImage(cv::Mat acvMat, QString asName);
+    void slotSaveVideo();
     void slotEngineEnable(bool aState);
     void slotSetCurStation(QString asStation);
     cv::Mat slotCheckRoiMat ();

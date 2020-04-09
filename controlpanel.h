@@ -83,6 +83,9 @@ private slots:
 
     void on_checkBox_4_clicked();
 
+
+    void on_pushButton_5_clicked();
+
 private:
     Ui::ControlPanel *ui;
 
