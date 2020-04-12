@@ -1,0 +1,7 @@
+[
+    {
+        "action": "switchScript",
+        "index": 0,
+        "next_script": "reset"
+    }
+]

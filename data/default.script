@@ -1,0 +1,10 @@
+[
+    {
+        "action": "sendKeyAndWaitRectArea",
+		"code": "1",
+        "index": 0,
+		"waitMsec": 2000,
+        "waitImage": "panelInabled",
+		"next_script": "reset"
+    }
+]

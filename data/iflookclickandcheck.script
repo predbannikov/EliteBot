@@ -1,0 +1,10 @@
+[
+    {
+        "action": "srchAreaOnceInRect",
+        "index": 0,
+        "roi": "test",
+		"xrect": "areaForLook",
+		"check_roi": "start",
+		"next_script": "default"
+    }
+]
