@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 //    key_filter kf(&a);
 //    a.installEventFilter(&kf);
 
-    IOData *pIOData = new IOData();
+    IOData *pIOData = new IOData(false);
     GuiInfo pGui(pIOData);
     pGui.show();
 

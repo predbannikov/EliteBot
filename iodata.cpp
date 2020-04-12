@@ -1,30 +1,57 @@
 #include "iodata.h"
 
-IOData::IOData()
+IOData::IOData(bool abPortative)
 {
+    m_portative = abPortative;
 }
 
 bool IOData::prepWorkPath()
 {
-    QString pathApp = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) + "/" + appDirName + "/" + appConfig;
-    jConfig["pathAppConfig"] = pathApp;
 
-    if(!QFileInfo::exists(pathApp)) {               // Если папка отсутствует инициализируем по умолчанию
-        QDir pathAppDir(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) + "/" + appDirName);
+    QString pathApp;
+    if(m_portative) {
+        pathApp = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) + "/" + appDirName + "/" + appConfig;
+        jConfig["pathAppConfig"] = pathApp;
+
+        if(!QFileInfo::exists(pathApp)) {               // Если папка отсутствует инициализируем по умолчанию
+            QDir pathAppDir(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) + "/" + appDirName);
+            if(!pathAppDir.exists())
+                pathAppDir.mkdir(pathAppDir.path());
+            QDir pathDirData(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/" + appDirName);
+            if(!pathDirData.exists())
+                pathDirData.mkdir(pathDirData.path());
+            jConfig["pathDirData"] = pathDirData.path();
+            QDir pathDefaultProject(pathDirData.path() + "/" + defaultProjectName);
+            if(!pathDefaultProject.exists())
+                pathDefaultProject.mkdir(pathDefaultProject.path());
+            addNewProject(pathDefaultProject.path());
+        } else {
+            loadAppConfig();
+            dataFolder.setPath(jConfig["defaultProject"].toString());
+            loadProjectData();
+        }
+
+    } else {
+        pathApp = QDir::currentPath() ;
+
+        QDir pathAppDir(pathApp);
         if(!pathAppDir.exists())
             pathAppDir.mkdir(pathAppDir.path());
-        QDir pathDirData(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/" + appDirName);
+        jConfig["pathDirData"] = pathApp + "/data";
+        QDir pathDirData(jConfig["pathDirData"].toString());
         if(!pathDirData.exists())
             pathDirData.mkdir(pathDirData.path());
-        jConfig["pathDirData"] = pathDirData.path();
-        QDir pathDefaultProject(pathDirData.path() + "/" + defaultProjectName);
-        if(!pathDefaultProject.exists())
-            pathDefaultProject.mkdir(pathDefaultProject.path());
-        addNewProject(pathDefaultProject.path());
-    } else {
-        loadAppConfig();
-        dataFolder.setPath(jConfig["defaultProject"].toString());
-        loadProjectData();
+
+        jConfig["pathAppConfig"] = pathApp + "/" + "config";
+        QDir pathDefaultProject(jConfig["defaultProject"].toString());
+        if(!QFileInfo::exists(pathDefaultProject.path())) {               // Если папка отсутствует инициализируем по умолчанию
+
+        } else {
+            loadAppConfig();
+            dataFolder.setPath(jConfig["pathDirData"].toString());
+            loadProjectData();
+        }
+
     }
 
     return true;

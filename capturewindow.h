@@ -153,7 +153,7 @@ public:
     Primitives *getPrimitives(int aSide);
     Compass *compass();
     void testTarget2();
-
+    void imageOverlay();
 
     CursorPanel *panel1Header();
     CursorPanel *panel1Body();
@@ -189,7 +189,7 @@ public:
     cv::Mat win;
     cv::Mat m_srcWin;
     cv::Mat matroi;
-//    cv::Mat temp;
+    SaveROI m_saveRoi;
     Mouse mouse;
     StateApplication state;
 //    std::vector<int> vec;

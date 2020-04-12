@@ -311,7 +311,7 @@ void EngineScript::sendDataToSlave(QByteArray a_data)
 void EngineScript::run()
 {
 
-    IOData *pIOData = new IOData();
+    IOData *pIOData = new IOData(false);
     if(pIOData->prepWorkPath()) {
         qDebug() << "thread IOData load success";
     } else {

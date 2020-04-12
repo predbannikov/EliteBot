@@ -55,6 +55,11 @@ static const QMap<int, QString> sNamePicNavListTar = { {0, "muneLineNavListTar"}
 
 static const QMap<int, QString> subNamePicMenu1NavList = { {0, "subMenuNavFix"}, {1, "subMenuNavUnFix"}, {2, "subMenuNavGipmod"},
                                                            {3, "subMenuNavGipmodHelp"}, {4, "subMuneLineNavListSys"}};
+struct SaveROI {
+    bool active = false;
+    cv::Mat dst;
+    cv::Rect rect;
+};
 
 struct Compass {
     cv::Point pDot;

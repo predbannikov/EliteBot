@@ -131,7 +131,7 @@ void CaptureWindow::update()
 //    int ret = 0;
 //    imageExpectedCloseAutoPilot("pic_autoPilot", factor, ret, 17, 92, 128);
 
-//    testTarget2();
+//    imageOverlay();
 //    getPrimitives(m_side);
 //    getStrStaticField("pic_fieldSystemName");
 //    getTextStaticField("pic_contactsRight3", minScalar, maxScalar);
@@ -149,13 +149,20 @@ void CaptureWindow::update()
 //    recognizDistance();
 
 
+    if(m_saveRoi.active) {
+        m_saveRoi.dst.copyTo(win(m_saveRoi.rect));
+        m_saveRoi.active = false;
+    }
+
+
     if(resizeImage) {
 ////        cv::Mat winResize;
 ////        cv::resize(win, winResize, win.size() / 2);
 ////        imshow("win1", winResize);
 
-    } else
+    } else {
         imshow("win1", win);
+    }
 
     if(saveVideo) {
 //        qDebug() << win.size().width << win.size().height;
@@ -928,7 +935,14 @@ CursorPanel *CaptureWindow::panel1Header()
     m_cursorPan.activeHeader = false;
     cv::Mat hsv;
     cv::Mat rectMat;
-    win(cv::Rect(100, 100, g_screen.width() - 500, g_screen.height() - 200)).copyTo(rectMat);
+    cv::Rect rectToCopy = cv::Rect(100, 100, g_screen.width() - 500, g_screen.height() - 200);
+    win(rectToCopy).copyTo(rectMat);
+
+//    m_saveRoi.active = true;
+//    SaveROI saveRoi;
+//    saveRoi.dst = rectMat;
+//    saveRoi.rect = rectToCopy;
+
     cv::cvtColor( rectMat, hsv, CV_BGR2HSV );
     cv::Mat mask;
     cv::inRange(hsv, cv::Scalar(10, 210, 230), cv::Scalar(50, 255, 255), mask);
@@ -947,10 +961,17 @@ CursorPanel *CaptureWindow::panel1Header()
             vecRects.push_back(contours[i]);
         }
     }
+//    cv::Mat tempMat;
+//    cv::cvtColor(mask, tempMat, CV_GRAY2BGR);
+//    saveRoi.dst = tempMat;
     if(vecRects.empty() || vecRects.size() > 2) {
 //        cv::imshow("win4", mask);
 //        cv::imshow("win2", rectMat);
         qDebug() << "Шаблон прямоугольника header menu не найден";
+//        if(vecRects.size() > 2) {
+//            cv::drawContours(saveRoi.dst, vecRects, -1, cvBlue, 1);
+//        }
+//        m_saveRoi = saveRoi;
         return &m_cursorPan;
     }
 
@@ -963,9 +984,17 @@ CursorPanel *CaptureWindow::panel1Header()
     rectToCut.height += hightLine / 2;
     if(rectToCut.x < 0 || rectToCut.y < 0 || rectToCut.x + rectToCut.width > rectMat.size().width || rectToCut.y + rectToCut.height > rectMat.size().height) {
         qDebug() << "Не верные результаты расчёта прямоугольника шапки меню 1, выходим";
+//        m_saveRoi = saveRoi;
+//        cv::rectangle(m_saveRoi.dst, rectToCut, cvBlue, 1);
+
         return &m_cursorPan;
     }
     rectMat(rectToCut).copyTo(rotateMat);
+
+//    saveRoi.dst.copyTo(saveRoi.dst(rectToCut));
+//    saveRoi.rect = rectToCut;
+
+
     if(rotRect.angle < -45)
         rotRect.angle += 90.;
     cv::Mat rMatToWarp = cv::getRotationMatrix2D(rotRect.center, rotRect.angle, 1);
@@ -974,6 +1003,8 @@ CursorPanel *CaptureWindow::panel1Header()
 //    //cv::imshow("win4", mask);
 //    //cv::imshow("win2", rotateMat);
 //    return &m_cursorPan;
+//    saveRoi.dst.copyTo(saveRoi.dst(rectToCut));
+//    saveRoi.rect = rectToCut;
 
 
     cv::Mat bin;
@@ -987,6 +1018,7 @@ CursorPanel *CaptureWindow::panel1Header()
     findContours(bin, cont, cv::noArray(), cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
     if(cont.empty()) {
 //        qDebug() << "Шаблон прямоугольника header menu не найден, в суб прямоугольнике";
+//        m_saveRoi = saveRoi;
         return &m_cursorPan;
     }
 //    cv::drawContours(rectMat, cont, -1, cvGreen, 2);
@@ -1015,19 +1047,34 @@ CursorPanel *CaptureWindow::panel1Header()
             m_cursorPan.sHeaderName = m_cursorPan.sHeaderName.toLower();
             deleteCharExtra(m_cursorPan.sHeaderName);
             if(comparisonStr(m_cursorPan.sHeaderName, "службыкосмопорта") <= 1)
+            {
                 return &m_cursorPan;
+            }
             if(comparisonStr(m_cursorPan.sHeaderName, "наповерхность") <= 1)
+            {
                 return &m_cursorPan;
+            }
             if(comparisonStr(m_cursorPan.sHeaderName, "вангар") <= 1)
+            {
                 return &m_cursorPan;
+            }
             if(comparisonStr(m_cursorPan.sHeaderName, "автозапуск") <= 1)
+            {
                 return &m_cursorPan;
+            }
             m_cursorPan.activeHeader = true;
 
             qDebug() << m_cursorPan.sHeaderName ;
 //            //cv::imshow("win3", matToRcoginze);
         }
     }
+//    cv::Mat tempMatBin;
+//    cv::cvtColor(bin, tempMatBin, CV_GRAY2BGR);
+//    saveRoi.dst.copyTo(saveRoi.dst(rectToCut));
+//    saveRoi.rect = rectToCut;
+
+//    m_saveRoi = saveRoi;
+
     cv::imshow("win3", bin);
 //    cv::imshow("win2", rectMat);
     return &m_cursorPan;
@@ -1735,7 +1782,6 @@ CursorTarget *CaptureWindow::takeAimp()
     m_cursorTarget.active = false;
     m_cursorTarget.rectSrc = fieldSpace;
     m_cursorTarget.pointCenter = cv::Point(fieldSpace.width / 2, fieldSpace.height / 2 + 15);
-    cv::circle(dst, m_cursorTarget.pointCenter, 3, cv::Scalar(0, 255, 0));
     cv::Mat mask(dst.size(), CV_8U, 1);
     cv::Mat hsv;
 //    cv::cvtColor(dst, hsv, CV_BGR2HSV);
@@ -1804,7 +1850,8 @@ CursorTarget *CaptureWindow::takeAimp()
     }
 //    qDebug() << "targetSatMax =" << targetSatMax << " targetValMax =" << targetValMax;
 //    qDebug() << targetVal2 << targetVal3;
-    cv::circle(dst, m_cursorTarget.pointTarget, 3, cv::Scalar(0, 255, 0));
+    cv::circle(dst, m_cursorTarget.pointCenter, 3, cv::Scalar(0, 255, 0));
+//    cv::circle(dst, m_cursorTarget.pointTarget, 3, cv::Scalar(0, 255, 0));
 
 
 
@@ -2311,6 +2358,100 @@ void CaptureWindow::testTarget2()
     imshow("win2", maskBlur);
 //    imshow("win2", mask);
     imshow("win3", dst);
+}
+
+void CaptureWindow::imageOverlay()
+{
+    if(DEBUG2)
+        qDebug() << ".";
+    cv::Rect fieldSpace(calcRectFromPartOfIndex(11, 25, 84));
+    cv::Mat dst;
+    win(fieldSpace).copyTo(dst);
+    m_cursorTarget.active = false;
+    m_cursorTarget.rectSrc = fieldSpace;
+    m_cursorTarget.pointCenter = cv::Point(fieldSpace.width / 2, fieldSpace.height / 2 + 15);
+    cv::Mat mask(dst.size(), CV_8U, 1);
+    cv::Mat hsv;
+//    cv::cvtColor(dst, hsv, CV_BGR2HSV);
+//    int targetSatMax = 246;
+//    int targetValMax = 253;
+    int targetVal2 = 240;
+    int targetVal3 = 240;
+//    while(!m_cursorTarget.active && targetSatMax <= 255 && targetValMax <= 255) {
+    while(!m_cursorTarget.active && targetVal2 >= 100 && targetVal3 >= 100) {
+        //    cv::inRange(hsv, minScalar, maxScalar, mask);                         // hsv
+//        cv::inRange(hsv, cv::Scalar(15, 43, 117), cv::Scalar(48, targetSatMax, targetValMax), mask);                         // hsv
+//        cv::inRange(dst, minScalar, maxScalar, mask);                         // hsv
+        cv::inRange(dst, cv::Scalar(0, targetVal2, targetVal3), cv::Scalar(255, 255, 255), mask);                         // hsv
+        //    cv::Mat maskBlur;
+        //    cv::blur(mask, maskBlur, cv::Size(3, 3));
+            std::vector< std::vector< cv::Point> > contoursSrc;
+            std::vector< cv::Vec4i > hierarchy;
+            cv::findContours(mask, contoursSrc, cv::noArray(), cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+
+            std::vector<std::vector< cv::Point > > contoursPrep;
+            for(size_t j = 0; j < contoursSrc.size(); j++) {
+                double area = cv::contourArea(contoursSrc[j]);
+                if(area > 50 && area < 200)
+                    contoursPrep.push_back(contoursSrc[j]);
+            }
+//            double area = cv::contourArea(contoursSrc[j]);
+//            if(area > 80.1)
+//                contoursPrep.push_back(contoursSrc[j]);
+//                qDebug() << "area =" << QString::number(area, 'f', 2);
+
+
+
+            std::vector<cv::Rect> vecRects;
+//            getRectsInContour(contoursSrc, vecRects);
+            getRectsInContour(contoursPrep, vecRects);
+
+        #define TARGET_DELTA            10
+        #define TARGET_HEIGHT_MIN       95
+        #define TARGET_HEIGHT_MAX       146
+        #define TARGET_WIDTH_MIN        95
+        #define TARGET_WIDTH_MAX        218
+            for(size_t i = 0; i < vecRects.size(); i++) {
+                if(vecRects[i].height < TARGET_HEIGHT_MIN - TARGET_DELTA || vecRects[i].height > TARGET_HEIGHT_MAX + TARGET_DELTA
+                        || vecRects[i].width < TARGET_WIDTH_MIN - TARGET_DELTA || vecRects[i].width > TARGET_WIDTH_MAX + TARGET_DELTA)
+                    continue;
+                if(m_cursorTarget.active) {
+                    qDebug() << "Внимание Обнаружено несколько таргетов";
+                }
+                m_cursorTarget.active = true;
+                m_cursorTarget.rectTarget = cv::Rect(vecRects[i].x, vecRects[i].y, vecRects[i].height, vecRects[i].height);
+                m_cursorTarget.pointTarget = cv::Point(m_cursorTarget.rectTarget.x + m_cursorTarget.rectTarget.width / 2,
+                                                       m_cursorTarget.rectTarget.y + m_cursorTarget.rectTarget.height / 2);
+                cv::rectangle(dst, m_cursorTarget.rectTarget, cv::Scalar(0xFF, 0x0, 0x0));
+            }
+//            qDebug() << cv::contourArea()
+            targetVal2 -= 15;
+            if(targetVal2 <= 100) {
+                targetVal2 = 240;
+                targetVal3 -= 15;
+            }
+//            targetSatMax++;
+//            if(targetSatMax == 255) {
+//                targetValMax++;
+//                targetSatMax = 246;
+//            }
+    }
+//    qDebug() << "targetSatMax =" << targetSatMax << " targetValMax =" << targetValMax;
+//    qDebug() << targetVal2 << targetVal3;
+    cv::circle(dst, m_cursorTarget.pointTarget, 3, cv::Scalar(0, 255, 0));
+
+
+
+//    imshow("win4", maskBlur);
+    imshow("win2", mask);
+
+//    cv::addWeighted()
+    cv::cvtColor(mask, mask, CV_GRAY2BGR);
+    mask.copyTo(win(fieldSpace));
+    imshow("win3", dst);
+
+//    win(fieldSpace).copyTo(win, dst);
+//    dst.copyTo(win);
 }
 
 Distance *CaptureWindow::recognizDistance()

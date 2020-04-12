@@ -1,14 +1,14 @@
 .qmake.stash
 *-build-*
 *.autosave
-autoclicker
+BotClientCV.*
 *.pro.user
 *.pro.user.*
 *.so
 *.o
 *.a
 .builds
-Makefile
+Makefile*
 moc_*.cpp
 moc_*.h
 run
@@ -17,3 +17,7 @@ qrc_*.cpp
 Thumbs.db
 ui_*.h
 .ui/*
+config
+debug
+log
+release

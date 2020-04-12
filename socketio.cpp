@@ -23,6 +23,16 @@ void SocketIO::send(QByteArray a_data)
     sock->waitForBytesWritten();
 }
 
+void SocketIO::push_f_key(QString aStr)
+{
+    QJsonObject jMsg;
+    jMsg["target"] = "keyboard";
+    jMsg["method"] = "push_f";
+    jMsg["f_code"] = aStr;
+    send(QJsonDocument(jMsg).toJson());
+    QThread::msleep(WAIT_MSEC_PUSH_KEY);
+}
+
 void SocketIO::push_key(QString aChar)
 {
     QJsonObject jMsg;

@@ -16,6 +16,10 @@ bool SendEventControl::logic(QStringList &asListParam)
         push_key(asListParam[3]);
         return true;
     }
+    if(sName == "push_f_key") {
+        push_f_key(asListParam[3]);
+        return true;
+    }
     return false;
 }
 

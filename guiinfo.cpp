@@ -137,6 +137,7 @@ void GuiInfo::initLayoutProjects()
 {
     hboxProjects = new QHBoxLayout;
     cmbBoxProjects = new QComboBox;
+    cmbBoxProjects->setEnabled(false);
     connect(cmbBoxProjects, qOverload<const QString &>(&QComboBox::activated), [this] (const QString t_name) {
         m_ioData->setCurrentNameProject(t_name);
         m_ioData->loadProjectData();
@@ -144,6 +145,7 @@ void GuiInfo::initLayoutProjects()
         updateGuiInfo();
     });
     buttonCreateProject = new QPushButton("create");
+    buttonCreateProject->setEnabled(false);
     connect(buttonCreateProject, &QPushButton::clicked, [this]() {
         DialogCreateProject dialogCreateProject(m_ioData);
         dialogCreateProject.setModal(true);
@@ -152,6 +154,7 @@ void GuiInfo::initLayoutProjects()
         updateGuiInfo();
     });
     buttonDeleteProject = new QPushButton("delete");
+    buttonDeleteProject->setEnabled(false);
     connect(buttonDeleteProject, &QPushButton::clicked, [this]() {
         m_ioData->deleteProject(cmbBoxProjects->currentText());
         updateGuiInfo();

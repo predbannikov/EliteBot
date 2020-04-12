@@ -55,6 +55,17 @@ void ControlPanel::test()
     //    queue.enqueue(QStringList {"MARKER",                    "0", "test"});
 }
 
+void ControlPanel::transitToHyper()
+{
+//    queue.enqueue(QStringList {"PICKUPSPEED",               "0", "7000"});
+    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "push_key", "TAB" });
+    queue.enqueue(QStringList {"PICKUPSPEED",               "0", "6000"});
+    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "push_key", "j" });
+    queue.enqueue(QStringList {"ACTIONWAIT",                "0", "10000"});
+    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "push_key", "x" });
+    queue.enqueue(QStringList {"MARKER",                    "0", "transitToHyper"});
+}
+
 void ControlPanel::dockAutoStart()
 {
     qDebug() << "dockAutoStart";
@@ -183,6 +194,8 @@ void ControlPanel::init()
     mMapSystems.insert("Harma", "Celebi city");
     mMapSystems.insert("HIP 112400", "Bluford orbital");
     mMapSystems.insert("HIP 112400", "Springer Colony");
+    mMapSystems.insert("Kakmbutan", "Macgregor Orbital");
+    mMapSystems.insert("Huichi", "Collins Station");
     QStringList systems = mMapSystems.keys();
     systems.removeDuplicates();
     ui->comboBox_2->clear();
@@ -336,6 +349,10 @@ void ControlPanel::slotReceivReturnCommand(QStringList aList)
                         qDebug() << "Вышли из режима автопилота, появилось предупреждение";
                         flyAround();
                         emit signalSetQueue(queue);
+                    } else if(aList[2] == "detected intercept") {                                                                           // Доделать обнаруженный перехват
+                        qDebug() << "Обнаружен перехват";
+                        transitToHyper();
+                        emit signalSetQueue(queue);
                     }
                 } else {
                     qDebug() << "slotReceivReturnCommand" << " if(aList[1] == 1) не обработанные состояния";
@@ -352,6 +369,8 @@ void ControlPanel::slotReceivReturnCommand(QStringList aList)
                         waitFlyToStation();
                     } else if(aList[2] == "waitFlyToStation") {
                         landing();
+                    } else if(aList[2] == "transitToHyper") {
+                        flytoStation();
                     } else if(aList[2] == "flyAround") {
                         waitFlyToStation();
                     } else if(aList[2] == "landing") {
@@ -492,7 +511,10 @@ void ControlPanel::on_pushButton_clicked()          //  ТЕСТ
 
 //    queue.enqueue(QStringList {"IMAGEEXPECTEDCLOSE",        "0", "pic_warningRadTriangle", "2000", "0.75", "10", "34", "35"});
 //    queue.enqueue(QStringList {"DOCKINGMENUCASE",           "0", "menu_docking_service"});
-    queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", "LOADING", "8"});
+//    queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", "LOADING", "8"});
+
+    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "push_f_key", "TAB" });
+
 
 
 

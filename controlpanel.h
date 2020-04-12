@@ -31,6 +31,7 @@ public:
 
 
     void test();
+    void transitToHyper();
     void dockAutoStart();
     void flyToSystem();
     void flytoStation();

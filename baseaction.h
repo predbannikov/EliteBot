@@ -23,6 +23,7 @@ public:
     bool srchAreaOnceInPart();
     bool perform(QStringList &asListParam);
     void resetBase();
+    void push_f_key(QString aStr);
     void push_key(QString aChar);
     void press_key(QString aChar);
     void release_key(QString aChar);

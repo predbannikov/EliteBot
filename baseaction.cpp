@@ -125,6 +125,12 @@ void BaseAction::resetBase()
     reset();
 }
 
+void BaseAction::push_f_key(QString aStr)
+{
+    qDebug() << "push_key(" << aStr << ")";
+    m_sock->push_f_key(aStr);
+}
+
 void BaseAction::push_key(QString aChar)
 {
     qDebug() << "push_key(" << aChar << ")";

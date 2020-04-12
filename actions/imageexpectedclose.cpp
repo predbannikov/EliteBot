@@ -24,10 +24,13 @@ bool ImageExpectedClose::logic(QStringList &asListParam)
         coeff = diffCoef;           // обязательно инициализировать коэффициэнт!!!
         int ret = 0;
         if(!capture->imageExpectedCloseAutoPilot(sSearchImage.toStdString(), coeff, ret, nCount, iStart, iEnd)) {             // Обязательно передать коофициэнт по которому функция может выйти из цикла
-            qDebug() << "pattern hide time =" << timer.elapsed() << " factor =" << coeff << " diff =" << diffCoef;
+            qDebug() << "pattern hide time =" << timer.elapsed() << " factor =" << coeff << " diff =" << diffCoef << " ret =" << ret;
             if(ret == 1) {          // Значит перехват
-                push_key("j");
-                push_key("j");
+                push_key("x");
+                QThread::msleep(5000);
+                asListParam[1] = "1";
+                asListParam[2] = "detected intercept";
+                qDebug() << "TEST!!! -> detected intercept  =" << asListParam;
                 return true;
             }
             if(timer.elapsed() > whileWaitMSec) {

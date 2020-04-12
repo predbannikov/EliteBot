@@ -22,11 +22,12 @@ class IOData
     std::map<std::string, ImageROI>  m_dataSet;
     QDir dataFolder;
     QJsonArray mja_script;
+    bool m_portative;
 public:
     QJsonObject jConfig;
 
 
-    IOData();
+    IOData(bool abPortative);
     bool prepWorkPath();
 
     // helpers function

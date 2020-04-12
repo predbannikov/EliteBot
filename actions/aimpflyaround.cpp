@@ -75,11 +75,11 @@ bool AimpFlyAround::compassAimp()
             }
             break;
         case TRANS_3:
-            if(timer.elapsed() > 17000) {
+            if(timer.elapsed() > 25000) {
                 release_key("w");
                 push_key("x");
                 qDebug() << "wait stop";
-                QThread::msleep(9000);
+                QThread::msleep(9500);
                 qDebug() << "stop modeMoveAvay";
                 modeMoveAvay = false;
                 trans = TRANS_1;
@@ -89,7 +89,7 @@ bool AimpFlyAround::compassAimp()
         }
     } else {
 
-        if(confirmTimer.elapsed() > 130000) {
+        if(confirmTimer.elapsed() > 140000) {
             qDebug() << "confirmTimer.elapsed =" << confirmTimer.elapsed() << "TEST!!! Похоже на движение по кругу сбрасываем";
             release_key("a");
             release_key("d");
@@ -97,6 +97,10 @@ bool AimpFlyAround::compassAimp()
             push_key("x");
             QThread::msleep(7000);
             reset();
+            modeMoveAvay = true;            // Изменения!!!!!! добавил
+//            press_key("w");
+//            QThread::msleep(20000);
+//            release_key("w");
             return false;
         }
 
