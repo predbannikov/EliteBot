@@ -44,13 +44,13 @@ bool IOData::prepWorkPath()
 
         jConfig["pathAppConfig"] = pathApp + "/" + "config";
         QDir pathDefaultProject(jConfig["defaultProject"].toString());
-        if(!QFileInfo::exists(pathDefaultProject.path())) {               // Если папка отсутствует инициализируем по умолчанию
+//        if(!QFileInfo::exists(pathDefaultProject.path())) {               // Если папка отсутствует инициализируем по умолчанию
 
-        } else {
-            loadAppConfig();
-            dataFolder.setPath(jConfig["pathDirData"].toString());
-            loadProjectData();
-        }
+//        } else {
+//            loadAppConfig();
+//        }
+        dataFolder.setPath(jConfig["pathDirData"].toString());
+        loadProjectData();
 
     }
 
