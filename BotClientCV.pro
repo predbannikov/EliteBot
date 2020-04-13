@@ -87,6 +87,7 @@ SOURCES += \
     actions/actiongetcloser.cpp \
     actions/actionwait.cpp \
     actions/aimpflyaround.cpp \
+    actions/checkcursystem.cpp \
     actions/dockingmenucase.cpp \
     actions/getstrstaticfield.cpp \
     actions/gettextstaticfield.cpp \
@@ -125,6 +126,7 @@ HEADERS += \
     actions/actiongetcloser.h \
     actions/actionwait.h \
     actions/aimpflyaround.h \
+    actions/checkcursystem.h \
     actions/dockingmenucase.h \
     actions/getstrstaticfield.h \
     actions/gettextstaticfield.h \

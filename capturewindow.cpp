@@ -134,9 +134,10 @@ void CaptureWindow::update()
 //    imageOverlay();
 //    getPrimitives(m_side);
 //    getStrStaticField("pic_fieldSystemName");
-//    getTextStaticField("pic_contactsRight3", minScalar, maxScalar);
+//    getTextStaticField("rect_curSystemMenuM", minScalar, maxScalar, "eng");
 //    cv::Point _p;
-//    getTextApproximArea(getRect("pic_menuServiceBack"), _p, "ru");
+////    getTextApproximArea(getRect("rect_curSystemMenuM"), _p, "eng");
+//    getTextApproximBoundingRect(getRect("rect_curSystemMenuM"), _p, "eng");
 //    panel1Body();
 //    testColor();
 //    panelBodyCont();
@@ -1670,6 +1671,8 @@ QString CaptureWindow::getTextApproximArea(cv::Rect aRect, cv::Point &aPoint, QS
     std::vector< std::vector< cv::Point> > contours;
 
     cv::Canny(dst, edge, 10, 20);
+//    cv::Canny(dst, edge, minNumber, maxNumber);
+//    cv::drawContours(dst, contours, -1, cvBlue);
 
 
     cv::findContours(edge, contours, cv::noArray(), cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
@@ -1717,7 +1720,77 @@ QString CaptureWindow::getTextApproximArea(cv::Rect aRect, cv::Point &aPoint, QS
     sText = sText.toLower();
     deleteCharExtra(sText);
     qDebug() << sText;
-    cv::imshow("win2", dst);
+    cv::imshow("win2", edge);
+    cv::imshow("win3", mask);
+    cv::imshow("win5", recognizMask);
+    cv::imshow("win4", gray);
+    return sText;
+}
+
+QString CaptureWindow::getTextApproximBoundingRect(cv::Rect aRect, cv::Point &aPoint, QString asLang)
+{
+    cv::Rect rect = aRect;
+    cv::Mat dst;
+    cv::Mat mask;
+    cv::Mat edgeMat;
+    win(rect).copyTo(dst);
+
+
+    cv::Canny(dst, edgeMat, 10, 20);
+//    cv::Canny(dst, edge, minNumber, maxNumber);
+//    cv::drawContours(dst, contours, -1, cvBlue);
+
+
+    std::vector< std::vector< cv::Point> > contours;
+    cv::findContours(edgeMat, contours, cv::noArray(), cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+    std::vector<size_t> idx;
+    std::vector<double> areas;
+    idx.resize(contours.size());
+    areas.resize(contours.size());
+
+    for(size_t i = 0; i < contours.size(); i++) {
+
+        idx[i] = i;
+        areas[i] = cv::boundingRect(contours[i]).area();
+//        areas[i] = cv::contourArea(contours[i], false);
+    }
+    std::sort(idx.begin(), idx.end(), AreaCmp(areas));
+    if(contours.empty()) {
+        return QString();
+    }
+    cv::Rect foundRect = cv::boundingRect(contours[idx[0]]);
+//    cv::rectangle(dst, foundRect, cvBlue, 1);
+    cv::Mat recognizMat;
+    dst(foundRect).copyTo(recognizMat);
+    aPoint.x = rect.x + (recognizMat.size().width / 2);
+    aPoint.y = rect.y + (recognizMat.size().height / 2);
+
+
+    cv::Mat gray;
+    cv::Mat recognizMask;
+    cv::cvtColor(recognizMat, gray, CV_BGR2GRAY);
+    cv::threshold(gray, mask, 76, 153, cv::THRESH_BINARY);
+    cv::inRange(mask, cv::Scalar(0, 0, 0), cv::Scalar(1, 1, 1), recognizMask);
+//    cv::inRange(mask, minScalar, maxScalar, recognizMask);
+
+
+    QString sText;
+    if(asLang == "ru") {
+        myOCRRus->SetImage( (uchar*)recognizMask.data, recognizMask.size().width, recognizMask.size().height, recognizMask.channels(), recognizMask.step1());
+        myOCRRus->Recognize(nullptr);
+        sText = myOCRRus->GetUTF8Text();
+    } else {
+        myOCREng->SetImage( (uchar*)recognizMask.data, recognizMask.size().width, recognizMask.size().height, recognizMask.channels(), recognizMask.step1());
+        myOCREng->Recognize(nullptr);
+        sText = myOCREng->GetUTF8Text();
+    }
+    if(sText.isEmpty())
+        sText = "not recognized";
+    sText = sText.simplified();
+    sText = sText.toLower();
+    deleteCharExtra(sText);
+    qDebug() << sText;
+    cv::imshow("win2", edgeMat);
     cv::imshow("win3", mask);
     cv::imshow("win5", recognizMask);
     cv::imshow("win4", gray);

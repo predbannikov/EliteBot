@@ -142,6 +142,7 @@ public:
     QString getStrStaticField(std::string asImageROI);
     QString getTextStaticField(std::string asImageROI, cv::Scalar aMinScalar, cv::Scalar aMaxScalar, QString asLang = "ru");
     QString getTextApproximArea(cv::Rect aRect, cv::Point &aPoint, QString asLang = "ru");
+    QString getTextApproximBoundingRect(cv::Rect aRect, cv::Point &aPoint, QString asLang = "ru");
     bool imageExpectedCloseAutoPilot(std::string asImageROI, double &coeff, int &ret, int anCount = 3, int anStart = 0, int anEnd = 8);
     Distance *recognizDistance();
     void testColor();

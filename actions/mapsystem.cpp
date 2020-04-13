@@ -30,7 +30,7 @@ MapSystem::MapSystem(CaptureWindow *aCapture, SocketIO *aSock) : BaseAction(aCap
 void MapSystem::init(QStringList &asListParam)
 {
     waitMSec = 700;
-    sys_debugLog = true;
+    sys_debugLog = false;
 
     searchTrack_push_trigger = false;
     fieldSearch_trigger = false;
@@ -46,6 +46,14 @@ void MapSystem::init(QStringList &asListParam)
 bool MapSystem::logic(QStringList &asListParam)
 {
     QPoint _point;
+    if(confirmTimer.elapsed() > 30000) {
+        push_key("m");
+        QThread::msleep(3000);
+        asListParam[1] = "1";
+        asListParam[2] = "no cursor set system";
+        qDebug() << "TEST!!! -> setCursorSystem freeze  =" << asListParam;
+        return true;
+    }
     if(!searchTrack_push_trigger) {
         _point = capture->getPoint("searchTrack_push");
         qDebug() << "searchTrack_push" << _point;

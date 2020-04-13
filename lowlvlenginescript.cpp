@@ -63,6 +63,7 @@ void LowLvlEngineScript::init()
     actions.append( new Marker(capture, m_sock));
     actions.append( new GetStrStaticField(capture, m_sock));
     actions.append( new ActionDeliveryPaper(capture, m_sock));
+    actions.append( new CheckCurSystem(capture, m_sock));
 }
 
 LowLvlEngineScript::~LowLvlEngineScript()

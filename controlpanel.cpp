@@ -210,9 +210,11 @@ void ControlPanel::init()
 void ControlPanel::checkCurSystem()
 {
     queue.clear();
-    queue.enqueue(QStringList {"MAPSYSTEMENABLE",           "0", "," });
-    queue.enqueue(QStringList {"GETSTRSTATICFIELD",         "0", "pic_fieldSystemName"});
-    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "push_key", "," });
+//    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "mouse_move", QString::number(g_screen.width() / 2), QString::number(g_screen.height() / 2) }); // Поставить в центр
+    queue.enqueue(QStringList {"MAPSYSTEMENABLE",           "0", "m" });
+//    queue.enqueue(QStringList {"GETSTRSTATICFIELD",         "0", "pic_fieldSystemName"});
+    queue.enqueue(QStringList {"CHECKCURSYSTEM",            "0", "response"});
+    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "push_key", "m" });
     queue.enqueue(QStringList {"ACTIONWAIT",                "0", "2000"});
     queue.enqueue(QStringList {"MARKER",                    "0", "checkCurSystem"});
 }
@@ -352,6 +354,12 @@ void ControlPanel::slotReceivReturnCommand(QStringList aList)
                     } else if(aList[2] == "detected intercept") {                                                                           // Доделать обнаруженный перехват
                         qDebug() << "Обнаружен перехват";
                         transitToHyper();
+                        emit signalSetQueue(queue);
+                    }
+                } else if(aList[0] == "MAPSYSTEM") {
+                    if(aList[2] == "no cursor set system") {
+                        qDebug() << "Скрипт установки курсора сброшен, повторяем попытку";
+                        setCursorSystem();
                         emit signalSetQueue(queue);
                     }
                 } else {
@@ -513,7 +521,19 @@ void ControlPanel::on_pushButton_clicked()          //  ТЕСТ
 //    queue.enqueue(QStringList {"DOCKINGMENUCASE",           "0", "menu_docking_service"});
 //    queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", "LOADING", "8"});
 
-    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "push_f_key", "TAB" });
+//    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "mouse_move", QString::number(g_screen.width() / 2), QString::number(g_screen.height() / 2) }); // Поставить в центр
+//    queue.enqueue(QStringList {"MAPSYSTEMENABLE",           "0", "m" });
+//    queue.enqueue(QStringList {"CHECKCURSYSTEM",            "0", "response"});
+
+//    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "mouse_move", QString::number(150), QString::number(500) }); // Поставить в центр
+//    queue.enqueue(QStringList {"MAPSYSTEMENABLE",           "0", "," });
+//    queue.enqueue(QStringList {"ACTIONWAIT",                "0", "1000"});
+//    queue.enqueue(QStringList {"MAPSYSTEMENABLE",           "0", "," });
+//    queue.enqueue(QStringList {"GETSTRSTATICFIELD",         "0", "pic_fieldSystemName"});
+//    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "push_key", "," });
+//    queue.enqueue(QStringList {"ACTIONWAIT",                "0", "2000"});
+    checkCurSystem();
+//    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "mouse_move", QString::number(g_screen.width() / 2), QString::number(g_screen.height() / 2) }); // Поставить в центр
 
 
 

@@ -20,6 +20,10 @@ bool SendEventControl::logic(QStringList &asListParam)
         push_f_key(asListParam[3]);
         return true;
     }
+    if(sName == "mouse_move") {
+        mouse_move(asListParam[3].toInt(), asListParam[4].toInt());
+        return true;
+    }
     return false;
 }
 

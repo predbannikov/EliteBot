@@ -33,6 +33,7 @@
 #include "actions/marker.h"
 #include "actions/getstrstaticfield.h"
 #include "actions/actiondeliverypaper.h"
+#include "actions/checkcursystem.h"
 
 
 
