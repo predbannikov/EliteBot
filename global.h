@@ -19,6 +19,7 @@
 #define     PATH_CONFIG         ".\\config"
 #define     PATH_LOG            ".\\log"
 #define     PATH_VIDEO_LOG      ".\\videolog"
+#define     PATH_IMAGE_LOG      ".\\imagelog"
 #define     PATH_CONFIG_DISPLAY ".\\config\\display.json"
 
 #define     DEBUG1               0

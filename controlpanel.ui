@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>566</width>
+    <width>626</width>
     <height>320</height>
    </rect>
   </property>
@@ -81,42 +81,77 @@
       <property name="title">
        <string>Цель</string>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
         <widget class="QComboBox" name="comboBox_2"/>
        </item>
-       <item>
+       <item row="1" column="0">
         <widget class="QComboBox" name="comboBox"/>
        </item>
-       <item>
+       <item row="2" column="0">
         <widget class="QCheckBox" name="checkBox">
          <property name="text">
           <string>Заправиться</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QCheckBox" name="checkBox_4">
-         <property name="text">
-          <string>Доставка</string>
-         </property>
+       <item row="3" column="0">
+        <widget class="QComboBox" name="comboBox_3">
+         <item>
+          <property name="text">
+           <string>Усилить систему</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Подготовить системы для державы</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Подготовить систему</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Укрепить для державы</string>
+          </property>
+         </item>
         </widget>
        </item>
-       <item>
+       <item row="4" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QCheckBox" name="checkBox_4">
+           <property name="text">
+            <string>Доставка</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBox_5">
+           <property name="text">
+            <string>Разгрузка</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="5" column="0">
         <widget class="QLabel" name="label">
          <property name="text">
           <string>Вывод</string>
          </property>
         </widget>
        </item>
-       <item>
+       <item row="6" column="0">
         <widget class="QPushButton" name="pushButton_4">
          <property name="text">
           <string>save</string>
          </property>
         </widget>
        </item>
-       <item>
+       <item row="7" column="0">
         <widget class="QPushButton" name="pushButton_2">
          <property name="text">
           <string>&lt;&lt;</string>
@@ -131,6 +166,8 @@
       <zorder>label</zorder>
       <zorder>pushButton_4</zorder>
       <zorder>checkBox_4</zorder>
+      <zorder>comboBox_3</zorder>
+      <zorder>checkBox_5</zorder>
      </widget>
     </item>
     <item row="0" column="0">

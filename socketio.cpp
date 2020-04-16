@@ -1,11 +1,11 @@
 #include "socketio.h"
 
 
-#define     WAIT_MSEC_PUSH_KEY      80
-#define     WAIT_MSEC_PRESS_KEY     40
-#define     WAIT_MSEC_RELEASE_KEY   40
-#define     WAIT_MSEC_MOUSE_EVENT   40
-#define     WAIT_MSEC_MOUSE_CLICK   80
+#define     WAIT_MSEC_PUSH_KEY      85
+#define     WAIT_MSEC_PRESS_KEY     45
+#define     WAIT_MSEC_RELEASE_KEY   45
+#define     WAIT_MSEC_MOUSE_EVENT   45
+#define     WAIT_MSEC_MOUSE_CLICK   85
 
 SocketIO::SocketIO(QPoint aPointOffset)
 {
@@ -74,6 +74,7 @@ void SocketIO::typingText(QString asText)
         send(QJsonDocument(jMsg).toJson());
         QThread::msleep(WAIT_MSEC_PUSH_KEY);
         QThread::msleep(100);
+//        QThread::msleep(3000);
     }
 }
 

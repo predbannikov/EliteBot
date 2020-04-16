@@ -78,6 +78,15 @@ int main(int argc, char *argv[])
             qDebug() << "videlog create not success";
 
     }
+    QString imglog = PATH_IMAGE_LOG;
+    if(!QFileInfo::exists(imglog)) {
+        QDir pathDir;
+        pathDir.setPath(pathDir.currentPath() + '/' + imglog);
+        qDebug() << pathDir.path();
+        if(!pathDir.mkdir(pathDir.path()))
+            qDebug() << "imglog create not success";
+
+    }
 
     QApplication a(argc, argv);
 

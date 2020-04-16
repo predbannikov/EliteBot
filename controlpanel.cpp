@@ -147,7 +147,9 @@ void ControlPanel::landing()
     if(m_jObject["actionDeliver"].toString() == "доставка") {
         queue.enqueue(QStringList {"DOCKINGMENUCASE",           "0", "menu_docking_service"});
         queue.enqueue(QStringList {"IMAGEEXPECTED",             "0", "menuServiceExit", "0.9", "4", "12", "13"});
-        queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", "LOADING", "4"});
+
+        queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", m_jObject["typeAction"].toString(), "4", m_jObject["typeDeliver"].toString()});
+//        queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", "LOADING", "4", "case"});
     }
     queue.enqueue(QStringList {"MARKER",                    "0", "landing"});
 
@@ -196,6 +198,10 @@ void ControlPanel::init()
     mMapSystems.insert("HIP 112400", "Springer Colony");
     mMapSystems.insert("Kakmbutan", "Macgregor Orbital");
     mMapSystems.insert("Huichi", "Collins Station");
+    mMapSystems.insert("Clayakarma", "Duke City");
+    mMapSystems.insert("Clayakarma", "Sinclair Port");
+    mMapSystems.insert("Xi Ophiuchi", "Khan Dock");
+    mMapSystems.insert("Katuri", "Bogdanov City");
     QStringList systems = mMapSystems.keys();
     systems.removeDuplicates();
     ui->comboBox_2->clear();
@@ -275,6 +281,11 @@ QJsonObject ControlPanel::textOutInfo()
     jObj["station"] = ui->comboBox->currentText();
     jObj["actionRefuel"] = ui->checkBox->isChecked() ? "заправиться": "ничего не делать";
     jObj["actionDeliver"] = ui->checkBox_4->isChecked() ? "доставка": "без доставки";
+    if(jObj["actionDeliver"].toString() == "доставка") {
+        jObj["typeAction"] = ui->comboBox_3->currentText();
+        if(ui->checkBox_5->isChecked())
+            jObj["typeDeliver"] = "разгрузка";
+    }
 //    QJsonArray jArr;
 //    QJsonObject jAction;
 //    jAction["action"] = ui->checkBox->isChecked() ? "заправиться": "ничего не делать";
@@ -282,11 +293,13 @@ QJsonObject ControlPanel::textOutInfo()
 //    jAction["action"] = ui->checkBox_4->isChecked() ? "доставка": "без доставки";
 //    jArr.append(jAction);
 //    jObj["actions"] = jArr;
-    QString str = QString("Цель: \nСистема: %1 \n станция: %2 \n действие: %3 \n действие: %4")
+    QString str = QString("Цель: \nСистема: %1 \n станция: %2 \n действие: %3 \n действие: %4 \n тип: %5 %6")
             .arg(jObj["system"].toString())
             .arg(jObj["station"].toString())
             .arg(jObj["actionRefuel"].toString())
-            .arg(jObj["actionDeliver"].toString());
+            .arg(jObj["actionDeliver"].toString())
+            .arg(jObj["typeAction"].toString())
+            .arg(jObj["typeDeliver"].toString());
 //    jArr = jObj["actions"].toArray();
 //    for(auto jObj_: jArr) {
 //        str.append("\n действие: " + jObj_.toObject()["action"].toString());
@@ -519,7 +532,10 @@ void ControlPanel::on_pushButton_clicked()          //  ТЕСТ
 
 //    queue.enqueue(QStringList {"IMAGEEXPECTEDCLOSE",        "0", "pic_warningRadTriangle", "2000", "0.75", "10", "34", "35"});
 //    queue.enqueue(QStringList {"DOCKINGMENUCASE",           "0", "menu_docking_service"});
-//    queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", "LOADING", "8"});
+    QJsonObject jObj;
+    if(ui->checkBox_5->isChecked())
+        jObj["type"] = "разгрузка";
+    queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", ui->comboBox_3->currentText(), "8", jObj["type"].toString() });      // strengthen_sys   prep_sys_for_power   prep_sys    strengthen_for_power
 
 //    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "mouse_move", QString::number(g_screen.width() / 2), QString::number(g_screen.height() / 2) }); // Поставить в центр
 //    queue.enqueue(QStringList {"MAPSYSTEMENABLE",           "0", "m" });
@@ -532,7 +548,7 @@ void ControlPanel::on_pushButton_clicked()          //  ТЕСТ
 //    queue.enqueue(QStringList {"GETSTRSTATICFIELD",         "0", "pic_fieldSystemName"});
 //    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "push_key", "," });
 //    queue.enqueue(QStringList {"ACTIONWAIT",                "0", "2000"});
-    checkCurSystem();
+//    checkCurSystem();
 //    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "mouse_move", QString::number(g_screen.width() / 2), QString::number(g_screen.height() / 2) }); // Поставить в центр
 
 
@@ -615,4 +631,14 @@ void ControlPanel::on_pushButton_5_clicked()
             }
         }
     }
+}
+
+void ControlPanel::on_comboBox_3_currentIndexChanged(const QString &arg1)
+{
+    textOutInfo();
+}
+
+void ControlPanel::on_checkBox_5_clicked()
+{
+    textOutInfo();
 }

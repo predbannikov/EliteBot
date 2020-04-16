@@ -369,7 +369,9 @@ void EngineScript::slotStartTest()
 
 void EngineScript::slotSaveImage(cv::Mat acvMat, QString asName)
 {
-    m_pIOData->saveImageForDebug(acvMat, asName);
+//    m_pIOData->saveImageForDebug(acvMat, asName);
+    cv::imwrite(PATH_IMAGE_LOG + tr("\\").toStdString() + (asName).toStdString() + ".png", acvMat);
+
 }
 
 void EngineScript::slotSaveVideo()

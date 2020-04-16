@@ -95,7 +95,7 @@ void GuiInfo::sendAllNumbData()
     sliderMax3->setValue(  static_cast<int>(maxScalar[2] ) );
 
     sliderMinNumber->setValue( 50 );
-    sliderMidNumber->setValue( 1 );
+    sliderMidNumber->setValue( 3 );
     sliderMaxNumber->setValue( 100 );
 
     emit signalSendMinNumber(sliderMinNumber->value());

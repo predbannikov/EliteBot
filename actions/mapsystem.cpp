@@ -63,7 +63,14 @@ bool MapSystem::logic(QStringList &asListParam)
         if(!fieldSearch_trigger) {
             _point = capture->getPoint("fieldSearch");
             qDebug() << "fieldSearch" << asListParam[2];
+            // ФИкс баг чей не понятно, без которого не работают клики по кнопкам
+            QThread::msleep(50);
+            press_key("a");
+            QThread::msleep(100);
+            release_key("a");
+
             mouseClick(_point);
+            QThread::msleep(500);
             typingText(asListParam[2]);
 
             QThread::msleep(waitMSec);

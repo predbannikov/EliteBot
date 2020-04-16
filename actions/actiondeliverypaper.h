@@ -9,7 +9,8 @@ class ActionDeliveryPaper : public BaseAction
     bool enableServiceDock();
     int countPart;
     int curPart;
-    QString type;
+    QString sTypeAction;
+    QString sTypeDeliver;
     QPoint point;
 public:
     ActionDeliveryPaper(CaptureWindow *aCapture, SocketIO *aSock);
