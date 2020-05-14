@@ -139,12 +139,16 @@ public:
 
     // ----------------------- Целенапарвленные для игы функции ----------------------------
 
+    bool containTextMat(cv::Rect aRect, cv::Point &aPoint, QString asTextSrch, QString asLang = "ru", int abApproxim = 0);     // abApproxim - использовать compareStr
+
     QString getStrStaticField(std::string asImageROI);
     QString getTextStaticField(std::string asImageROI, cv::Scalar aMinScalar, cv::Scalar aMaxScalar, QString asLang = "ru");
     QString getTextApproximArea(cv::Rect aRect, cv::Point &aPoint, QString asLang = "ru");
     QString getTextArea(cv::Rect aRect, cv::Point &aPoint, QString asLang = "ru");
     QString getTextMat(cv::Mat aMat, cv::Point &aPoint, QString asLang = "ru");
     QString getTextApproximBoundingRect(cv::Rect aRect, cv::Point &aPoint, QString asLang = "ru");
+    bool containTextApproximBoundingRect(cv::Rect aRect, cv::Point &aPoint, QString asTextSrch, QString asLang = "ru", int abApproxim = 0);     // abApproxim - использовать compareStr
+
     bool imageExpectedCloseAutoPilot(std::string asImageROI, double &coeff, int &ret, int anCount = 3, int anStart = 0, int anEnd = 8);
     Distance *recognizDistance();
     void testColor();
@@ -160,8 +164,8 @@ public:
 
     cv::Mat getMaskPanel1(cv::Mat &aRectMat, int aMinVal3);
     CursorPanel *panel1Header();
-    CursorPanel *panel1Body();
-    CursorPanel *panelBodyNav();
+    CursorPanel *panel1Body(QString sName);
+    CursorPanel *panelBodyNav(QString aName);
     CursorPanel *panelBodyCont();
     CursorPanel *panelBodyContNotice();
 

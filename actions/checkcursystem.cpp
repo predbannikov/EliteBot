@@ -49,9 +49,14 @@ bool CheckCurSystem::logic(QStringList &asListParam)
         trans = TRANS_2;
         break;
     case TRANS_2:
-        sText = capture->getTextApproximBoundingRect(capture->getRect("rect_curSystemMenuM"), _cvPoint, "eng");
+//        sText = capture->getTextApproximBoundingRect(capture->getRect("rect_curSystemMenuM"), _cvPoint, "eng");
+        if(capture->containTextApproximBoundingRect(capture->getRect("rect_curSystemMenuM"), _cvPoint, asListParam[2], "eng", 2)) {
+            sName = "found";
+        } else {
+            sName = "not found";
+        }
 //        sText = capture->getTextStaticField("rect_curSystemMenuM", cv::Scalar(100, 0, 0), cv::Scalar(255, 255, 255), "eng");
-        sName = sText;
+//        sName = sText;
         qDebug() << "Получили строку" << sName;
         asListParam[2] = sName;
         asListParam[1] = "2";

@@ -5,6 +5,7 @@
 
 class MapSystem : public BaseAction
 {
+    enum {TRANS_1, TRANS_2, TRANS_3, TRANS_4, TRANS_5, TRANS_6, TRANS_7} trans;
     bool searchTrack_push_trigger;
     bool fieldSearch_trigger;
     bool push_search_trigger;

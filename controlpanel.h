@@ -22,6 +22,7 @@ class ControlPanel : public QMainWindow
 //    QStringList slistSystems;
     bool started = false;
     QMultiMap<QString, QString>   mMapSystems;
+    QString sTest;
 public:
     explicit ControlPanel(EngineScript *aEngine, QWidget *parent = nullptr);
     ~ControlPanel();

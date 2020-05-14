@@ -17,7 +17,7 @@ bool Panel1CaseMenuCont::logic(QStringList &asListParam)
 
     if(!triggerForNotice) {
         qDebug() << "Panel1CaseMenuCont::logic ->     if(!triggerForNotice) {";
-        pan = capture->panel1Body();
+        pan = capture->panel1Body(sName);
         if(!trigger) {
             qDebug() << "RECOGNIZE: "<< pan->sBodyName << " сравниваем с" << sName;
             int res = comparisonStr(pan->sBodyName, sName);

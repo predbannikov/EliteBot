@@ -69,7 +69,6 @@ void ControlPanel::transitToHyper()
 void ControlPanel::dockAutoStart()
 {
     qDebug() << "dockAutoStart";
-//    queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "1"});      // включить панель
     queue.enqueue(QStringList {"DOCKINGMENUCASE",           "0", "menu_docking_autostart"});
     queue.enqueue(QStringList {"ACTIONWAIT",                "0", "20000"});
     queue.enqueue(QStringList {"IMAGEEXPECTEDCLOSE",        "0", "pic_autoPilot", "10000", "0.80", "17", "92", "128"});
@@ -96,11 +95,6 @@ void ControlPanel::flyToSystem()
 void ControlPanel::flytoStation()
 {
     qDebug() << "flytoStation";
-//    queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "1"});      // включить панель
-//    queue.enqueue(QStringList {"PANEL1CASEHEADER",          "0", "навигация"});
-//    queue.enqueue(QStringList {"PANEL1CASEMENUNAV",         "0", m_sStationTarget});
-//    queue.enqueue(QStringList {"PANEL1SUBNAV",              "0", "fix_target"});
-//    queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "0"});      // выключить панель
 
 
 
@@ -110,13 +104,6 @@ void ControlPanel::flytoStation()
     queue.enqueue(QStringList {"PANEL1CASEMENUNAV",         "0", m_sStationTarget});
     queue.enqueue(QStringList {"PANEL1SUBNAV",              "0", "enable_hypermode_helper"});
     queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "0"});
-//    queue.enqueue(QStringList {"PICKUPSPEED",               "0", "5000"});
-//    queue.enqueue(QStringList {"ACTIONAIMP",                "0"});
-//    queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "1"});
-//    queue.enqueue(QStringList {"PANEL1CASEHEADER",          "0", "навигация"});
-//    queue.enqueue(QStringList {"PANEL1CASEMENUNAV",         "0", m_sStationTarget});
-//    queue.enqueue(QStringList {"PANEL1SUBNAV",              "0", "enable_hypermode"});
-//    queue.enqueue(QStringList {"ACTIONWAIT",                "0", "13000"});
     queue.enqueue(QStringList {"MARKER",                    "0", "flytoStation"});
 }
 
@@ -219,7 +206,8 @@ void ControlPanel::checkCurSystem()
 //    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "mouse_move", QString::number(g_screen.width() / 2), QString::number(g_screen.height() / 2) }); // Поставить в центр
     queue.enqueue(QStringList {"MAPSYSTEMENABLE",           "0", "m" });
 //    queue.enqueue(QStringList {"GETSTRSTATICFIELD",         "0", "pic_fieldSystemName"});
-    queue.enqueue(QStringList {"CHECKCURSYSTEM",            "0", "response"});
+//    queue.enqueue(QStringList {"CHECKCURSYSTEM",            "0", "response"});
+    queue.enqueue(QStringList {"CHECKCURSYSTEM",            "0", m_sSystemTarget});
     queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "push_key", "m" });
     queue.enqueue(QStringList {"ACTIONWAIT",                "0", "2000"});
     queue.enqueue(QStringList {"MARKER",                    "0", "checkCurSystem"});
@@ -408,7 +396,9 @@ void ControlPanel::slotReceivReturnCommand(QStringList aList)
                 if(aList[0] == "MARKER") {
                     if(aList[2] == "checkCurSystem") {
 
-                        int ret = comparisonStr(m_sSystemTarget, aList[3]);
+//                        int ret = comparisonStr(m_sSystemTarget, aList[3]);
+//                        if(ret <= 2) {
+                        int ret = comparisonStr("found", aList[3]);
                         if(ret <= 2) {
                             qDebug() << "Проверка на место прибытия успешна";
 //                            QMultiMap<QString, QString>::iterator it = mMapSystems.find(m_sSystemTarget);
@@ -503,7 +493,7 @@ void ControlPanel::on_pushButton_clicked()          //  ТЕСТ
 {
     queue.clear();
 //    m_sStationTarget = m_sSystemTarget;
-//    queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "1"});
+    queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "1"});
 //    queue.enqueue(QStringList {"PANEL1CASEHEADER",          "0", "навигация"});
 //    queue.enqueue(QStringList {"PANEL1CASEMENUNAV",         "0", m_sStationTarget});
 //    queue.enqueue(QStringList {"PANEL1SUBNAV",              "0", "enable_hypermode"});
@@ -532,10 +522,11 @@ void ControlPanel::on_pushButton_clicked()          //  ТЕСТ
 
 //    queue.enqueue(QStringList {"IMAGEEXPECTEDCLOSE",        "0", "pic_warningRadTriangle", "2000", "0.75", "10", "34", "35"});
 //    queue.enqueue(QStringList {"DOCKINGMENUCASE",           "0", "menu_docking_service"});
-    QJsonObject jObj;
-    if(ui->checkBox_5->isChecked())
-        jObj["type"] = "разгрузка";
-    queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", ui->comboBox_3->currentText(), "8", jObj["type"].toString() });      // strengthen_sys   prep_sys_for_power   prep_sys    strengthen_for_power
+
+//    QJsonObject jObj;
+//    if(ui->checkBox_5->isChecked())
+//        jObj["type"] = "разгрузка";
+//    queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", ui->comboBox_3->currentText(), "8", jObj["type"].toString() });      // strengthen_sys   prep_sys_for_power   prep_sys    strengthen_for_power
 
 //    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "mouse_move", QString::number(g_screen.width() / 2), QString::number(g_screen.height() / 2) }); // Поставить в центр
 //    queue.enqueue(QStringList {"MAPSYSTEMENABLE",           "0", "m" });
@@ -552,6 +543,13 @@ void ControlPanel::on_pushButton_clicked()          //  ТЕСТ
 //    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "mouse_move", QString::number(g_screen.width() / 2), QString::number(g_screen.height() / 2) }); // Поставить в центр
 
 
+//    if(sTest == "harma") {
+//        sTest = "hip 112400";
+//    } else {
+//        sTest = "harma";
+//    }
+//    queue.enqueue(QStringList {"MAPSYSTEMENABLE",           "0", "m" });
+//    queue.enqueue(QStringList {"MAPSYSTEM",                 "0", sTest});
 
 
     queue.prepend(QStringList {"RESTORGAME",                "0" });

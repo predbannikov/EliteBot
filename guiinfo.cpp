@@ -83,8 +83,8 @@ GuiInfo::~GuiInfo()
 void GuiInfo::sendAllNumbData()
 {
 
-    cv::Scalar minScalar( 0, 0, 0 );
-    cv::Scalar maxScalar (1, 1, 1 );
+    cv::Scalar minScalar( 10, 210, 230 );
+    cv::Scalar maxScalar (50, 255, 255 );
 
     sliderMin1->setValue(  static_cast<int>(minScalar[0] ) );
     sliderMin2->setValue(  static_cast<int>(minScalar[1] ) );

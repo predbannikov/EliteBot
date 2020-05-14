@@ -1,11 +1,11 @@
 #include "socketio.h"
 
 
-#define     WAIT_MSEC_PUSH_KEY      85
-#define     WAIT_MSEC_PRESS_KEY     45
-#define     WAIT_MSEC_RELEASE_KEY   45
-#define     WAIT_MSEC_MOUSE_EVENT   45
-#define     WAIT_MSEC_MOUSE_CLICK   85
+#define     WAIT_MSEC_PUSH_KEY      90
+#define     WAIT_MSEC_PRESS_KEY     50
+#define     WAIT_MSEC_RELEASE_KEY   50
+#define     WAIT_MSEC_MOUSE_EVENT   50
+#define     WAIT_MSEC_MOUSE_CLICK   110
 
 SocketIO::SocketIO(QPoint aPointOffset)
 {
@@ -78,12 +78,41 @@ void SocketIO::typingText(QString asText)
     }
 }
 
-void SocketIO::mouse_click()
+void SocketIO::mouse_click(int typeSide)
 {
     QJsonObject jMsg;
     jMsg["target"] = "mouse";
     jMsg["method"] = "click";
-    jMsg["code"] = "BTN_LEFT";
+    if(typeSide == 0)
+        jMsg["code"] = "BTN_LEFT";
+    else
+        jMsg["code"] = "BTN_RIGHT";
+    send(QJsonDocument(jMsg).toJson());
+    QThread::msleep(WAIT_MSEC_MOUSE_CLICK);
+}
+
+void SocketIO::mouse_press(int typeSide)
+{
+    QJsonObject jMsg;
+    jMsg["target"] = "mouse";
+    jMsg["method"] = "press";
+    if(typeSide == 0)
+        jMsg["code"] = "BTN_LEFT";
+    else
+        jMsg["code"] = "BTN_RIGHT";
+    send(QJsonDocument(jMsg).toJson());
+    QThread::msleep(WAIT_MSEC_MOUSE_CLICK);
+}
+
+void SocketIO::mouse_release(int typeSide)
+{
+    QJsonObject jMsg;
+    jMsg["target"] = "mouse";
+    jMsg["method"] = "release";
+    if(typeSide == 0)
+        jMsg["code"] = "BTN_LEFT";
+    else
+        jMsg["code"] = "BTN_RIGHT";
     send(QJsonDocument(jMsg).toJson());
     QThread::msleep(WAIT_MSEC_MOUSE_CLICK);
 }

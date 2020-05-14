@@ -31,8 +31,22 @@ bool Panel1SubNav::logic(QStringList &asListParam)
             push_key("d");
         }
 
+    } else {
+        push_key("1");
+        QThread::msleep(1000);
+        press_key("a");
+        mouse_move_rel(150, 150);
+        QThread::msleep(5000);
+        release_key("a");
+        mouse_move_rel(-170, -170);
+        push_key(" ");
+        QThread::msleep(300);
+        push_key("1");
+        QThread::msleep(1700);
+        push_key(" ");
+        QThread::msleep(1500);
     }
-    QThread::msleep(100);
+    QThread::msleep(300);
     return false;
 }
 

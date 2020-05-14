@@ -28,6 +28,9 @@ public:
     void press_key(QString aChar);
     void release_key(QString aChar);
     void typingText(QString asText);
+    void mouse_click(int anSideType = 0);   // 0 - left button; 1 - right button
+    void mouse_press(int anSideType = 0);   // 0 - left button; 1 - right button
+    void mouse_release(int anSideType = 0);   // 0 - left button; 1 - right button
     void mouse_move(int x, int y);
     void mouse_wheel(int anCount);
     void mouse_move_rel(int x, int y);

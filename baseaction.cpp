@@ -127,7 +127,7 @@ void BaseAction::resetBase()
 
 void BaseAction::push_f_key(QString aStr)
 {
-    qDebug() << "push_key(" << aStr << ")";
+    qDebug() << "push_f_key(" << aStr << ")";
     m_sock->push_f_key(aStr);
 }
 
@@ -161,8 +161,27 @@ void BaseAction::mouse_move(int x, int y)
     m_sock->mouse_move(x, y);
 }
 
+void BaseAction::mouse_click(int anSideType)
+{
+    qDebug() << "mouse_click(" << anSideType << ")";
+    m_sock->mouse_click(anSideType);
+}
+
+void BaseAction::mouse_press(int anSideType)
+{
+    qDebug() << "mouse_press(" << anSideType << ")";
+    m_sock->mouse_press(anSideType);
+}
+
+void BaseAction::mouse_release(int anSideType)
+{
+    qDebug() << "mouse_release(" << anSideType << ")";
+    m_sock->mouse_release(anSideType);
+}
+
 void BaseAction::mouse_wheel(int anCount)
 {
+    qDebug() << "mouse_wheel(" << anCount << ")";
     m_sock->mouse_wheel(anCount);
 }
 

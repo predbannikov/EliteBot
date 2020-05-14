@@ -7,7 +7,7 @@
 
 #define MSEC_WAIT_INERT     2000
 
-#define MSEC_WAIT_PICKPUT_SPEED   7000
+#define MSEC_WAIT_PICKPUT_SPEED   10000
 
 AimpFlyAround::AimpFlyAround(CaptureWindow *aCapture, SocketIO *aSock) : BaseAction(aCapture, aSock)
 {
