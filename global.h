@@ -262,7 +262,7 @@ inline void deleteCharExtra(QString &aStr) {
 
 inline int comparisonStr(QString asSrc, QString asCurStr)
 {
-    qDebug() << "Сравнивание " << asSrc << " и " << asCurStr;
+//    qDebug() << "Сравнивание " << asSrc << " и " << asCurStr;
     asSrc = asSrc.toLower();
     asCurStr = asCurStr.toLower();
     if(asSrc.indexOf("<") != -1) {

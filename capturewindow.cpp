@@ -143,13 +143,15 @@ void CaptureWindow::update()
 //    panel1Body();
 //    testColor();
 //    panelBodyCont();
-    panelBodyNav("hurleycity");
+//    panelBodyNav("hurleycity");
 
 //    panelBodyContNotice();
 //    panel1Header();
-//    compass();
+    compass();
 //    takeAimp();
 //    subPanel1Nav();
+//    qDebug() << m_cursorPan.sSubNavName;
+
 //    menuDocking();
 //    recognizDistance();
 
@@ -690,14 +692,17 @@ CursorPanel *CaptureWindow::panelBodyNav(QString aName)
         cv::cvtColor( rectMat, hsv, CV_BGR2HSV );
         cv::Mat mask;
         std::vector< std::vector< cv::Point> > vecRects;
-        int minVal3 = 230;
-        int minVal2 = 230;
+        int minVal3 = 250;
+        int minVal2 = 250;
+        int minVal1 = 10;
         bool ret = false;
-        while(minVal2 > 50 && vecRects.size() != 1) {
+        while(minVal1 < 17 && vecRects.size() != 1) {
             vecRects.clear();
     //        cv::inRange(hsv, cv::Scalar(10, 210, 230), cv::Scalar(50, 255, 255), mask);
 
-            cv::inRange(hsv, cv::Scalar(10, minVal2, minVal3), cv::Scalar(50, 255, 255), mask);
+            cv::inRange(hsv, cv::Scalar(minVal1, minVal2, minVal3), cv::Scalar(50, 255, 255), mask);
+            cv::imshow("win3", mask);
+            QApplication::processEvents();
     //        cv::inRange(hsv, minScalar, maxScalar, mask);
     //        mask = getMaskPanel1(rectMat, minVal3);
 
@@ -720,10 +725,13 @@ CursorPanel *CaptureWindow::panelBodyNav(QString aName)
                     }
     //                int widthRightPanel = minRect.size.width > minRect.size.height ? minRect.size.width : minRect.size.height;
 
-                    if(widthRightPanel > 730 && widthRightPanel < 810 && heightRightPanel > 30 && heightRightPanel < 40) {
+
+
+                    if(widthRightPanel > 730 && widthRightPanel < 810 && heightRightPanel > 30 && heightRightPanel < 42) {
                         ret = true;
 //                        qDebug() << "area =" << area << " width =" << minRect.size.width << " height =" << minRect.size.height;
                         vecRects.push_back(contours2[i]);
+                        break;
                     }
                 }
         //        qDebug() << QString::number(area, 'f', 3);
@@ -732,10 +740,14 @@ CursorPanel *CaptureWindow::panelBodyNav(QString aName)
             if(minVal3 <= 150) {
                 minVal3 = 230;
                 minVal2 -= 15;
+                if(minVal2 < 100) {
+                    minVal2 = 250;
+                    minVal2 -= 15;
+                    minVal1 += 2;
+                }
             }
         }
-        qDebug() << "minVal2 =" << minVal2 << " minVal3 =" << minVal3;
-        cv::imshow("win3", mask);
+//        qDebug() << "minVal2 =" << minVal2 << " minVal3 =" << minVal3;
         if(vecRects.size() == 1) {
             cv::Mat foundMat;
             rectMat(cv::boundingRect(vecRects[0])).copyTo(foundMat);
@@ -757,6 +769,8 @@ CursorPanel *CaptureWindow::panelBodyNav(QString aName)
                         minRect.angle += 90.;
                     cv::Mat rMatToWarp = cv::getRotationMatrix2D(minRect.center, minRect.angle, 1);
                     cv::warpAffine(rotateMat, rotateMat, rMatToWarp, rotateMat.size(), cv::INTER_CUBIC);
+
+
                     cv::Mat bin;
                     cv::Mat rotateMatHSV;
                     int minVal22, minVal23;
@@ -769,92 +783,151 @@ CursorPanel *CaptureWindow::panelBodyNav(QString aName)
         //                inRange(rotateMatHSV, minScalar, cv::Scalar(50, 255, 255), bin);
                         inRange(rotateMatHSV, cv::Scalar(10, minVal22, minVal23), cv::Scalar(50, 255, 255), bin);
                         cv::findContours(bin, cont, cv::noArray(), cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+                        cv::imshow("win4", bin);
                         for(size_t i = 0; i < cont.size(); i++) {
                             cv::Rect foundRectToRec = cv::boundingRect(cont[i]);
                             if(foundRectToRec.width > (rotateMat.size().width - 17)) {
                                 double area = contourArea(cont[i]);
                                 if(area > 19000 && area < 30000 ) {
-                                    ret2 = true;
+                                    cv::Mat binRecognize;
+                                    bin(cv::Rect(foundRectToRec.x + 5, foundRectToRec.y + 3, foundRectToRec.width - 10, foundRectToRec.height - 3)).copyTo(binRecognize);
+
+                                    cv::Mat colorMapToSrchPattern;
+                                    cv::cvtColor(binRecognize, colorMapToSrchPattern, cv::COLOR_GRAY2BGR);
+                                    cv::Point point;
+                                    int seekXDistance = colorMapToSrchPattern.size().width - 300;
+                                    int cutXLeft = 0;
+                                    for(int i = 0; i < sNamePicNavList.size(); i++) {
+//                                        printMat(colorMapToSrchPattern);
+                                        point = getPointAreaInMat(sNamePicNavList[i].toStdString(), colorMapToSrchPattern, 0.95);
+                                        if(point.x > 0) {
+//                                            cv::circle(colorMapToSrchPattern, point, 1, cv::Scalar(0, 0, 255),2);
+                                            int widthMat = mp_dataSet->at(sNamePicNavList[i].toStdString()).mat.size().width;
+                                            if(point.x + (widthMat / 2) > cutXLeft)
+                                                cutXLeft = point.x + (widthMat / 2);
+                                        }
+//                                        qDebug() << sNamePicNavList[i] << ":";
+                                    }
+                                    int cutXRight = seekXDistance;
+                                    int widthRightPic = 0;
+                                    for(int i = 0; i < sNamePicNavListTar.size(); i++) {
+                                        point = getPointAreaInMat(sNamePicNavListTar[i].toStdString(), colorMapToSrchPattern, 0.95);
+                                        if(point.x > 0) {
+//                                            cv::circle(colorMapToSrchPattern, point, 1, cv::Scalar(0, 0, 255),2);
+                                            widthRightPic = mp_dataSet->at(sNamePicNavListTar[i].toStdString()).mat.size().width;
+                                            if(point.x - (widthRightPic / 2) < cutXRight)
+                                                cutXRight = point.x - (widthRightPic / 2);
+                                        }
+//                                        qDebug() << sNamePicNavListTar[i] << ":";
+                                    }
+                                    qDebug() << "";
+                                    cv::Mat binCut;
+                                    if(cutXRight - (cutXLeft + 5) < 0) {
+                                        qDebug() << "fix bug отрицательная ширина";
+                                        return &m_cursorPan;
+                                    }
+                                    binRecognize(cv::Rect(cutXLeft + 5, 0, cutXRight - (cutXLeft + 5), colorMapToSrchPattern.size().height)).copyTo(binCut);
+//                                    cv::Mat binCut(cutMat.size(), CV_8U, 1);
+//                                    inRange(cutMat, cv::Scalar(7, 190, 190), cv::Scalar(50, 255, 255), binCut);
+
+                                    cv::imshow("win5", binCut);
+                                    myOCREng->SetImage( (uchar*)binCut.data, binCut.size().width, binCut.size().height, binCut.channels(), binCut.step1());
+                                    myOCREng->Recognize(nullptr);
+                                    m_cursorPan.sBodyName = myOCREng->GetUTF8Text();
+                                    if(m_cursorPan.sBodyName.isEmpty())
+                                        m_cursorPan.sBodyName = "not recognized";
+                                    m_cursorPan.sBodyName = m_cursorPan.sBodyName.simplified();
+                                    m_cursorPan.sBodyName = m_cursorPan.sBodyName.toLower();
+                                    deleteCharExtra(m_cursorPan.sBodyName);
+                                    m_cursorPan.activeBody = true;
+                                    if(comparisonStr(aName, m_cursorPan.sBodyName) <= 2) {
+
+                                        qDebug() << "Успешное определение" << m_cursorPan.sBodyName;
+                                        ret2 = true;
+                                        return &m_cursorPan;
+                                    }
+
                                     break;
                                 }
                             }
                         }
-                        minVal23 -= 15;
+                        minVal23 -= 25;
                         if(minVal23 <= 150) {
                             minVal23 = 230;
-                            minVal22 -= 15;
+                            minVal22 -= 25;
                         }
                     }
-                    cv::imshow("win4", bin);
-                    for(size_t i = 0; i < cont.size(); i++) {
-                        double area = contourArea(cont[i]);
-                        if(area > 19000 && area < 30000 ) {
-    //                        qDebug() << area;
-    //                        cv::drawContours( rotateMat, cont, static_cast<int>(i), cvBlue );
-                            cv::Rect rectRecognize = cv::boundingRect(cont[i]);
-                            cv::Mat binRecognize;
-                            bin(cv::Rect(rectRecognize.x + 5, rectRecognize.y + 1, rectRecognize.width - 10, rectRecognize.height - 2)).copyTo(binRecognize);
-                                        cv::Mat colorMapToSrchPattern;
-                                        cv::cvtColor(binRecognize, colorMapToSrchPattern, cv::COLOR_GRAY2BGR);
-                                        cv::Point point;
-                                        int seekXDistance = colorMapToSrchPattern.size().width - 300;
-                                        int cutXLeft = 0;
-                                        for(int i = 0; i < sNamePicNavList.size(); i++) {
-    //                                        printMat(colorMapToSrchPattern);
-                                            point = getPointAreaInMat(sNamePicNavList[i].toStdString(), colorMapToSrchPattern, 0.95);
-                                            if(point.x > 0) {
-    //                                            cv::circle(colorMapToSrchPattern, point, 1, cv::Scalar(0, 0, 255),2);
-                                                int widthMat = mp_dataSet->at(sNamePicNavList[i].toStdString()).mat.size().width;
-                                                if(point.x + (widthMat / 2) > cutXLeft)
-                                                    cutXLeft = point.x + (widthMat / 2);
-                                            }
-    //                                        qDebug() << sNamePicNavList[i] << ":";
-                                        }
-                                        int cutXRight = seekXDistance;
-                                        int widthRightPic = 0;
-                                        for(int i = 0; i < sNamePicNavListTar.size(); i++) {
-                                            point = getPointAreaInMat(sNamePicNavListTar[i].toStdString(), colorMapToSrchPattern, 0.95);
-                                            if(point.x > 0) {
-    //                                            cv::circle(colorMapToSrchPattern, point, 1, cv::Scalar(0, 0, 255),2);
-                                                widthRightPic = mp_dataSet->at(sNamePicNavListTar[i].toStdString()).mat.size().width;
-                                                if(point.x - (widthRightPic / 2) < cutXRight)
-                                                    cutXRight = point.x - (widthRightPic / 2);
-                                            }
-    //                                        qDebug() << sNamePicNavListTar[i] << ":";
-                                        }
-                                        qDebug() << "";
-                                        cv::Mat binCut;
-                                        if(cutXRight - (cutXLeft + 5) < 0) {
-                                            qDebug() << "fix bug отрицательная ширина";
-                                            return &m_cursorPan;
-                                        }
-                                        binRecognize(cv::Rect(cutXLeft + 5, 0, cutXRight - (cutXLeft + 5), colorMapToSrchPattern.size().height)).copyTo(binCut);
-    //                                    cv::Mat binCut(cutMat.size(), CV_8U, 1);
+//                    for(size_t i = 0; i < cont.size(); i++) {
+//                        double area = contourArea(cont[i]);
+//                        if(area > 19000 && area < 30000 ) {
+//    //                        qDebug() << area;
+//    //                        cv::drawContours( rotateMat, cont, static_cast<int>(i), cvBlue );
+//                            cv::Rect rectRecognize = cv::boundingRect(cont[i]);
+//                            cv::Mat binRecognize;
+//                            bin(cv::Rect(rectRecognize.x + 5, rectRecognize.y + 3, rectRecognize.width - 10, rectRecognize.height - 3)).copyTo(binRecognize);
+//                            cv::imshow("win4", binRecognize);
+//                                        cv::Mat colorMapToSrchPattern;
+//                                        cv::cvtColor(binRecognize, colorMapToSrchPattern, cv::COLOR_GRAY2BGR);
+//                                        cv::Point point;
+//                                        int seekXDistance = colorMapToSrchPattern.size().width - 300;
+//                                        int cutXLeft = 0;
+//                                        for(int i = 0; i < sNamePicNavList.size(); i++) {
+//    //                                        printMat(colorMapToSrchPattern);
+//                                            point = getPointAreaInMat(sNamePicNavList[i].toStdString(), colorMapToSrchPattern, 0.95);
+//                                            if(point.x > 0) {
+//    //                                            cv::circle(colorMapToSrchPattern, point, 1, cv::Scalar(0, 0, 255),2);
+//                                                int widthMat = mp_dataSet->at(sNamePicNavList[i].toStdString()).mat.size().width;
+//                                                if(point.x + (widthMat / 2) > cutXLeft)
+//                                                    cutXLeft = point.x + (widthMat / 2);
+//                                            }
+//    //                                        qDebug() << sNamePicNavList[i] << ":";
+//                                        }
+//                                        int cutXRight = seekXDistance;
+//                                        int widthRightPic = 0;
+//                                        for(int i = 0; i < sNamePicNavListTar.size(); i++) {
+//                                            point = getPointAreaInMat(sNamePicNavListTar[i].toStdString(), colorMapToSrchPattern, 0.95);
+//                                            if(point.x > 0) {
+//    //                                            cv::circle(colorMapToSrchPattern, point, 1, cv::Scalar(0, 0, 255),2);
+//                                                widthRightPic = mp_dataSet->at(sNamePicNavListTar[i].toStdString()).mat.size().width;
+//                                                if(point.x - (widthRightPic / 2) < cutXRight)
+//                                                    cutXRight = point.x - (widthRightPic / 2);
+//                                            }
+//    //                                        qDebug() << sNamePicNavListTar[i] << ":";
+//                                        }
+//                                        qDebug() << "";
+//                                        cv::Mat binCut;
+//                                        if(cutXRight - (cutXLeft + 5) < 0) {
+//                                            qDebug() << "fix bug отрицательная ширина";
+//                                            return &m_cursorPan;
+//                                        }
+//                                        binRecognize(cv::Rect(cutXLeft + 5, 0, cutXRight - (cutXLeft + 5), colorMapToSrchPattern.size().height)).copyTo(binCut);
+//    //                                    cv::Mat binCut(cutMat.size(), CV_8U, 1);
 
-    //                                    inRange(cutMat, cv::Scalar(7, 190, 190), cv::Scalar(50, 255, 255), binCut);
+//    //                                    inRange(cutMat, cv::Scalar(7, 190, 190), cv::Scalar(50, 255, 255), binCut);
 
 
-                            myOCREng->SetImage( (uchar*)binCut.data, binCut.size().width, binCut.size().height, binCut.channels(), binCut.step1());
-                            myOCREng->Recognize(nullptr);
-                            m_cursorPan.sBodyName = myOCREng->GetUTF8Text();
-                            if(m_cursorPan.sBodyName.isEmpty())
-                                m_cursorPan.sBodyName = "not recognized";
-                            m_cursorPan.sBodyName = m_cursorPan.sBodyName.simplified();
-                            m_cursorPan.sBodyName = m_cursorPan.sBodyName.toLower();
-                            deleteCharExtra(m_cursorPan.sBodyName);
-                            m_cursorPan.activeBody = true;
+//                            myOCREng->SetImage( (uchar*)binCut.data, binCut.size().width, binCut.size().height, binCut.channels(), binCut.step1());
+//                            myOCREng->Recognize(nullptr);
+//                            m_cursorPan.sBodyName = myOCREng->GetUTF8Text();
+//                            if(m_cursorPan.sBodyName.isEmpty())
+//                                m_cursorPan.sBodyName = "not recognized";
+//                            m_cursorPan.sBodyName = m_cursorPan.sBodyName.simplified();
+//                            m_cursorPan.sBodyName = m_cursorPan.sBodyName.toLower();
+//                            deleteCharExtra(m_cursorPan.sBodyName);
+//                            m_cursorPan.activeBody = true;
 
-                            qDebug() << m_cursorPan.sBodyName;
-                            ////cv::imshow("win4", binCut);
-                            cv::imshow("win5", binCut);
-                        }
-                    }
+//                            qDebug() << m_cursorPan.sBodyName;
+//                            ////cv::imshow("win4", binCut);
+//                            cv::imshow("win5", binCut);
+//                        }
+//                    }
 
                 }
             }
 
 
         }
+        qDebug() << "Не найдено" << m_cursorPan.sBodyName;
 
 
 
@@ -2173,6 +2246,98 @@ bool CaptureWindow::containTextApproximBoundingRect(cv::Rect aRect, cv::Point &a
     return ret;
 }
 
+bool CaptureWindow::containTextApproximBoundingMat(cv::Mat aMat, QString asTextSrch, QString asLang, int abApproxim)
+{
+//    cv::Rect rect; // = aRect;
+    cv::Mat dst;
+    dst = aMat;
+    cv::Mat mask;
+    cv::Mat edgeMat;
+//    win(rect).copyTo(dst);
+
+
+    cv::Canny(dst, edgeMat, 10, 20);
+//    cv::Canny(dst, edge, minNumber, maxNumber);
+//    cv::drawContours(dst, contours2, -1, cvBlue);
+
+
+    std::vector< std::vector< cv::Point> > contours2;
+    cv::findContours(edgeMat, contours2, cv::noArray(), cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+    std::vector<size_t> idx;
+    std::vector<double> areas;
+    idx.resize(contours2.size());
+    areas.resize(contours2.size());
+
+    for(size_t i = 0; i < contours2.size(); i++) {
+
+        idx[i] = i;
+        areas[i] = cv::boundingRect(contours2[i]).area();
+//        areas[i] = cv::contourArea(contours2[i], false);
+    }
+    std::sort(idx.begin(), idx.end(), AreaCmp(areas));
+    if(contours2.empty()) {
+        return false;
+    }
+    cv::Rect foundRect = cv::boundingRect(contours2[idx[0]]);
+//    cv::rectangle(dst, foundRect, cvBlue, 1);
+    cv::Mat foundMat;
+    dst(foundRect).copyTo(foundMat);
+//    aPoint.x = rect.x + (foundMat.size().width / 2);
+//    aPoint.y = rect.y + (foundMat.size().height / 2);
+
+
+
+    cv::Mat gray;
+    cv::Mat recognizMask;
+    cv::imshow("win1", foundMat);
+    cv::cvtColor(foundMat, gray, CV_BGR2GRAY);
+
+    QString sText;
+    int minVal1 = 70;
+    bool ret = false;
+    while(minVal1 < 256 && !ret) {
+//        cv::threshold(gray, mask, minNumber, maxNumber, cv::THRESH_BINARY);
+        cv::threshold(gray, mask, minVal1, 153, cv::THRESH_BINARY);
+    //    cv::adaptiveThreshold(gray, mask, 76, 153, cv::THRESH_BINARY);
+        cv::inRange(mask, cv::Scalar(0, 0, 0), cv::Scalar(1, 1, 1), recognizMask);
+    //    cv::inRange(mask, minScalar, maxScalar, recognizMask);
+
+        int black, white;
+        if(!blackLessWhite(recognizMask, black, white)) {
+            cv::bitwise_not(recognizMask, recognizMask);
+        }
+
+        if(asLang == "ru") {
+            myOCRRus->SetImage( (uchar*)recognizMask.data, recognizMask.size().width, recognizMask.size().height, recognizMask.channels(), recognizMask.step1());
+            myOCRRus->Recognize(nullptr);
+            sText = myOCRRus->GetUTF8Text();
+        } else {
+            myOCREng->SetImage( (uchar*)recognizMask.data, recognizMask.size().width, recognizMask.size().height, recognizMask.channels(), recognizMask.step1());
+            myOCREng->Recognize(nullptr);
+            sText = myOCREng->GetUTF8Text();
+        }
+        qDebug() << "source text recognize =" << sText;
+        minVal1 += 70;
+        sText = sText.simplified();
+        sText = sText.toLower();
+        deleteCharExtra(sText);
+        if(abApproxim == 0) {
+            if(sText.contains(asTextSrch))
+                ret = true;
+        } else {
+            if(comparisonStr(sText, asTextSrch) <= abApproxim)
+                ret = true;
+        }
+    }
+
+
+//    qDebug() << "minVal1 =" << minVal1 << "text: " << sText;
+//    cv::imshow("win3", mask);
+    cv::imshow("win5", recognizMask);
+    cv::imshow("win4", dst);
+    return ret;
+}
+
 bool CaptureWindow::containTextMat(cv::Rect aRect, cv::Point &aPoint, QString asTextSrch, QString asLang, int abApproxim)
 {
     cv::Mat dst;
@@ -2468,25 +2633,54 @@ Compass *CaptureWindow::compass()
     win(fieldCompass).copyTo(dst);
 
 
+//    cv::Mat testMask;
+//    int testVal = 240;
+//    while(testVal <= 255) {
+////        cv::inRange(dst, cv::Scalar(testVal, testVal, testVal), cv::Scalar(255, 255, 255), testMask);
+//        cv::inRange(dst, cv::Scalar(minNumber, minNumber, minNumber), cv::Scalar(255, 255, 255), testMask);
+
+//        cv::imshow("win3", testMask);
+//        cv::imshow("win2", dst);
+//        QApplication::processEvents();
+//        QThread::msleep(300);
+//        testVal += 10;
+//    }
+//    return &m_compas;
+
+
+
 
     //  ---------------------------       Поиск кругов       ----------------------
+
     cv::Mat bin(dst.size(), CV_8U, 1);
     cv::Mat img_blur;
-    int hue = 15;
+#define HUE_FOR_COMAPS_CIRCLE   17
+    int hue = HUE_FOR_COMAPS_CIRCLE;
+    int minVal2 = 150;
+    int minVal3 = 250;
     std::vector<cv::Vec3f> circles;
     std::vector<cv::Rect> compassRects;
 //    qDebug() << "******* поиск кругов *********";
-    while (hue >= 5) {
+
+    while (minVal3 > 50) {
         circles.clear();
         compassRects.clear();
         bin.deallocate();
         img_blur.deallocate();
 //        getMaskOfMat(dst, bin, cv::Scalar(hue, 150, 126), maxScalar);
-        getMaskOfMatHSV(dst, bin, cv::Scalar(hue, 127, 126), cv::Scalar(27, 250, 254));
+//        getMaskOfMatHSV(dst, bin, cv::Scalar(hue, 127, 126), cv::Scalar(27, 250, 254));
+        getMaskOfMatHSV(dst, bin, cv::Scalar(hue, minVal2, minVal3), cv::Scalar(27, 250, 254));
 //        getMaskOfMat(dst, bin, cv::Scalar(hue, minNumber, maxNumber), maxScalar);
         std::vector< std::vector <cv::Point> > cont;
         std::vector<int > sort_idx;
         cv::blur(bin, img_blur, cv::Size(3, 3));
+
+
+//        imshow("win5", img_blur);
+//        QApplication::processEvents();
+//        QThread::msleep(70);
+
+
 //        cv::GaussianBlur(bin, img_blur, cv::Size(9, 9), 2, 2);
         cv::HoughCircles(img_blur, circles, cv::HOUGH_GRADIENT, 1, dst.rows / 1, 200, 15, 28, 30);
         if(circles.empty())  {
@@ -2509,16 +2703,25 @@ Compass *CaptureWindow::compass()
             if(!compassRects.empty())
                 break;
         }
-        hue--;
+        hue-=2;
+        if(hue < 5) {
+            minVal2 -= 25;
+            hue = HUE_FOR_COMAPS_CIRCLE;
+            if(minVal2 < 70) {
+                minVal3 -= 25;
+                minVal2 = 150;
+            }
+        }
     }
 //    qDebug() << "hue = " << hue << " compassRects =" << compassRects.size();
     if(compassRects.empty()) {
         imshow("win3", dst);
         imshow("win5", img_blur);
         count_error++;
-        qDebug() << "Круги компаса не найдены hue =" << hue << " count_error =" << count_error;
+        qDebug() << "Круги компаса не найдены hue =" << hue << " minVal2 =" << minVal2 << " minVal3 =" << minVal3 <<  " count_error =" << count_error;
         return &m_compas;
     }
+//    qDebug() << "hue =" << hue << " minVal2 =" << minVal2 ;
 
 //    imshow("win3", dst);
 //    imshow("win4", img_blur);
@@ -2529,69 +2732,119 @@ Compass *CaptureWindow::compass()
     //**********************       Выравнивание компаса      **************************
 //    qDebug() << "******* Выравнивание компаса *********";
     compasRect = compassRects.front();
+    cv::Point centerCompass;
+
     cv::Mat matPlus;
     cv::Mat maskPlus;
+    /*
     cv::Point centerPlus(compasRect.x + compasRect.width / 2, compasRect.y + compasRect.height / 2);
     dst(cv::Rect(centerPlus.x - 15, centerPlus.y - 15, 30, 30)).copyTo(matPlus);
     int valfour = 250;
+    int valMax1 = 25;
 //    bool check_four = false;
     std::vector<std::vector<cv::Point> > plusContours;
-    cv::Point centerCompass;
-    while(valfour >= 0) {
+
+//    qDebug() << "centerPlus=" << centerPlus.x << centerPlus.y;
+
+    bool foundPlus = false;
+    while(valMax1 <= 100 && !foundPlus) {
         plusContours.clear();
-//        cv::inRange(matPlus, minScalar, maxScalar, maskPlus);
-        cv::inRange(matPlus, cv::Scalar(0, 0, valfour), cv::Scalar(35, 255, 255), maskPlus);
+//        cv::inRange(matPlus, cv::Scalar(0, 0, valfour), cv::Scalar(35, 255, 255), maskPlus);
+        cv::inRange(matPlus, cv::Scalar(0, 0, valfour), cv::Scalar(valMax1, 255, 255), maskPlus);
         cv::findContours(maskPlus, plusContours, cv::noArray(), cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
+//        imshow("win4", matPlus);
+//        imshow("win5", maskPlus);
+//        QApplication::processEvents();
         if(plusContours.size() > 1) {
             cv::Point p1, p2;
-            cv::Rect rectInit = cv::boundingRect(plusContours[0]);
-            p1 = cv::Point(rectInit.x, rectInit.y);
-            bool bX = false;
-            bool bY = false;
-            for(size_t i = 0; i < plusContours.size(); i++) {
-                cv::Rect rect_ = cv::boundingRect(plusContours[i]);
-                cv::Point point_ = cv::Point(rect_.x, rect_.y);
+//            cv::Rect rectInit = cv::boundingRect(plusContours[0]);
+            cv::RotatedRect rotRectInit = cv::minAreaRect(plusContours[0]);
+//            p1 = cv::Point(rectInit.x, rectInit.y);
+            p1 = cv::Point(rotRectInit.center.x, rotRectInit.center.y);
+//            bool bX = false;
+//            bool bY = false;
+            for(size_t i = 1; i < plusContours.size(); i++) {
+                //                cv::Rect rect_ = cv::boundingRect(plusContours[i]);
+                rotRectInit = cv::minAreaRect(plusContours[i]);
+                cv::Point point_ = cv::Point(rotRectInit.center.x, rotRectInit.center.y);
+                if(abs(p1.x - point_.x) > 4 && abs(p1.y - point_.y) > 4) {
+                    cv::Point foundP1 = cv::Point(p1.x - 15, point_.y - 15);
+                    cv::Point foundP2 = cv::Point(point_.x - 15, p1.y - 15);
+                    if(sqrt(pow(foundP1.x, 2) + pow(foundP1.y, 2)) < sqrt(pow(foundP2.x, 2) + pow(foundP2.y, 2))) {
+                        p2 = cv::Point(foundP1.x + 15, foundP1.y + 15);
+                        centerCompass = foundP1;
 
-                if(abs(p1.x - point_.x) > 3) {
-                    if(p1.y > point_.y) {
-                        cv::Point tmp = p1;
-                        p1 = point_;
-                        point_ = tmp;
+                    } else {
+                        p2 = cv::Point(foundP2.x + 15, foundP2.y + 15);
+                        centerCompass = foundP2;
                     }
-                    p2.y = p1.y > (matPlus.size().height - point_.y) ? p1.y : point_.y;
-                    bX = true;
+                    cv::circle(matPlus, p2, 2, cvBlue, 2);
+//                    centerCompass = p2;
+//                    imshow("win4", matPlus);
+//                    imshow("win5", maskPlus);
+//                    QApplication::processEvents();
+                    foundPlus = true;
+                    break;
                 }
-                if(abs(p1.y - point_.y) > 3) {
-                    if(p1.x > point_.x) {
-                        cv::Point tmp = p1;
-                        p1 = point_;
-                        point_ = tmp;
-                    }
-                    p2.x = p1.x > (matPlus.size().width - point_.x) ? p1.x : point_.x;
-                    bY = true;
-                }
+                //                QThread::msleep(50);
 
             }
+//            for(size_t i = 0; i < plusContours.size(); i++) {
+////                cv::Rect rect_ = cv::boundingRect(plusContours[i]);
+//                rotRectInit = cv::minAreaRect(plusContours[i]);
+//                cv::Point point_ = cv::Point(rotRectInit.center.x, rotRectInit.center.y);
 
+//                if(abs(p1.x - point_.x) > 3) {
+//                    if(p1.y > point_.y) {
+//                        cv::Point tmp = p1;
+//                        p1 = point_;
+//                        point_ = tmp;
+//                    }
+//                    p2.y = p1.y > (matPlus.size().height - point_.y) ? p1.y : point_.y;
+//                    bX = true;
+//                }
+//                if(abs(p1.y - point_.y) > 3) {
+//                    if(p1.x > point_.x) {
+//                        cv::Point tmp = p1;
+//                        p1 = point_;
+//                        point_ = tmp;
+//                    }
+//                    p2.x = p1.x > (matPlus.size().width - point_.x) ? p1.x : point_.x;
+//                    bY = true;
+//                }
 
-            if(bX && bY) {
-//                qDebug() << "p=" << p2.x << p2.y;
-                centerCompass = cv::Point(p2.x - 15, p2.y - 15);
-                cv::circle(matPlus, p2, 2, cvBlue, 2);
-                break;
-            }
+//            }
+//            if(bX && bY) {
+////                qDebug() << "p=" << p2.x << p2.y;
+//                centerCompass = cv::Point(p2.x - 15, p2.y - 15);
+//                cv::circle(matPlus, p2, 2, cvBlue, 2);
+//                break;
+//            }
         }
-        valfour-= 1;
+        valfour-= 3;
+        if(valfour  <= 3) {
+            valfour = 255;
+            valMax1 += 5;
+        }
     }
-    if(valfour <= 0) {
-        qDebug() << "Выравнивание компаса не удалось, выходим из просчёта";
+    if(!foundPlus) {
+        qDebug() << "Выравнивание компаса не удалось, выходим из просчёта, valfour =" << valfour << " valMax1 =" << valMax1;
+        imshow("win4", matPlus);
+        imshow("win5", maskPlus);
         return &m_compas;
     }
+    imshow("win4", matPlus);
+    imshow("win5", maskPlus);
+    return &m_compas;
+
+    */
+    centerCompass.x = 0; centerCompass.y = 0;
+
     compasRect = cv::Rect(compasRect.x + centerCompass.x, compasRect.y + centerCompass.y, compasRect.width, compasRect.height);
 
-//    imshow("win4", matPlus);
-//    imshow("win5", maskPlus);
-//    return &m_compas;
+
+
+
     //**********************       Поиск точки      **************************
 
 
@@ -2602,7 +2855,7 @@ Compass *CaptureWindow::compass()
     cv::Vec3f circl;
     circl[0] = compasRect.width / 2;
     circl[1] = compasRect.height / 2;
-    circl[2] = 30;
+    circl[2] = 35;
 
     if(compasRect.x < 0 || compasRect.y < 0 || compasRect.x + compasRect.width > dst.size().width || compasRect.y + compasRect.height > dst.size().height) {
         qDebug() << "точка скорее всего не действительна";
@@ -2613,58 +2866,151 @@ Compass *CaptureWindow::compass()
 
 
     dst(compasRect).copyTo(compasMat);
-    cv::rectangle(dst, compasRect, cvBlue, 2);
+
+//    imshow("win3", compasMat);
+//    imshow("win4", matPlus);
+//    imshow("win5", maskPlus);
+//    QApplication::processEvents();
+//    return &m_compas;
+
+//    cv::rectangle(dst, compasRect, cvBlue, 2);
     bool foundDot = false;
     std::vector<cv::Point> dotContour;
 //    qDebug() << "******* Начало первой стадии *********";
-
-    int valtrid = 200;
-    int valtridMinTrid = 100;
-    while(valtrid > 0 && valtridMinTrid > 0 && !foundDot) {
-//        getMaskOfMat(compasMat, compasMask, minScalar, maxScalar);
-//        getMaskOfMat(compasMat, compasMask, cv::Scalar( 0 , 0 , valDot), cv::Scalar(255 , 255 , 255));
-//        cv::inRange(compasMat, minScalar, maxScalar, compasMask);
-//        cv::inRange(compasMat, cv::Scalar(150, valtrid, minNumber), cv::Scalar(255, 255, 255), compasMask);
-        cv::inRange(compasMat, cv::Scalar(150, valtrid, valtridMinTrid), cv::Scalar(255, 255, 255), compasMask);
+    int valTest = 250;
+    while(valTest > 95 && !foundDot) {
+        cv::inRange(compasMat, cv::Scalar(valTest, valTest, valTest), cv::Scalar(255, 255, 255), compasMask);
         std::vector <std::vector <cv::Point> > compasContours;
         std::vector<size_t> idx;
         cv::bitwise_not(compasMask, compasMask);
-//        cv::medianBlur(compasMask, compasBlueMask, 3);
-        if(!getContoursIndexSort(compasMask, compasContours, idx, cv::RETR_LIST)) {
+        cv::medianBlur(compasMask, compasBlueMask, 3);
+//        if(!getContoursIndexSort(compasMask, compasContours, idx, cv::RETR_LIST)) {
+        if(!getContoursIndexSort(compasBlueMask, compasContours, idx, cv::RETR_LIST)) {
 
         }
-//        cv::drawContours(compasMat, compasContours, -1, cvGreen);
+//        cv::Mat tmpMat = compasMat;
+//        cv::drawContours(tmpMat, compasContours, -1, cvGreen);
+//        imshow("win2", tmpMat);
+//        imshow("win3", compasMask);
+        imshow("win3", compasBlueMask);
+//        QThread::msleep(150);
+
+        QApplication::processEvents();
+//        imshow("win5", compasMask);
         foundDot = false;
         dotContour.clear();
         for(size_t i = 0; i < idx.size(); i++) {
+//            imshow("win4", compasMat);
+//            QApplication::processEvents();
+//            QThread::msleep(1);
             cv::RotatedRect rotRect = cv::minAreaRect(compasContours[idx[i]]);
-//            cv::Rect rotRect = cv::minAreaRect(compasContours[idx[i]]);
-            cv::Rect dotRect = cv::boundingRect(compasContours[idx[i]]);
-//            qDebug() << "dotRect=" << dotRect.width << dotRect.height;
-//            double area = cv::contourArea(compasContours[idx[i]]);
+//            cv::Rect dotRect = cv::boundingRect(compasContours[idx[i]]);
+            double area = cv::contourArea(compasContours[idx[i]]);
+            if(area < 20 || area > 350 )
+                continue;
+
+            if(rotRect.center.x < (compasMat.size().width / 2 - 4) && rotRect.center.y > (compasMat.size().height / 2 + 4) && valTest > 200 )
+                circl[2] = 31;
+            else
+                circl[2] = 37;
+
+
             if(isPointInsideElypse(circl, rotRect.center)) {
-//                if(area > 1 && area < 100 && dotRect.width < 25 && dotRect.height < 25) {
-                if(dotRect.width < 25 && dotRect.height < 25 && dotRect.width > 5 && dotRect.height > 5) {
+//                qDebug() << "area =" << area;
+
+                if(rotRect.size.width < 11 && rotRect.size.height < 11 && (rotRect.size.width > 3 || rotRect.size.height > 3)) {
+//                if(dotRect.width < 25 && dotRect.height < 25 && dotRect.width > 5 && dotRect.height > 5) {
+//                    cv::drawContours(compasMat, compasContours, idx[i], cvBlue);
                     dotContour = compasContours[idx[i]];
                     foundDot = true;
+                    qDebug() <<  valTest;
+
                     break;
                 }
             }
         }
 
-        valtrid -= 5;
-        if(valtrid <= 0) {
-            valtrid = 200;
-            valtridMinTrid -= 10;
-        }
+        valTest -= 5;
     }
-//    qDebug() << "valTrid =" << valtrid;
+//    if(!foundDot)
+//        qDebug() << "not found valTest =" << valTest;
 //    std::vector <std::vector <cv::Point> > tmpvec;
 //    tmpvec.push_back(dotContour);
 //    cv::drawContours(compasMat, tmpvec, -1, cvBlue);
 //    imshow("win4", compasMat);
-//    imshow("win5", compasMask);
+//    imshow("win5", compasBlueMask);
+////    QThread::msleep(1500);
+//    QApplication::processEvents();
 //    return &m_compas;
+
+
+/*
+
+    int valtrid = 255;
+    int valtridMinTrid = 255;
+    while(valtridMinTrid > 100 && !foundDot) {
+//        getMaskOfMat(compasMat, compasMask, minScalar, maxScalar);
+//        getMaskOfMat(compasMat, compasMask, cv::Scalar( 0 , 0 , valDot), cv::Scalar(255 , 255 , 255));
+//        cv::inRange(compasMat, minScalar, maxScalar, compasMask);
+//        cv::inRange(compasMat, cv::Scalar(150, valtrid, minNumber), cv::Scalar(255, 255, 255), compasMask);
+        cv::inRange(compasMat, cv::Scalar(200, valtrid, valtridMinTrid), cv::Scalar(255, 255, 255), compasMask);
+        std::vector <std::vector <cv::Point> > compasContours;
+        std::vector<size_t> idx;
+        cv::bitwise_not(compasMask, compasMask);
+        cv::medianBlur(compasMask, compasBlueMask, 3);
+//        if(!getContoursIndexSort(compasMask, compasContours, idx, cv::RETR_LIST)) {
+        if(!getContoursIndexSort(compasBlueMask, compasContours, idx, cv::RETR_LIST)) {
+
+        }
+//        cv::Mat tmpMat = compasMat;
+//        cv::drawContours(tmpMat, compasContours, -1, cvGreen);
+//        imshow("win2", tmpMat);
+//        imshow("win3", compasMask);
+        imshow("win3", compasBlueMask);
+        QThread::msleep(100);
+
+        QApplication::processEvents();
+//        imshow("win5", compasMask);
+        foundDot = false;
+        dotContour.clear();
+        for(size_t i = 0; i < idx.size(); i++) {
+//            imshow("win4", compasMat);
+            QApplication::processEvents();
+//            QThread::msleep(1);
+            cv::RotatedRect rotRect = cv::minAreaRect(compasContours[idx[i]]);
+//            cv::Rect dotRect = cv::boundingRect(compasContours[idx[i]]);
+            double area = cv::contourArea(compasContours[idx[i]]);
+            if(area < 30 || area > 350 )
+                continue;
+            if(isPointInsideElypse(circl, rotRect.center)) {
+//                qDebug() << "area =" << area;
+
+                if(rotRect.size.width < 10 && rotRect.size.height < 11 && (rotRect.size.width > 3 || rotRect.size.height > 3)) {
+//                if(dotRect.width < 25 && dotRect.height < 25 && dotRect.width > 5 && dotRect.height > 5) {
+//                    cv::drawContours(compasMat, compasContours, idx[i], cvBlue);
+                    dotContour = compasContours[idx[i]];
+                    foundDot = true;
+
+                    break;
+                }
+            }
+        }
+
+        valtrid -= 15;
+        if(valtrid <= 100) {
+            valtrid = 255;
+            valtridMinTrid -= 10;
+        }
+    }
+//    qDebug() << "valTrid =" << valtrid << "  valtridMinTrid =" << valtridMinTrid;
+//    std::vector <std::vector <cv::Point> > tmpvec;
+    tmpvec.push_back(dotContour);
+    cv::drawContours(compasMat, tmpvec, -1, cvBlue);
+    imshow("win4", compasMat);
+    imshow("win5", compasBlueMask);
+    QThread::msleep(1500);
+    QApplication::processEvents();
+    return &m_compas;
 
 //    qDebug() << "******* Начало второй стадии *********";
 
@@ -2681,6 +3027,10 @@ Compass *CaptureWindow::compass()
 
         }
 //        cv::drawContours(compasMat, compasContours, -1, cvGreen);
+//        imshow("win2", compasMat);
+//        imshow("win5", compasBlueMask);
+//        imshow("win3", compasMask);
+//        QApplication::processEvents();
         foundDot = false;
         dotContour.clear();
         for(size_t i = 0; i < idx.size(); i++) {
@@ -2696,6 +3046,8 @@ Compass *CaptureWindow::compass()
             }
         }
         satDot += 5;
+//        QThread::msleep(100);
+
     }
 
 //    qDebug() << "******* Начало третьей стадии *********";
@@ -2712,6 +3064,11 @@ Compass *CaptureWindow::compass()
 
         }
 //        cv::drawContours(compasMat, compasContours, -1, cvGreen);
+//        imshow("win2", compasMat);
+//        imshow("win5", compasBlueMask);
+//        imshow("win3", compasMask);
+//        QApplication::processEvents();
+
         foundDot = false;
         dotContour.clear();
         for(size_t i = 0; i < idx.size(); i++) {
@@ -2727,18 +3084,20 @@ Compass *CaptureWindow::compass()
             }
         }
         valDot -= 5;
-    }
+//        QThread::msleep(100);
 
+    }
+*/
 
     if(!foundDot) {
 //        imshow("win2", dst);
         imshow("win4", compasMat);
 //        imshow("win4", compasBlueMask);
         imshow("win5", compasMask);
-        qDebug() << "Контуры точки не найдены sat =" << satDot << " val =" << valDot << " valtrid =" << valtrid;
+//        qDebug() << "Контуры точки не найдены sat =" << satDot << " val =" << valDot << " valtrid =" << valtrid;
+        qDebug() << "Контуры точки не найдены valTest =" << valTest;
         return &m_compas;
     }
-//    cv::circle(compasMat, cv::minAreaRect(dotContour).center, 2, cvRad, 2);
 
 
     cv::RotatedRect dotRot = cv::minAreaRect(dotContour);
@@ -2753,7 +3112,7 @@ Compass *CaptureWindow::compass()
     }
     cv::Mat dotMat;
     compasMat(dotRect).copyTo(dotMat);
-    cv::circle(compasMat, dotRot.center, 2, cvBlue, 2);
+    cv::circle(compasMat, dotRot.center, 1, cvBlue, 2);         // рисуем точку на компасе
     m_compas.pDot = dotRot.center;
     m_compas.pCenter = cv::Point(compasRect.width/2, compasRect.height/2);
 
@@ -2772,6 +3131,8 @@ Compass *CaptureWindow::compass()
     cv::findContours(dotMask, dotContours, hierarchy, cv::RETR_CCOMP,  cv::CHAIN_APPROX_SIMPLE);
     if(dotContours.empty())  {
         qDebug() << "Контуры точки не найдены";
+        imshow("win3", compasMask);
+        imshow("win2", compasMat);
         imshow("win4", dotMat);
         imshow("win5", dotMask);
         return &m_compas;
@@ -2800,8 +3161,12 @@ Compass *CaptureWindow::compass()
 //    imshow("win2", dst);
     cv::resize(dotMask, dotMask, dotMask.size() * 5);
 
-    imshow("win4", compasMat);
+//    imshow("win4", compasMat);
+//    cv::circle(compasMat, cv::minAreaRect(dotContour).center, 2, cvRad, 2);
+//    cv::circle(compasMat, dotRot.center, 2, cvBlue, 1);
     cv::resize(dotMat, dotMat, dotMat.size() * 5);
+    imshow("win3", compasMask);
+    imshow("win2", compasMat);
     imshow("win4", dotMat);
     imshow("win5", dotMask);
     return &m_compas;
@@ -3520,103 +3885,174 @@ CursorPanel *CaptureWindow::subPanel1Nav()
         qDebug() << ".";
     m_cursorPan.rectSubNavList.y = -1;
     m_cursorPan.activeSubNav = false;
+    m_cursorPan.sSubNavName = "";
+
+
     cv::Mat dst;
     cv::Mat mask;
-//    getPrepMatsForMenu(dst, mask);
+
+    cv::Rect rectToCopy = cv::Rect(400, 650, 900, 250);
+    win(rectToCopy).copyTo(dst);
+    cv::Mat hsv;
+
+
+    cv::cvtColor( dst, hsv, CV_BGR2HSV );
+//    cv::inRange(hsv, minScalar, maxScalar, mask);
+
+
 
     int minVal3 = 230;
+    int minVal2 = 230;
+    int minVal1 = 10;
     std::vector< std::vector< cv::Point> > vecRects;
-    while(minVal3 > 150 && (vecRects.empty() || vecRects.size() > 2)) {
-        vecRects.clear();
+    while(minVal1 < 15 && (vecRects.empty() || vecRects.size() > 2)) {
         std::vector< std::vector< cv::Point> > contours2;
-        mask = getMaskPanel1(dst, minVal3);
+        cv::inRange(hsv, cv::Scalar(minVal1, minVal2, minVal3), cv::Scalar(50, 255, 255), mask);
+        cv::imshow("win3", mask);
+        QApplication::processEvents();
+
+
         cv::findContours(mask, contours2, cv::noArray(), cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 //        cv::drawContours(rectMat, contours2, -1, cvGreen, 2);
         for(size_t i = 0; i < contours2.size(); i++) {
             cv::Rect push = cv::boundingRect(contours2[i]);
+            double area = cv::contourArea(contours2[i]);
+            if(area < 7500)
+                continue;
             if(push.width > 250 || push.height > 200)
                 continue;
             if(push.width < 70 || push.height < 40)
                 continue;
+            //            qDebug() << "area =" << area;
 
-        }
-        minVal3 -= 15;
 
-    }
 
-    std::vector <std::vector <cv::Point> > contours2;
-    std::vector<size_t> idx;
-    if(comparisonStr(m_cursorPan.sHeaderName, "навигация") <= 2) {
-        if(getContoursIndexSort(mask, contours2, idx)) {
-            for(size_t i = 0; i < 1; i++) {
 
-                cv::Rect cmpRect = cv::boundingRect(contours2[static_cast<size_t>(idx[i])]);
-                if(cmpRect.width > 250 || cmpRect.height > 200)
-                    continue;
-                if(cmpRect.width < 70 || cmpRect.height < 40)
-                    continue;
+            cv::Mat recognizeMask;      // Искомая маска
+            cv::Mat rotateMat;
+            dst(cv::boundingRect(contours2[i])).copyTo(rotateMat);
+            cv::Mat mask2;
+            cv::Mat hsv2;
+            cv::cvtColor(rotateMat, hsv2, CV_BGR2HSV);
 
-                cv::Mat recognizeMask;      // Искомая маска
-                if(getMatsOfContour(dst, recognizeMask, contours2[static_cast<size_t>(idx[i])])) {
+
+            //            int minVal32 = 230;
+            //            int minVal22 = 230;
+            //            while(minVal22 > 70 && (vecRects.empty() || vecRects.size() > 2)) {
+
+            inRange(hsv2, cv::Scalar(minVal1, minVal2, minVal3), cv::Scalar(50, 255, 255), mask2);                     // Получаем новую маску
+
+            std::vector< std::vector< cv::Point> > contours22;
+            std::vector<size_t> sortIdx(contours22.size());
+            cv::findContours(mask2, contours22, cv::noArray(), cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);  // из маски вытягиваем контуры
+            if(getContoursIndexSort(mask2, contours22, sortIdx)) {
+                cv::RotatedRect minRect = cv::minAreaRect(contours22[static_cast<size_t>(sortIdx[0])]);                     // Получаем угол на который нужно повернуть
+                if(minRect.angle < -45)
+                    minRect.angle += static_cast<float>(90.);
+                cv::Mat transformMat;
+                cv::Mat rMatToWarp = cv::getRotationMatrix2D(minRect.center, static_cast<double>(minRect.angle), 1);
+                cv::warpAffine(rotateMat, transformMat, rMatToWarp, transformMat.size(), cv::INTER_CUBIC);          // Поворачиваем картинку
+                cv::Mat recognizeMask2;
+                cv::Mat recognizeHSV;
+                cv::cvtColor(transformMat, recognizeHSV, CV_BGR2HSV);
+                inRange(recognizeHSV, cv::Scalar(minVal1, minVal2, minVal3), cv::Scalar(50, 255, 255), recognizeMask2);                     // Получаем новую маску
+
+
+
+                //                    cv::cvtColor(recognizeMask2, recognizeMask, cv::COLOR_GRAY2BGR);
+
+
+
+
+                std::vector< std::vector< cv::Point> > cont_inside;
+                std::vector<size_t> sortIdxInside(cont_inside.size());
+                if(getContoursIndexSort(recognizeMask2, cont_inside, sortIdxInside)) {
+                    cv::Mat aColorMat;
+                    cv::Rect foundRect = cv::boundingRect(cont_inside[static_cast<size_t>(sortIdxInside[0])]);
+                    transformMat(foundRect).copyTo(aColorMat);
+                    cv::Mat recognizeHSVInside;
+                    cv::cvtColor(aColorMat, recognizeHSVInside, CV_BGR2HSV);
+                    inRange(recognizeHSVInside, cv::Scalar(minVal1, minVal2, minVal3), cv::Scalar(50, 255, 255), recognizeMask);                     // Получаем новую маску
+
+                    cv::blur(recognizeMask, recognizeMask, cv::Size(3, 3));
+//                    cv::medianBlur(recognizeMask, recognizeMask, 5);
+//                    cv::imshow("win1", recognizeMask);
+                    QApplication::processEvents();
+
+
                     cv::cvtColor(recognizeMask, recognizeMask, cv::COLOR_GRAY2BGR);
                     double coeff = 0.0;
                     if(srchAreaOnceInMat(subNamePicMenu1NavList[0].toStdString(), recognizeMask, coeff)) {
                         m_cursorPan.sSubNavName = "fix_target";
-                        qDebug() << m_cursorPan.sSubNavName << QString::number(coeff, 'f', 2);
-                        if(coeff > 0.975) {
+                        if(coeff > 0.985) {
+                            qDebug() << m_cursorPan.sSubNavName << QString::number(coeff, 'f', 2);
                             m_cursorPan.activeSubNav = true;
-                            break;
+                            vecRects.push_back(contours2[i]);
+                            return &m_cursorPan;
                         }
 
                     }
                     coeff = 0.0;
                     if(srchAreaOnceInMat(subNamePicMenu1NavList[1].toStdString(), recognizeMask, coeff)) {
                         m_cursorPan.sSubNavName = "unfix_target";
-                        qDebug() << m_cursorPan.sSubNavName << QString::number(coeff, 'f', 2);
-                        if(coeff > 0.985) {
+                        if(coeff > 0.987) {
+                            qDebug() << m_cursorPan.sSubNavName << QString::number(coeff, 'f', 2);
                             m_cursorPan.activeSubNav = true;
-                            break;
+                            vecRects.push_back(contours2[i]);
+                            return &m_cursorPan;
                         }
                     }
-//                    coeff = 0.0;
-//                    if(srchAreaOnceInMat(subNamePicMenu1NavList[2].toStdString(), recognizeMask, coeff)) {
-//                        m_cursorPan.sSubNavName = "enable_hypermode";
-//                        qDebug() << m_cursorPan.sSubNavName << QString::number(coeff, 'f', 2);
-//                        if(coeff > 0.985) {
-//                            m_cursorPan.activeSubNav = true;
-//                            break;
-//                        }
-//                    }
                     coeff = 0.0;
                     if(srchAreaOnceInMat(subNamePicMenu1NavList[3].toStdString(), recognizeMask, coeff)) {
                         m_cursorPan.sSubNavName = "enable_hypermode_helper";
-                        qDebug() << m_cursorPan.sSubNavName << QString::number(coeff, 'f', 2);
-                        if(coeff > 0.985) {
+                        if(coeff > 0.987) {
+                            qDebug() << m_cursorPan.sSubNavName << QString::number(coeff, 'f', 2);
                             m_cursorPan.activeSubNav = true;
-                            break;
+                            vecRects.push_back(contours2[i]);
+                            return &m_cursorPan;
                         }
                     }
-                    m_cursorPan.sSubNavName = "missed_the_mark";
-                    qDebug() << m_cursorPan.sSubNavName << QString::number(coeff, 'f', 2);
-                    m_cursorPan.activeSubNav = true;
-                    //cv::imshow("win5", recognizeMask);
-                    break;
-                } else {
-                    qDebug() << "contour not found";
-                    imshow("win5", mask);
-
                 }
 
-
             }
-        } else {
-            qDebug() << "contour not found";
-            imshow("win5", mask);
 
+
+
+
+            //                minVal32 -= 15;
+            //                if(minVal32 < 130) {
+            //                    minVal32 = 230;
+            //                    minVal22 -= 15;
+            //                }
+            //            }
+
+
+
+
+
+            m_cursorPan.sSubNavName = "missed_the_mark";
+//            qDebug() << m_cursorPan.sSubNavName;
+            m_cursorPan.activeSubNav = true;
+            //cv::imshow("win5", recognizeMask);
+            //            break;
+
+
+            continue;
+//            vecRects.push_back(contours2[i]);
         }
-    } else {
-        qDebug() << "Последнее включенное меню было" << m_cursorPan.sHeaderName;
+        minVal3 -= 15;
+        if(minVal3 < 100) {
+            minVal3 = 250;
+            minVal2 -= 15;
+            if(minVal2 < 100) {
+                minVal2 = 250;
+                minVal1 += 2;
+            }
+        }
+//        qDebug() << minVal1 << minVal2 << minVal3;
+//        QThread::msleep(300);
     }
+
     imshow("win4", dst);
     return &m_cursorPan;
 }

@@ -148,6 +148,7 @@ public:
     QString getTextMat(cv::Mat aMat, cv::Point &aPoint, QString asLang = "ru");
     QString getTextApproximBoundingRect(cv::Rect aRect, cv::Point &aPoint, QString asLang = "ru");
     bool containTextApproximBoundingRect(cv::Rect aRect, cv::Point &aPoint, QString asTextSrch, QString asLang = "ru", int abApproxim = 0);     // abApproxim - использовать compareStr
+    bool containTextApproximBoundingMat(cv::Mat aMat, QString asTextSrch, QString asLang = "ru", int abApproxim = 0);     // abApproxim - использовать compareStr
 
     bool imageExpectedCloseAutoPilot(std::string asImageROI, double &coeff, int &ret, int anCount = 3, int anStart = 0, int anEnd = 8);
     Distance *recognizDistance();
