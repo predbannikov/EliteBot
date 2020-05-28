@@ -20,28 +20,29 @@ bool Panel1CaseHead::logic(QStringList &asListParam)
     //            } else {
 
 
-    CursorPanel *pan = capture->panel1Header();
-    if((pan->sHeaderName.contains("навигация") || pan->sHeaderName.contains("транзакции") || pan->sHeaderName.contains("контакты")) && pan->activeHeader ) {
-        int res = comparisonStr(pan->sHeaderName, asListParam[2]);
-        if(res <= 2) {
+    CursorPanel *pan = capture->panel1Header(asListParam[2]);
+    if( pan->activeHeader ) {
+        if(pan->sHeaderName.contains(asListParam[2]) ) {
             return true;
         } else {
             push_key("e");
         }
     } else {
-        push_key("1");
+        push_key("0");
+        QThread::msleep(500);
+        push_key("0");
+
+//        push_key("1");
         QThread::msleep(1000);
-        press_key("a");
-        mouse_move_rel(150, 150);
-        QThread::msleep(5000);
-        release_key("a");
-        mouse_move_rel(-170, -170);
+        mouse_move_rel(-210, 0);
+        QThread::msleep(4000);
+        mouse_move_rel(210, 0);
         push_key(" ");
         QThread::msleep(300);
         push_key("1");
         QThread::msleep(1700);
     }
-    QThread::msleep(300);
+    QThread::msleep(1000);
 
 
 //    CursorPanel *pan = capture->panel1Header();

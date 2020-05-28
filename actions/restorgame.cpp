@@ -12,7 +12,7 @@ void RestorGame::init(QStringList &asListParam)
 bool RestorGame::logic(QStringList &asListParam)
 {
     mouse_move_click(g_screen.width()/2, g_screen.height()/2);
-    QThread::msleep(100);
+    QThread::msleep(500);
 //    mouse_move_click(g_screen.width()/2, g_screen.height()/2);
     return true;
 }

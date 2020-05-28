@@ -85,6 +85,8 @@ class CaptureWindow : public  QObject, Displays
     int midNumber;
     int maxNumber;
     int m_side;
+    int testError = 0;
+    int testCounter = 0;
     QElapsedTimer timeElapse;
     QElapsedTimer timeElapseForVideoSave;
     QElapsedTimer timeElapseForVideoSave2;
@@ -164,7 +166,7 @@ public:
     void imageOverlay();
 
     cv::Mat getMaskPanel1(cv::Mat &aRectMat, int aMinVal3);
-    CursorPanel *panel1Header();
+    CursorPanel *panel1Header(QString sName);
     CursorPanel *panel1Body(QString sName);
     CursorPanel *panelBodyNav(QString aName);
     CursorPanel *panelBodyCont();

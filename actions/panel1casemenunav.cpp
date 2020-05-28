@@ -40,7 +40,7 @@ bool Panel1CaseMenuNav::logic(QStringList &asListParam)
 //        push_key("1");
 //        QThread::msleep(1700);
     }
-    QThread::msleep(100);
+    QThread::msleep(500);
     return false;
 }
 

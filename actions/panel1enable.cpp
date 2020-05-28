@@ -16,8 +16,17 @@ void Panel1Enable::init(QStringList &asListParam)
 
 bool Panel1Enable::logic(QStringList &asListParam)
 {
-    push_key("1");
-    QThread::msleep(1500);
+
+    bool enable = static_cast<bool>(asListParam[2].toUInt());
+    if(enable) {
+        push_key("1");
+    } else {
+        push_key("0");
+        QThread::msleep(300);
+        push_key("0");
+    }
+
+    QThread::msleep(2000);
     return true;
 //    CursorPanel *pan = capture->panel1Header();
 //    bool enable = static_cast<bool>(asListParam[2].toUInt());

@@ -23,6 +23,7 @@ class ControlPanel : public QMainWindow
     bool started = false;
     QMultiMap<QString, QString>   mMapSystems;
     QString sTest;
+    bool bTest = false;
 public:
     explicit ControlPanel(EngineScript *aEngine, QWidget *parent = nullptr);
     ~ControlPanel();

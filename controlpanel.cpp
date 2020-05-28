@@ -493,7 +493,12 @@ void ControlPanel::on_pushButton_clicked()          //  ТЕСТ
 {
     queue.clear();
 //    m_sStationTarget = m_sSystemTarget;
-    queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "1"});
+    bTest = !bTest;
+//    queue.enqueue(QStringList {"PANEL1ENABLE",              "0", QString::number(bTest)});
+//    queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "0" });
+
+    queue.enqueue(QStringList {"PANEL1CASEHEADER",          "0", "навигация"});
+
 //    queue.enqueue(QStringList {"PANEL1CASEHEADER",          "0", "навигация"});
 //    queue.enqueue(QStringList {"PANEL1CASEMENUNAV",         "0", m_sStationTarget});
 //    queue.enqueue(QStringList {"PANEL1SUBNAV",              "0", "enable_hypermode"});
