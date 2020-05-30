@@ -94,6 +94,7 @@ CaptureWindow::CaptureWindow(std::map<std::string, ImageROI> *ap_dataSet, int x,
     m_side = 0;
 //    m_cursorPan.rectBody = cv::Rect(796, 424, 414, 77);
 //    m_cursorPan.activeBody = true;
+    loadJson();
 }
 
 CaptureWindow::~CaptureWindow()
@@ -143,7 +144,7 @@ void CaptureWindow::update()
 //    panel1Body();
 //    testColor();
 //    panelBodyCont();
-//    panelBodyNav("vianring");
+//    panelBodyNav("sfdsa", "Xi Ophiuchi");
 
 //    panelBodyContNotice();
 //    panel1Header("навигация");
@@ -191,6 +192,28 @@ void CaptureWindow::update()
             timeElapseForVideoSave2.restart();
         }
     }
+}
+
+void CaptureWindow::loadJson()
+{
+    QString path = PATH_CONFIG;
+    path.append("\\map.json");
+    QFile file(path);
+    if(!file.open(QFile::ReadOnly | QFile::Text)) {
+        qDebug() << "file not opening";
+    } else {
+        QJsonDocument jDoc = QJsonDocument::fromJson(file.readAll());
+        QJsonObject jObj = jDoc.object();
+        for(QString sKey: jObj.keys()) {
+            QJsonArray jArr = jObj[sKey].toArray();
+            for(int i = 0; i < jArr.size(); i++) {
+
+                mapForDiffPanelNav.insert(sKey, jArr[i].toObject()["station"].toString()) ;
+            }
+        }
+        file.close();
+    }
+//    qDebug() << map;
 }
 
 cv::Mat CaptureWindow::checkRoiMat()
@@ -557,26 +580,26 @@ double CaptureWindow::getCoeffImageInRect(std::string asImageROI, cv::Rect acvRe
     return coeff;
 }
 
-CursorPanel *CaptureWindow::panel1Body(QString sName)
+CursorPanel *CaptureWindow::panel1Body(QString sName, QString asSystem)
 {
     if(DEBUG2)
         qDebug() << ".";
     m_cursorPan.activeBody = false;
 
     if(comparisonStr(m_cursorPan.sHeaderName, "навигация") <= 2) {
-        return panelBodyNav(sName);
+        return panelBodyNav(sName, asSystem);
     } else if(comparisonStr(m_cursorPan.sHeaderName, "контакты") <= 2 ) {
         return panelBodyCont();
     }
     return &m_cursorPan;
 }
 
-CursorPanel *CaptureWindow::panelBodyNav(QString aName)
+CursorPanel *CaptureWindow::panelBodyNav(QString aName, QString asSystem)
 {
     if(DEBUG2)
         qDebug() << ".";
     m_cursorPan.activeBody = false;
-
+    m_cursorPan.sBodyName = "";
 //    return &m_cursorPan;
     {
 //        cv::drawContours( rectMat, vecRects, -1, cvBlue );
@@ -755,13 +778,12 @@ CursorPanel *CaptureWindow::panelBodyNav(QString aName)
 
 
 
-            for(size_t i = 0; i < vecRects.size(); i++) {
-                cv::RotatedRect minRect = cv::minAreaRect(vecRects[i]);
+                cv::RotatedRect minRect = cv::minAreaRect(vecRects[0]);
                 int widthRightPanel = minRect.size.width > minRect.size.height ? minRect.size.width : minRect.size.height;
                 if(widthRightPanel > 700) {
                     cv::Mat rotateMat;
                     int hightLine = minRect.size.width < minRect.size.height ? minRect.size.width : minRect.size.height;
-                    cv::Rect rectToCut(boundingRect(vecRects[i]));
+                    cv::Rect rectToCut(boundingRect(vecRects[0]));
                     rectToCut.y -= hightLine / 2;
                     rectToCut.height += hightLine / 2;
                     rectMat(rectToCut).copyTo(rotateMat);
@@ -847,6 +869,24 @@ CursorPanel *CaptureWindow::panelBodyNav(QString aName)
                                         ret2 = true;
                                         return &m_cursorPan;
                                     }
+                                    for(QString sStation: mapForDiffPanelNav.values(asSystem)) {
+                                        sStation = sStation.simplified();
+                                        sStation = sStation.toLower();
+                                        deleteCharExtra(sStation);
+                                        if(comparisonStr(sStation, m_cursorPan.sBodyName) <= 2) {
+
+                                            qDebug() << m_cursorPan.sBodyName << "идём дальше";
+                                            ret2 = true;
+                                        } else if(m_cursorPan.sBodyName.contains(sStation)) {
+                                            qDebug() << m_cursorPan.sBodyName << "идём дальше";
+                                            ret2 = true;
+                                        }
+
+                                    }
+                                    if(m_cursorPan.sBodyName.contains("has.mank")) {
+                                        qDebug() << m_cursorPan.sBodyName << "идём дальше";
+                                        ret2 = true;
+                                    }
 
                                     break;
                                 }
@@ -861,7 +901,6 @@ CursorPanel *CaptureWindow::panelBodyNav(QString aName)
 
 
                 }
-            }
 
 
         }

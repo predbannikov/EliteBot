@@ -6,6 +6,9 @@ ControlPanel::ControlPanel(EngineScript *aEngine, QWidget *parent) :
     ui(new Ui::ControlPanel)
 {
     ui->setupUi(this);
+    loadJson();
+
+
     m_engine = aEngine;
     connect(this, &ControlPanel::signalEngineEnable, m_engine, &EngineScript::slotEngineEnable, Qt::QueuedConnection);
     connect(this, &ControlPanel::signalEngineSetCurStation, m_engine, &EngineScript::slotSetCurStation, Qt::QueuedConnection);
@@ -21,6 +24,61 @@ ControlPanel::ControlPanel(EngineScript *aEngine, QWidget *parent) :
 
     init();
 
+    QWidget *mainWidgte = new QWidget;
+
+    QVBoxLayout *vbl = new QVBoxLayout;
+
+    QWidget *wgt = new QWidget;
+    QScrollArea *scrollArea = new QScrollArea;
+
+    mainWidgte->setLayout(vbl);
+    vbl->addWidget(scrollArea);
+
+    scrollArea->setWidget(wgt);
+    scrollArea->setWidgetResizable(true);
+
+    vblayout = new QVBoxLayout;
+
+
+
+    centralWidget()->layout()->addWidget(mainWidgte);
+//    this->layout()->addWidget(mainWidgte);
+//    setCentralWidget(mainWidgte);
+
+//    setCentralWidget(scrollArea);
+    wgt->setLayout(vblayout);
+
+    QPushButton *pushAddFlyConfig = new QPushButton("+");
+    vbl->addWidget(pushAddFlyConfig);
+    connect(pushAddFlyConfig, &QPushButton::clicked, [this] () {
+        addConfig();
+    });
+    pushAddFlyConfig->clicked();
+
+
+
+}
+
+void ControlPanel::loadJson()
+{
+    QString path = PATH_CONFIG;
+    path.append("\\map.json");
+    QFile file(path);
+    if(!file.open(QFile::ReadOnly | QFile::Text)) {
+        qDebug() << "file not opening";
+    } else {
+        QJsonDocument jDoc = QJsonDocument::fromJson(file.readAll());
+        QJsonObject jObj = jDoc.object();
+        for(QString sKey: jObj.keys()) {
+            QJsonArray jArr = jObj[sKey].toArray();
+            for(int i = 0; i < jArr.size(); i++) {
+
+                mapSystemsAndStationLoad.insert(sKey, jArr[i].toObject()["station"].toString()) ;
+            }
+        }
+        file.close();
+    }
+//    qDebug() << map;
 }
 
 ControlPanel::~ControlPanel()
@@ -33,7 +91,7 @@ void ControlPanel::setCursorStation()
     qDebug() << "setCursorStation";
     queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "1"});      // включить панель
     queue.enqueue(QStringList {"PANEL1CASEHEADER",          "0", "навигация"});
-    queue.enqueue(QStringList {"PANEL1CASEMENUNAV",         "0", m_sStationTarget});
+    queue.enqueue(QStringList {"PANEL1CASEMENUNAV",         "0", m_sStationTarget, m_sSystemTarget});
     queue.enqueue(QStringList {"PANEL1SUBNAV",              "0", "fix_target"});
     queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "0"});      // выключить панель
     queue.enqueue(QStringList {"MARKER",                    "0", "setCursorStation"});
@@ -179,16 +237,17 @@ void ControlPanel::setTrack()
 
 void ControlPanel::init()
 {
-    mMapSystems.insert("Harma", "Gabriel Enterprise");
-    mMapSystems.insert("Harma", "Celebi city");
-    mMapSystems.insert("HIP 112400", "Bluford orbital");
-    mMapSystems.insert("HIP 112400", "Springer Colony");
-    mMapSystems.insert("Kakmbutan", "Macgregor Orbital");
-    mMapSystems.insert("Huichi", "Collins Station");
-    mMapSystems.insert("Clayakarma", "Duke City");
-    mMapSystems.insert("Clayakarma", "Sinclair Port");
-    mMapSystems.insert("Xi Ophiuchi", "Khan Dock");
-    mMapSystems.insert("Katuri", "Bogdanov City");
+    mMapSystems = mapSystemsAndStationLoad;
+//    mMapSystems.insert("Harma", "Gabriel Enterprise");
+//    mMapSystems.insert("Harma", "Celebi city");
+//    mMapSystems.insert("HIP 112400", "Bluford orbital");
+//    mMapSystems.insert("HIP 112400", "Springer Colony");
+//    mMapSystems.insert("Kakmbutan", "Macgregor Orbital");
+//    mMapSystems.insert("Huichi", "Collins Station");
+//    mMapSystems.insert("Clayakarma", "Duke City");
+//    mMapSystems.insert("Clayakarma", "Sinclair Port");
+//    mMapSystems.insert("Xi Ophiuchi", "Khan Dock");
+//    mMapSystems.insert("Katuri", "Bogdanov City");
     QStringList systems = mMapSystems.keys();
     systems.removeDuplicates();
     ui->comboBox_2->clear();
@@ -225,7 +284,9 @@ void ControlPanel::prepScript()
     QListWidgetItem *item = ui->listWidget->takeItem(0);
     QByteArray array = item->text().toUtf8();
     QJsonDocument jDoc = QJsonDocument::fromJson(array);
+
     m_jObject = jDoc.object();
+    qDebug() << m_jObject;
     m_sSystemTarget = m_jObject["system"].toString();
     m_sStationTarget = m_jObject["station"].toString();
 
@@ -437,6 +498,26 @@ void ControlPanel::slotCmbSystem(const QString &str)
     }
     ui->comboBox->clear();
     ui->comboBox->addItems(listStation);
+}
+
+void ControlPanel::deleteConfig(int anIndex)
+{
+    delete listFlyAction[anIndex];
+    listFlyAction.removeAt(anIndex);
+    for(int i = 0; i < listFlyAction.size(); i++) {
+        listFlyAction[i]->setIndex(i);
+    }
+}
+
+void ControlPanel::addConfig()
+{
+    int index = listFlyAction.size();
+    FlyAction *flyAction = new FlyAction(index);
+    listFlyAction.append(flyAction);
+    flyAction->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    vblayout->addWidget(flyAction);
+
+    connect(flyAction, &FlyAction::deleteFlyAction, this, &ControlPanel::deleteConfig);
 }
 
 void ControlPanel::on_checkBox_2_clicked()          // Пуск

@@ -8,12 +8,13 @@ Panel1CaseMenuNav::Panel1CaseMenuNav(CaptureWindow *aCapture, SocketIO *aSock) :
 void Panel1CaseMenuNav::init(QStringList &asListParam)
 {
     sName = asListParam[2];
+    sSystem = asListParam[3];
     list = asListParam;
 }
 
 bool Panel1CaseMenuNav::logic(QStringList &asListParam)
 {
-    pan = capture->panel1Body(sName);
+    pan = capture->panel1Body(sName, sSystem);
     if(pan->activeBody) {
         QStringList list = buttonLeftNav.filter(pan->sBodyName);
         if(list.isEmpty()) {

@@ -21,6 +21,7 @@
 #include "main.h"
 
 
+static QMultiMap <QString, QString> mapForDiffPanelNav;
 
 extern QRect g_screen;
 
@@ -102,7 +103,8 @@ class CaptureWindow : public  QObject, Displays
 //    void setListScript(QJsonArray t_jArray);
     //    void setListScript(QJsonObject t_jObj);
     void callBackMouse(int event, int x, int y, int flags);
-static void my_mouse_callback(int event, int x, int y, int flags, void *param);
+    static void my_mouse_callback(int event, int x, int y, int flags, void *param);
+    void loadJson();
 public:
     CaptureWindow(std::map<std::string, ImageROI> *ap_dataSet, int x = 0, int y = 0, int width = 0, int heith = 0, QObject *parent = nullptr);
     ~CaptureWindow();
@@ -167,8 +169,8 @@ public:
 
     cv::Mat getMaskPanel1(cv::Mat &aRectMat, int aMinVal3);
     CursorPanel *panel1Header(QString sName);
-    CursorPanel *panel1Body(QString sName);
-    CursorPanel *panelBodyNav(QString aName);
+    CursorPanel *panel1Body(QString sName, QString asSystem);
+    CursorPanel *panelBodyNav(QString aName, QString asSystem);
     CursorPanel *panelBodyCont();
     CursorPanel *panelBodyContNotice();
 

@@ -6,6 +6,7 @@
 class Panel1CaseMenuNav : public BaseAction
 {
     CursorPanel *pan;
+    QString sSystem;
 public:
     Panel1CaseMenuNav(CaptureWindow *aCapture, SocketIO *aSock);
     void init(QStringList &asListParam) override;
