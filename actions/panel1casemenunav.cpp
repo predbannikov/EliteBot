@@ -7,7 +7,9 @@ Panel1CaseMenuNav::Panel1CaseMenuNav(CaptureWindow *aCapture, SocketIO *aSock) :
 
 void Panel1CaseMenuNav::init(QStringList &asListParam)
 {
+    qDebug() << asListParam;
     sName = asListParam[2];
+
     sSystem = asListParam[3];
     list = asListParam;
 }

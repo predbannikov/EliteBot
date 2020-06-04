@@ -16,10 +16,19 @@ BaseAction *LowLvlEngineScript::parseAction()
 
 void LowLvlEngineScript::update()
 {
+    if(DEBUG2)
+        qDebug() << ".";
+
     BaseAction  *action;
     while(cycle) {
+//        if(DEBUG2)
+//            qDebug() << "while start";
         readCommand(command);
+//        if(DEBUG2)
+//            qDebug() << "after readCommand";
         action = parseAction();
+//        if(DEBUG2)
+//            qDebug() << "after parseAction";
         if(action->getName() != "DEBUG") {
             qDebug() << "";
             qDebug() << "";
@@ -27,9 +36,14 @@ void LowLvlEngineScript::update()
 //            qDebug() << "new action" << action->getName();
         }
         do {
+//            if(DEBUG2)
+//                qDebug() << "in do while update";
             capture->update();
 //            action->printDebug();
             QCoreApplication::processEvents();
+//            if(DEBUG2)
+//                qDebug() << "after update";
+
         } while(!action->perform(command) && cycle);
         QCoreApplication::processEvents();
     }

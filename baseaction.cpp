@@ -61,7 +61,11 @@ bool BaseAction::perform(QStringList &asListParam)
         listForSearch.clear();
         point = QPoint(0, 0);
 
+//        if(DEBUG2)
+//            qDebug() << "start init";
         init(asListParam);
+//        if(DEBUG2)
+//            qDebug() << "end init";
         if(m_sActionName != "DEBUG")
             qDebug() << "START " << m_sActionName;
     [[clang::fallthrough]];

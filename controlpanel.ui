@@ -167,6 +167,23 @@
          <string>Цель</string>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
+         <item row="8" column="0">
+          <widget class="QPushButton" name="pushButton_6">
+           <property name="text">
+            <string>getJson</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Вывод</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QComboBox" name="comboBox"/>
+         </item>
          <item row="0" column="0">
           <layout class="QHBoxLayout" name="horizontalLayout_2">
            <item>
@@ -185,11 +202,19 @@
            </item>
           </layout>
          </item>
-         <item row="1" column="0">
-          <widget class="QComboBox" name="comboBox_2"/>
+         <item row="9" column="0">
+          <widget class="QPushButton" name="pushButton_4">
+           <property name="text">
+            <string>save</string>
+           </property>
+          </widget>
          </item>
-         <item row="2" column="0">
-          <widget class="QComboBox" name="comboBox"/>
+         <item row="10" column="0">
+          <widget class="QPushButton" name="pushButton_2">
+           <property name="text">
+            <string>&lt;&lt;</string>
+           </property>
+          </widget>
          </item>
          <item row="3" column="0">
           <widget class="QCheckBox" name="checkBox">
@@ -197,6 +222,12 @@
             <string>Заправиться</string>
            </property>
           </widget>
+         </item>
+         <item row="7" column="0">
+          <widget class="QSpinBox" name="spinBox_2"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QComboBox" name="comboBox_2"/>
          </item>
          <item row="4" column="0">
           <widget class="QComboBox" name="comboBox_3">
@@ -222,29 +253,14 @@
            </item>
           </widget>
          </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>Вывод</string>
-           </property>
-          </widget>
-         </item>
          <item row="6" column="0">
-          <widget class="QPushButton" name="pushButton_4">
+          <widget class="QPushButton" name="pushButton_7">
            <property name="text">
             <string>save</string>
            </property>
           </widget>
          </item>
-         <item row="7" column="0">
-          <widget class="QPushButton" name="pushButton_2">
-           <property name="text">
-            <string>&lt;&lt;</string>
-           </property>
-          </widget>
-         </item>
         </layout>
-        <zorder>layoutWidget</zorder>
         <zorder>pushButton_2</zorder>
         <zorder>comboBox_2</zorder>
         <zorder>comboBox</zorder>
@@ -252,6 +268,9 @@
         <zorder>label</zorder>
         <zorder>pushButton_4</zorder>
         <zorder>comboBox_3</zorder>
+        <zorder>pushButton_6</zorder>
+        <zorder>spinBox_2</zorder>
+        <zorder>pushButton_7</zorder>
        </widget>
       </item>
      </layout>

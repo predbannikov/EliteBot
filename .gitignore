@@ -20,4 +20,5 @@ ui_*.h
 config
 debug
 log
+save
 release

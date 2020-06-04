@@ -192,6 +192,7 @@ void CaptureWindow::update()
             timeElapseForVideoSave2.restart();
         }
     }
+
 }
 
 void CaptureWindow::loadJson()
@@ -887,7 +888,7 @@ CursorPanel *CaptureWindow::panelBodyNav(QString aName, QString asSystem)
                                         qDebug() << m_cursorPan.sBodyName << "идём дальше";
                                         ret2 = true;
                                     }
-
+                                    qDebug() << "cont.size = " << cont.size() << " asSystem =" << asSystem;
                                     break;
                                 }
                             }

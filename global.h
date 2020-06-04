@@ -18,6 +18,7 @@
 #define     M_PI                3.1415926535
 #define     PATH_CONFIG         ".\\config"
 #define     PATH_LOG            ".\\log"
+#define     PATH_SAVE           ".\\save"
 #define     PATH_VIDEO_LOG      ".\\videolog"
 #define     PATH_IMAGE_LOG      ".\\imagelog"
 #define     PATH_CONFIG_DISPLAY ".\\config\\display.json"

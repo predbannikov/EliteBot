@@ -53,9 +53,9 @@ ControlPanel::ControlPanel(EngineScript *aEngine, QWidget *parent) :
     connect(pushAddFlyConfig, &QPushButton::clicked, [this] () {
         addConfig();
     });
-    pushAddFlyConfig->clicked();
-
-
+//    pushAddFlyConfig->clicked();
+//    addConfig();
+    loadData();
 
 }
 
@@ -159,7 +159,7 @@ void ControlPanel::flytoStation()
     queue.enqueue(QStringList {"AIMPFLYAROUND",             "0", "station"});
     queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "1"});
     queue.enqueue(QStringList {"PANEL1CASEHEADER",          "0", "навигация"});
-    queue.enqueue(QStringList {"PANEL1CASEMENUNAV",         "0", m_sStationTarget});
+    queue.enqueue(QStringList {"PANEL1CASEMENUNAV",         "0", m_sStationTarget, m_sSystemTarget});
     queue.enqueue(QStringList {"PANEL1SUBNAV",              "0", "enable_hypermode_helper"});
     queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "0"});
     queue.enqueue(QStringList {"MARKER",                    "0", "flytoStation"});
@@ -520,6 +520,55 @@ void ControlPanel::addConfig()
     connect(flyAction, &FlyAction::deleteFlyAction, this, &ControlPanel::deleteConfig);
 }
 
+void ControlPanel::loadData()
+{
+    QString path = PATH_SAVE;
+    path.append("\\configflights.json");
+    QFile file(path);
+    if(!file.open(QFile::ReadOnly | QFile::Text)) {
+        qDebug() << "save file not opening";
+    } else {
+        QJsonDocument jDoc = QJsonDocument::fromJson(file.readAll());
+        QJsonArray jArr = jDoc.array();
+        file.close();
+        QMap<int , QJsonObject> configFlightMap;
+        for(int i = 0; i < jArr.size(); i++) {
+            QJsonObject jObj = jArr[i].toObject();
+            configFlightMap.insert(jObj["index"].toInt(), jObj);
+        }
+        listFlyAction.clear();
+        for(int i = 0; i < configFlightMap.size(); i++) {
+//            qDebug() << configFlightMap[i];
+            int index = i;
+            FlyAction *flyAction = new FlyAction(index);
+            listFlyAction.append(flyAction);
+            flyAction->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+            vblayout->addWidget(flyAction);
+            flyAction->setJsonObj(configFlightMap[i]);
+            connect(flyAction, &FlyAction::deleteFlyAction, this, &ControlPanel::deleteConfig);
+
+        }
+    }
+}
+
+void ControlPanel::saveData()
+{
+    QJsonArray jArr;
+    for(int i = 0; i < listFlyAction.size(); i++) {
+        jArr.append(listFlyAction[i]->getJsonObj());
+    }
+    QString path = PATH_SAVE;
+    path.append("\\configflights.json");
+    QFile file(path);
+    if(!file.open(QFile::WriteOnly | QFile::Text)) {
+        qDebug() << "write file not opening";
+    } else {
+        QJsonDocument jDoc(jArr);
+        file.write(jDoc.toJson());
+        file.close();
+    }
+}
+
 void ControlPanel::on_checkBox_2_clicked()          // Пуск
 {
 //    setTrack();
@@ -548,22 +597,6 @@ void ControlPanel::on_checkBox_2_clicked()          // Пуск
     emit signalSetQueue(queue);
 }
 
-
-
-//void ControlPanel::on_radioButton_4_clicked()
-//{
-//    emit signalSetSide(2);
-//}
-
-//void ControlPanel::on_radioButton_6_clicked()
-//{
-//    emit signalSetSide(1);
-//}
-
-//void ControlPanel::on_radioButton_7_clicked()
-//{
-//    emit signalSetSide(3);
-//}
 
 void ControlPanel::on_radioButton_3_clicked()
 {
@@ -725,4 +758,17 @@ void ControlPanel::on_comboBox_3_currentIndexChanged(const QString &arg1)
 void ControlPanel::on_checkBox_5_clicked()
 {
     textOutInfo();
+}
+
+void ControlPanel::on_pushButton_6_clicked()
+{
+    if(listFlyAction.size() > ui->spinBox_2->value()) {
+        QByteArray str = QJsonDocument(listFlyAction[ui->spinBox_2->value()]->getJsonObj()).toJson();
+        qDebug() << qPrintable(str);
+    }
+}
+
+void ControlPanel::on_pushButton_7_clicked()
+{
+    saveData();
 }
