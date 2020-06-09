@@ -91,7 +91,13 @@ void ControlPanel::setCursorStation()
     qDebug() << "setCursorStation";
     queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "1"});      // включить панель
     queue.enqueue(QStringList {"PANEL1CASEHEADER",          "0", "навигация"});
-    queue.enqueue(QStringList {"PANEL1CASEMENUNAV",         "0", m_sStationTarget, m_sSystemTarget});
+
+    if(state_delivery == STATE_FROM_STATION) {
+        queue.enqueue(QStringList {"PANEL1CASEMENUNAV",         "0", m_sFromStationTarget, m_sFromSystemTarget});
+    } else if(state_delivery == STATE_TO_STATION) {
+        queue.enqueue(QStringList {"PANEL1CASEMENUNAV",         "0", m_sToStationTarget, m_sToSystemTarget});
+    }
+
     queue.enqueue(QStringList {"PANEL1SUBNAV",              "0", "fix_target"});
     queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "0"});      // выключить панель
     queue.enqueue(QStringList {"MARKER",                    "0", "setCursorStation"});
@@ -101,7 +107,12 @@ void ControlPanel::setCursorSystem()
 {
     qDebug() << "setCursorSystem";
     queue.enqueue(QStringList {"MAPSYSTEMENABLE",           "0", "m" });
-    queue.enqueue(QStringList {"MAPSYSTEM",                 "0", m_sSystemTarget});
+    if(state_delivery == STATE_FROM_STATION) {
+        queue.enqueue(QStringList {"MAPSYSTEM", "0", m_sFromSystemTarget});
+    } else if(state_delivery == STATE_TO_STATION) {
+
+        queue.enqueue(QStringList {"MAPSYSTEM", "0", m_sToSystemTarget});
+    }
     queue.enqueue(QStringList {"MARKER",                    "0", "setCursorSystem"});
 }
 
@@ -159,7 +170,11 @@ void ControlPanel::flytoStation()
     queue.enqueue(QStringList {"AIMPFLYAROUND",             "0", "station"});
     queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "1"});
     queue.enqueue(QStringList {"PANEL1CASEHEADER",          "0", "навигация"});
-    queue.enqueue(QStringList {"PANEL1CASEMENUNAV",         "0", m_sStationTarget, m_sSystemTarget});
+    if(state_delivery == STATE_FROM_STATION) {
+        queue.enqueue(QStringList {"PANEL1CASEMENUNAV",         "0", m_sFromStationTarget, m_sFromSystemTarget});
+    } else if(state_delivery == STATE_TO_STATION) {
+        queue.enqueue(QStringList {"PANEL1CASEMENUNAV",         "0", m_sToStationTarget, m_sToSystemTarget});
+    }
     queue.enqueue(QStringList {"PANEL1SUBNAV",              "0", "enable_hypermode_helper"});
     queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "0"});
     queue.enqueue(QStringList {"MARKER",                    "0", "flytoStation"});
@@ -173,32 +188,53 @@ void ControlPanel::waitFlyToStation()
     queue.enqueue(QStringList {"MARKER",                    "0", "waitFlyToStation"});
 }
 
+//      ###################################################################################################
+//      ######################                      LANDING                      ##########################
+//      ###################################################################################################
+
 void ControlPanel::landing()
 {
     qDebug() << "landing";
     queue.enqueue(QStringList {"ACTIONGETCLOSER",           "0"});
     queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "1"});
     queue.enqueue(QStringList {"PANEL1CASEHEADER",          "0", "контакты"});
-    queue.enqueue(QStringList {"PANEL1CASEMENUCONT",        "0", m_sStationTarget});
-    queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "0"});
-    queue.enqueue(QStringList {"WAITMENUDOCKING",           "0"});
+    if(state_delivery == STATE_FROM_STATION) {
+        queue.enqueue(QStringList {"PANEL1CASEMENUCONT",        "0", m_sFromStationTarget});
+        queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "0"});
+        queue.enqueue(QStringList {"WAITMENUDOCKING",           "0"});
+        queue.enqueue(QStringList {"DOCKINGMENUCASE",           "0", "menu_docking_service"});
+        queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", m_sFromNameActionCargo, m_sCountCargo, "загрузка", m_sTypeCargoUpload});
 
-    if(m_jObject["actionRefuel"].toString() == "заправиться") {
+
+    } else if(state_delivery == STATE_TO_STATION) {
+        queue.enqueue(QStringList {"PANEL1CASEMENUCONT",        "0", m_sToStationTarget});
+        queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "0"});
+        queue.enqueue(QStringList {"WAITMENUDOCKING",           "0"});
+        queue.enqueue(QStringList {"DOCKINGMENUCASE",           "0", "menu_docking_service"});
+        queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", m_sToNameActionCargo, m_sCountCargo, "разгрузка", m_sTypeCargoUpload});
+    }
+
+    if(m_jObject["refuel"].toInt() == 1) {
         queue.enqueue(QStringList {"DOCKINGMENUCASE",           "0", "menu_docking_service"});
         queue.enqueue(QStringList {"IMAGEEXPECTED",             "0", "menuServiceExit", "0.9", "4", "12", "13"});
         queue.enqueue(QStringList {"ACTIONWAIT",                "0", "1000"});
         queue.enqueue(QStringList {"SERVICEMENU",               "0"});
     }
-    if(m_jObject["actionDeliver"].toString() == "доставка") {
-        queue.enqueue(QStringList {"DOCKINGMENUCASE",           "0", "menu_docking_service"});
-        queue.enqueue(QStringList {"IMAGEEXPECTED",             "0", "menuServiceExit", "0.9", "4", "12", "13"});
+//    if(m_jObject["actionDeliver"].toString() == "доставка") {
+//        queue.enqueue(QStringList {"DOCKINGMENUCASE",           "0", "menu_docking_service"});
+//        queue.enqueue(QStringList {"IMAGEEXPECTED",             "0", "menuServiceExit", "0.9", "4", "12", "13"});
 
-        queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", m_jObject["typeAction"].toString(), "4", m_jObject["typeDeliver"].toString()});
-//        queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", "LOADING", "4", "case"});
-    }
+//        queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", m_jObject["typeAction"].toString(), "4", m_jObject["typeDeliver"].toString()});
+////        queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", "LOADING", "4", "case"});
+//    }
     queue.enqueue(QStringList {"MARKER",                    "0", "landing"});
 
 }
+
+
+//      #######################################################################################################
+//      #######################################################################################################
+//      #######################################################################################################
 
 void ControlPanel::flyAround()
 {
@@ -210,26 +246,14 @@ void ControlPanel::flyAround()
 void ControlPanel::setTrack()
 {
     qDebug() << "создаём новый скрипт setTrack";
-//    QMultiMap<QString, QString>::iterator it = mMapSystems.begin();
-//    while(it != mMapSystems.end()) {
-//        if(it.key() == m_sSystemTarget) {
-//            if(++it != mMapSystems.end()) {
-//                if(m_sSystemTarget != it.key())
-//                    m_sSystemTarget = it.key();
-//                else
-//                    continue;
-//            } else {
-//                it = mMapSystems.begin();
-//                m_sSystemTarget = it.key();
-//            }
-//            break;
-//        }
-//        ++it;
-//    }
-
     queue.clear();
     queue.enqueue(QStringList {"MAPSYSTEMENABLE",           "0", "m" });
-    queue.enqueue(QStringList {"MAPSYSTEM",                 "0", m_sSystemTarget});
+    if(state_delivery == STATE_FROM_STATION) {
+        queue.enqueue(QStringList {"MAPSYSTEM",             "0", m_sFromSystemTarget});
+    } else if(state_delivery == STATE_TO_STATION) {
+        queue.enqueue(QStringList {"MAPSYSTEM",             "0", m_sToSystemTarget});
+    }
+
     queue.enqueue(QStringList {"MARKER",                    "0", "setTrack"});
 
 
@@ -238,25 +262,10 @@ void ControlPanel::setTrack()
 void ControlPanel::init()
 {
     mMapSystems = mapSystemsAndStationLoad;
-//    mMapSystems.insert("Harma", "Gabriel Enterprise");
-//    mMapSystems.insert("Harma", "Celebi city");
-//    mMapSystems.insert("HIP 112400", "Bluford orbital");
-//    mMapSystems.insert("HIP 112400", "Springer Colony");
-//    mMapSystems.insert("Kakmbutan", "Macgregor Orbital");
-//    mMapSystems.insert("Huichi", "Collins Station");
-//    mMapSystems.insert("Clayakarma", "Duke City");
-//    mMapSystems.insert("Clayakarma", "Sinclair Port");
-//    mMapSystems.insert("Xi Ophiuchi", "Khan Dock");
-//    mMapSystems.insert("Katuri", "Bogdanov City");
     QStringList systems = mMapSystems.keys();
     systems.removeDuplicates();
     ui->comboBox_2->clear();
     ui->comboBox_2->addItems(systems);
-
-//    ui->comboBox_2->setCurrentIndex(1);
-        // Bluford orbital
-//    slistSystems << "HIP 112400" << "Harma";
-//    ui->comboBox_2->addItems(slistSystems);
 }
 
 void ControlPanel::checkCurSystem()
@@ -266,7 +275,12 @@ void ControlPanel::checkCurSystem()
     queue.enqueue(QStringList {"MAPSYSTEMENABLE",           "0", "m" });
 //    queue.enqueue(QStringList {"GETSTRSTATICFIELD",         "0", "pic_fieldSystemName"});
 //    queue.enqueue(QStringList {"CHECKCURSYSTEM",            "0", "response"});
-    queue.enqueue(QStringList {"CHECKCURSYSTEM",            "0", m_sSystemTarget});
+    if(state_delivery == STATE_FROM_STATION) {
+        queue.enqueue(QStringList {"CHECKCURSYSTEM",            "0", m_sFromSystemTarget});
+    } else if(state_delivery == STATE_TO_STATION) {
+        queue.enqueue(QStringList {"CHECKCURSYSTEM",            "0", m_sToSystemTarget});
+    }
+
     queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "push_key", "m" });
     queue.enqueue(QStringList {"ACTIONWAIT",                "0", "2000"});
     queue.enqueue(QStringList {"MARKER",                    "0", "checkCurSystem"});
@@ -275,24 +289,39 @@ void ControlPanel::checkCurSystem()
 void ControlPanel::prepScript()
 {
     qDebug() << "Чтение очереди ";
-    if(ui->listWidget->count() == 0) {
-        qDebug() << "Очередь пуста";
-        ui->checkBox_2->setChecked(false);
-        started = false;
-        return;
-    }
-    QListWidgetItem *item = ui->listWidget->takeItem(0);
-    QByteArray array = item->text().toUtf8();
-    QJsonDocument jDoc = QJsonDocument::fromJson(array);
+//    if(ui->listWidget->count() == 0) {
+//        qDebug() << "Очередь пуста";
+//        ui->checkBox_2->setChecked(false);
+//        started = false;
+//        return;
+//    }
+//    QListWidgetItem *item = ui->listWidget->takeItem(0);
+//    QByteArray array = item->text().toUtf8();
+//    QJsonDocument jDoc = QJsonDocument::fromJson(array);
 
-    m_jObject = jDoc.object();
+
+
+
+//    m_jObject = jDoc.object();
+    m_jObject = takeJsonObj();
     qDebug() << m_jObject;
-    m_sSystemTarget = m_jObject["system"].toString();
-    m_sStationTarget = m_jObject["station"].toString();
 
+
+    initKeyNames();
+
+
+    qDebug() << m_sFromSystemTarget << m_sFromStationTarget << m_sToSystemTarget << m_sToStationTarget << m_sFromNameActionCargo << m_sToNameActionCargo << m_sRefuel << m_sTypeCargoUpload << m_sCountCargo;
+
+//    state_delivery = STATE_TO_STATION;
 
     queue.clear();
     if(!started) {
+        if(ui->radioButton_2->isChecked()) {
+            state_delivery = STATE_FROM_STATION;
+        } else if(ui->radioButton_7->isChecked()) {
+            state_delivery = STATE_TO_STATION;
+        }
+
         if(ui->radioButton_6->isChecked()) {
             setCursorSystem();
         } else if(ui->radioButton->isChecked()) {
@@ -302,24 +331,14 @@ void ControlPanel::prepScript()
         } else if(ui->radioButton_5->isChecked()) {
             dockAutoStart();
         } else if(ui->radioButton_3->isChecked()) {
+
             flyToSystem();
         }
         started = true;
     } else {
         setCursorSystem();
     }
-//    emit signalSetQueue(queue);
-//    flyToSystem();
-//    flytoStation();
 
-
-//    static enum {TRANS_1, TRANS_2, TRANS_3} trans;
-//    switch (trans) {
-//    case TRANS_1:
-
-//    break;
-
-//    }
     qDebug() << "m_jObject " << m_jObject;
 }
 
@@ -444,7 +463,13 @@ void ControlPanel::slotReceivReturnCommand(QStringList aList)
                     } else if(aList[2] == "flyAround") {
                         waitFlyToStation();
                     } else if(aList[2] == "landing") {
-                        prepScript();
+                        if(state_delivery == STATE_FROM_STATION) {
+                            state_delivery = STATE_TO_STATION;
+                            setCursorSystem();
+                        } else if(state_delivery == STATE_TO_STATION) {
+                            state_delivery = STATE_FROM_STATION;
+                            prepScript();
+                        }
                     } else if(aList[2] == "dockAutoStart") {
                         flyToSystem();
                     }
@@ -498,6 +523,41 @@ void ControlPanel::slotCmbSystem(const QString &str)
     }
     ui->comboBox->clear();
     ui->comboBox->addItems(listStation);
+}
+
+void ControlPanel::initKeyNames()
+{
+    m_sFromSystemTarget = m_jObject["fromSystem"].toString();
+//    m_sFromSystemTarget = m_sFromSystemTarget.simplified();
+//    m_sFromSystemTarget = m_sFromSystemTarget.toLower();
+//    deleteCharExtra(m_sFromSystemTarget);
+    m_sFromStationTarget = m_jObject["fromStation"].toString();
+//    m_sFromStationTarget = m_sFromStationTarget.simplified();
+//    m_sFromStationTarget = m_sFromStationTarget.toLower();
+//    deleteCharExtra(m_sFromStationTarget);
+
+    m_sToSystemTarget = m_jObject["toSystem"].toString();
+//    m_sToSystemTarget = m_sToSystemTarget.simplified();
+//    m_sToSystemTarget = m_sToSystemTarget.toLower();
+//    deleteCharExtra(m_sToSystemTarget);
+    m_sToStationTarget = m_jObject["toStation"].toString();
+//    m_sToStationTarget = m_sToStationTarget.simplified();
+//    m_sToStationTarget = m_sToStationTarget.toLower();
+//    deleteCharExtra(m_sToStationTarget);
+
+    m_sFromNameActionCargo = m_jObject["fromNameActionCargo"].toString();
+//    m_sFromNameActionCargo = m_sFromNameActionCargo.simplified();
+//    m_sFromNameActionCargo = m_sFromNameActionCargo.toLower();
+//    deleteCharExtra(m_sFromNameActionCargo);
+    m_sToNameActionCargo = m_jObject["toNameActionCargo"].toString();
+//    m_sToNameActionCargo = m_sToNameActionCargo.simplified();
+//    m_sToNameActionCargo = m_sToNameActionCargo.toLower();
+//    deleteCharExtra(m_sToNameActionCargo);
+
+    m_sRefuel = QString::number(m_jObject["refuel"].toInt());
+    m_sTypeCargoUpload = QString::number(m_jObject["typeCargoLoad"].toInt());
+    m_sCountCargo = QString::number(m_jObject["countCargo"].toInt());
+
 }
 
 void ControlPanel::deleteConfig(int anIndex)
@@ -569,6 +629,32 @@ void ControlPanel::saveData()
     }
 }
 
+QJsonObject ControlPanel::takeJsonObj()
+{
+
+    if(listFlyAction.isEmpty()) {
+        qDebug() << "Нет заданы цели";
+        return QJsonObject();
+    }
+    QJsonObject jObj = listFlyAction[0]->getJsonObj();
+    QJsonObject jSubObj = jObj["object"].toObject();
+    QJsonObject jRetObj = jSubObj;
+    if(jSubObj["countFlights"].toInt() == 1) {
+        delete listFlyAction[0];
+        listFlyAction.removeAt(0);
+        for(int i = 0; i < listFlyAction.size(); i++) {
+            listFlyAction[i]->setIndex(i);
+        }
+    } else {
+        qDebug() << jSubObj;
+        jSubObj["countFlights"] = jSubObj["countFlights"].toInt() - 1;
+        jObj["object"] = jSubObj;
+        listFlyAction[0]->setJsonObj(jObj);
+    }
+    saveData();
+    return jRetObj;
+}
+
 void ControlPanel::on_checkBox_2_clicked()          // Пуск
 {
 //    setTrack();
@@ -611,7 +697,7 @@ void ControlPanel::on_pushButton_clicked()          //  ТЕСТ
 //    queue.enqueue(QStringList {"PANEL1ENABLE",              "0", QString::number(bTest)});
 //    queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "0" });
 
-    queue.enqueue(QStringList {"PANEL1CASEHEADER",          "0", "навигация"});
+//    queue.enqueue(QStringList {"PANEL1CASEHEADER",          "0", "навигация"});
 
 //    queue.enqueue(QStringList {"PANEL1CASEHEADER",          "0", "навигация"});
 //    queue.enqueue(QStringList {"PANEL1CASEMENUNAV",         "0", m_sStationTarget});
@@ -669,6 +755,22 @@ void ControlPanel::on_pushButton_clicked()          //  ТЕСТ
 //    }
 //    queue.enqueue(QStringList {"MAPSYSTEMENABLE",           "0", "m" });
 //    queue.enqueue(QStringList {"MAPSYSTEM",                 "0", sTest});
+
+
+    m_jObject = takeJsonObj();
+    initKeyNames();
+
+    qDebug() << m_sFromSystemTarget << m_sFromStationTarget << m_sToSystemTarget << m_sToStationTarget << m_sFromNameActionCargo << m_sToNameActionCargo << m_sRefuel << m_sTypeCargoUpload << m_sCountCargo;
+
+
+    queue.enqueue(QStringList {"DOCKINGMENUCASE",           "0", "menu_docking_service"});
+    QString typeCargoLoad;
+    if(ui->radioButton_2->isChecked()) {
+        queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", m_sFromNameActionCargo, m_sCountCargo, "загрузка", m_sTypeCargoUpload});
+    } else if(ui->radioButton_7->isChecked()) {
+        queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", m_sToNameActionCargo, m_sCountCargo, "разгрузка", m_sTypeCargoUpload});
+    }
+
 
 
     queue.prepend(QStringList {"RESTORGAME",                "0" });
@@ -771,4 +873,9 @@ void ControlPanel::on_pushButton_6_clicked()
 void ControlPanel::on_pushButton_7_clicked()
 {
     saveData();
+}
+
+void ControlPanel::on_pushButton_8_clicked()
+{
+    qDebug() << qPrintable(QByteArray(QJsonDocument(takeJsonObj()).toJson()));
 }

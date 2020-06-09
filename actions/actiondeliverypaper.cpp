@@ -9,8 +9,12 @@ void ActionDeliveryPaper::init(QStringList &asListParam)
 {
     sys_debugLog = false;
     sTypeAction = asListParam[2];
+//    sTypeAction = sTypeAction.simplified();
+//    sTypeAction = sTypeAction.toLower();
+//    deleteCharExtra(sTypeAction);
     countPart = asListParam[3].toInt();
     sTypeDeliver = asListParam[4];
+    sTypeCargoUpLoad = asListParam[5];
     menu_trans = MENU_TRANS_1;
     curPart = 0;
 }
@@ -25,7 +29,10 @@ bool ActionDeliveryPaper::logic(QStringList &asListParam)
         if(expectedImage("menuServiceExit", 0.8, 4, 12, 13)) {
             QThread::msleep(1000);
             point = capture->getPoint("pic_serviceDockMenuContacts");
-            mouse_move_click(point.x(), point.y());
+            mouse_move(point.x(), point.y());
+            QThread::msleep(500);
+            mouse_click(0);
+            qDebug() << asListParam;
             menu_trans = MENU_TRANS_2;
         }
         break;
@@ -35,36 +42,54 @@ bool ActionDeliveryPaper::logic(QStringList &asListParam)
             menu_trans = MENU_TRANS_3;
         }
         break;
-    case MENU_TRANS_3:
+    case MENU_TRANS_3: {
         sText = "pic_contactsRight1";
-        ret = comparisonStr("контактдержавы", capture->getTextStaticField(sText.toStdString(), cv::Scalar(0, 0, 70), cv::Scalar(25, 255, 255), "ru"));
-        if(ret <= 2) {
+        QString sContPower = capture->getTextStaticField(sText.toStdString(), cv::Scalar(0, 0, 70), cv::Scalar(25, 255, 255), "ru");
+        ret = comparisonStr("контактдержавы", sContPower);
+        if(ret <= 2 || sContPower.contains("контактдержавы")) {
             point = capture->getPoint(sText);
-            mouse_move_click(point.x(), point.y());
+            mouse_move(point.x(), point.y());
+            QThread::msleep(500);
+            mouse_click(0);
+
             menu_trans = MENU_TRANS_4;
         }
         sText = "pic_contactsRight2";
-        ret = comparisonStr("контактдержавы", capture->getTextStaticField(sText.toStdString(), cv::Scalar(0, 0, 70), cv::Scalar(25, 255, 255), "ru"));
-        if(ret <= 2) {
+        sContPower = capture->getTextStaticField(sText.toStdString(), cv::Scalar(0, 0, 70), cv::Scalar(25, 255, 255), "ru");
+        ret = comparisonStr("контактдержавы", sContPower);
+        if(ret <= 2 || sContPower.contains("контактдержавы")) {
             point = capture->getPoint(sText);
-            mouse_move_click(point.x(), point.y());
+            mouse_move(point.x(), point.y());
+            QThread::msleep(500);
+            mouse_click(0);
+
             menu_trans = MENU_TRANS_4;
         }
         sText = "pic_contactsRight3";
-        ret = comparisonStr("контактдержавы", capture->getTextStaticField(sText.toStdString(), cv::Scalar(0, 0, 70), cv::Scalar(25, 255, 255), "ru"));
-        if(ret <= 2) {
+        sContPower = capture->getTextStaticField(sText.toStdString(), cv::Scalar(0, 0, 70), cv::Scalar(25, 255, 255), "ru");
+        ret = comparisonStr("контактдержавы", sContPower);
+        if(ret <= 2 || sContPower.contains("контактдержавы")) {
             point = capture->getPoint(sText);
-            mouse_move_click(point.x(), point.y());
+//            mouse_move_click(point.x(), point.y());
+            mouse_move(point.x(), point.y());
+            QThread::msleep(500);
+            mouse_click(0);
             menu_trans = MENU_TRANS_4;
         }
         sText = "pic_contactsRight4";
-        ret = comparisonStr("контактдержавы", capture->getTextStaticField(sText.toStdString(), cv::Scalar(0, 0, 70), cv::Scalar(25, 255, 255), "ru"));
-        if(ret <= 2) {
+        sContPower = capture->getTextStaticField(sText.toStdString(), cv::Scalar(0, 0, 70), cv::Scalar(25, 255, 255), "ru");
+        ret = comparisonStr("контактдержавы", sContPower);
+        if(ret <= 2 || sContPower.contains("контактдержавы")) {
             point = capture->getPoint(sText);
-            mouse_move_click(point.x(), point.y());
+//            mouse_move_click(point.x(), point.y());
+            mouse_move(point.x(), point.y());
+            QThread::msleep(500);
+            mouse_click(0);
+
             menu_trans = MENU_TRANS_4;
         }
         break;
+    }
     case MENU_TRANS_4:
         mouse_move(g_screen.width()/2, g_screen.height()/2);
         timer.restart();
@@ -133,85 +158,57 @@ bool ActionDeliveryPaper::logic(QStringList &asListParam)
 
             if(resultSrch) {
                 sText = capture->getTextApproximArea(rectForAction, findPoint, "ru");
-//                qDebug() << "Get text" << sText;
-                if(sText.contains("ускорить")) {
-                    qDebug() << "Ускорить ..." << findPoint.x << findPoint.y;
-                    mouse_move_click(findPoint.x, findPoint.y);
-                } else if(sText.contains("доставить")){
-                    qDebug() << "Доставить ..." << findPoint.x << findPoint.y;
-                    mouse_move_click(findPoint.x, findPoint.y);
-                    curPart = 0;
-                    countPart = -1;
+                qDebug() << ">>> Get text" << sText;
+                if(sTypeDeliver == "разгрузка") {
+                    if(sTypeCargoUpLoad == "0") {
+                        qDebug() << "found" << " factor =" << factor;
+                        mouse_move(point.x(), point.y() - 110);
+                        QThread::msleep(500);
+                        press_key("d");
+                        QThread::msleep(17000);
+                        release_key("d");
+                        QThread::msleep(300);
+                        push_key(" ");
+                    } else if(sTypeCargoUpLoad == "1")  {
+                        qDebug() << "Доставить ..." << findPoint.x << findPoint.y;
+//                        mouse_move_click(findPoint.x, findPoint.y);
+                        mouse_move(findPoint.x, findPoint.y);
+                        QThread::msleep(500);
+                        mouse_click(0);
+
+                        curPart = 0;
+                        countPart = -1;
+                    }
                     menu_trans = MENU_TRANS_7;
                 } else {
-                    qDebug() << "found" << " factor =" << factor;
-                    mouse_move(point.x(), point.y() - 110);
+                    if(sText.contains("ускорить")) {
+                        qDebug() << "Ускорить ..." << findPoint.x << findPoint.y;
+//                        mouse_move_click(findPoint.x, findPoint.y);
+                        mouse_move(findPoint.x, findPoint.y);
+                        QThread::msleep(500);
+                        mouse_click(0);
+//                    } else if(sText.contains("доставить")){
+//                        qDebug() << "if(resultSrch) { if(разгрузка) { if доставить {}}}";
+////                        qDebug() << "Доставить ..." << findPoint.x << findPoint.y;
+////                        mouse_move_click(findPoint.x, findPoint.y);
+////                        curPart = 0;
+////                        countPart = -1;
+////                        menu_trans = MENU_TRANS_7;
+                    } else {
+                        qDebug() << "if(resultSrch) { if(разгрузка) { else {}}}";
+//                        qDebug() << "found" << " factor =" << factor;
+                        mouse_move(point.x(), point.y() - 110);
+                    }
+                    menu_trans = MENU_TRANS_6;
                 }
+
+
+
+
                 timer.restart();
-                menu_trans = MENU_TRANS_6;
                 QThread::msleep(1000);
-
+//                return true;
             }
-            // ****************************
-//            double factor = 0;
-//            capture->srchAreaOnceInRect("pic_systemGain", factor, point, 9, 30, 39);
-//            qDebug() << "found power" << factor;
-//            if(factor > 0.93) {
-//                cv::Rect rect = capture->getRect("rect_ContactPowerMenu");
-//                rect.y = point.y() - (capture->getRect("pic_systemGain").height / 2);
-//                rect.y = rect.y - (capture->getRect("rect_ContactPowerMenu").height / 2);
-//                resultSrch = true;
-
-//                cv::Point findPoint;
-//                sText = capture->getTextApproximArea(rect, findPoint, "ru");
-//                qDebug() << "Get text" << sText;
-//                if(sText.contains("ускорить")) {
-//                    qDebug() << "Ускорить ..." << findPoint.x << findPoint.y;
-//                    mouse_move_click(findPoint.x, findPoint.y);
-//                } else if(sText.contains("доставить")){
-//                    qDebug() << "Доставить ..." << findPoint.x << findPoint.y;
-//                    mouse_move_click(findPoint.x, findPoint.y);
-//                    curPart = 0;
-//                    countPart = -1;
-//                    menu_trans = MENU_TRANS_7;
-//                } else {
-//                    qDebug() << "found" << " factor =" << factor;
-//                    mouse_move(point.x(), point.y() - 110);
-//                }
-//                timer.restart();
-//                menu_trans = MENU_TRANS_6;
-//                QThread::msleep(1000);
-//            }
-//            factor = 0;
-//            capture->srchAreaOnceInRect("pic_systemSys", factor, point, 9, 30, 39);
-//            qDebug() << "found sys" << factor;
-//            if(factor > 0.93) {
-//                cv::Rect rect = capture->getRect("rect_ContactPowerMenu");
-//                rect.y = point.y() - (capture->getRect("pic_systemGain").height / 2);
-//                rect.y = rect.y - (capture->getRect("rect_ContactPowerMenu").height / 2);
-
-//                cv::Point findPoint;
-//                sText = capture->getTextApproximArea(rect, findPoint, "ru");
-//                qDebug() << "Get text" << sText;
-//                if(sText.contains("ускорить")) {
-//                    qDebug() << "Ускорить ..." << findPoint.x << findPoint.y;
-//                    mouse_move_click(findPoint.x, findPoint.y);
-//                } else if(sText.contains("доставить")){
-//                    qDebug() << "Доставить ..." << findPoint.x << findPoint.y;
-//                    mouse_move_click(findPoint.x, findPoint.y);
-//                    curPart = 0;
-//                    countPart = -1;
-//                    menu_trans = MENU_TRANS_7;
-//                } else {
-//                    qDebug() << "found" << " factor =" << factor;
-//                    mouse_move(point.x(), point.y() - 110);
-//                }
-//                timer.restart();
-//                menu_trans = MENU_TRANS_6;
-//                QThread::msleep(1000);
-//            }
-
-
 
 
         } else {
@@ -222,15 +219,23 @@ bool ActionDeliveryPaper::logic(QStringList &asListParam)
     }
     case MENU_TRANS_6:
 //        return true;     // ***
-        if(sTypeDeliver != "разгрузка") {
+//        if(sTypeCargoUpLoad == "0") {
+//            press_key("d");
+//            QThread::msleep(15000);
+//            release_key("d");
+//        } else if(sTypeCargoUpLoad == "1")  {
+
+//        }
+//        if(sTypeDeliver != "разгрузка") {
             press_key("d");
             QThread::msleep(5500);
             release_key("d");
-        } else {
-            press_key("d");
-            QThread::msleep(10000);
-            release_key("d");
-        }
+            QThread::msleep(300);
+//        } else {
+//            press_key("d");
+//            QThread::msleep(10000);
+//            release_key("d");
+//        }
 
         push_key(" ");
         QThread::msleep(2000);
@@ -245,10 +250,12 @@ bool ActionDeliveryPaper::logic(QStringList &asListParam)
         ret = comparisonStr("назад", sText);
         if(ret <= 1) {
             qDebug() << "sText =" << sText << cvPoint.x << cvPoint.y;
-            mouse_move_click(cvPoint.x, cvPoint.y);
+            mouse_move(cvPoint.x, cvPoint.y);
+            QThread::msleep(500);
+            mouse_click(0);
             QThread::msleep(1000);
             curPart++;
-            if(curPart < countPart) {
+            if(curPart < countPart && sTypeDeliver == "загрузка") {
                 menu_trans = MENU_TRANS_3;
             }
             return false;
@@ -257,7 +264,11 @@ bool ActionDeliveryPaper::logic(QStringList &asListParam)
         ret = comparisonStr("выход", sText);
         if(ret <= 1) {
             qDebug() << "sText " << sText << cvPoint.x << cvPoint.y;
-            mouse_move_click(cvPoint.x, cvPoint.y);
+//            mouse_move_click(cvPoint.x, cvPoint.y);
+            mouse_move(cvPoint.x, cvPoint.y);
+            QThread::msleep(500);
+            mouse_click(0);
+
             menu_trans = MENU_TRANS_8;
         }
 

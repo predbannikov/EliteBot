@@ -11,6 +11,7 @@ class ActionDeliveryPaper : public BaseAction
     int curPart;
     QString sTypeAction;
     QString sTypeDeliver;
+    QString sTypeCargoUpLoad;
     QPoint point;
 public:
     ActionDeliveryPaper(CaptureWindow *aCapture, SocketIO *aSock);

@@ -36,6 +36,7 @@ void CheckCurSystem::init(QStringList &asListParam)
 
 bool CheckCurSystem::logic(QStringList &asListParam)
 {
+    qDebug() << "Должна быть система" <<  asListParam[2];
     QPoint _point;
     cv::Point _cvPoint;
     QString sText;

@@ -809,7 +809,7 @@ CursorPanel *CaptureWindow::panelBodyNav(QString aName, QString asSystem)
                         cv::imshow("win4", bin);
                         for(size_t i = 0; i < cont.size(); i++) {
                             cv::Rect foundRectToRec = cv::boundingRect(cont[i]);
-                            if(foundRectToRec.width > (rotateMat.size().width - 25)) {
+                            if(foundRectToRec.width > (rotateMat.size().width - 35)) {
                                 double area = contourArea(cont[i]);
 //                                qDebug() << area;
                                 if(area > 19000 && area < 30000 ) {
@@ -1861,7 +1861,9 @@ QString CaptureWindow::getTextStaticField(std::string asImageROI, cv::Scalar aMi
     cv::Mat mask;
     win(rect).copyTo(dst);
     cv::inRange(dst, aMinScalar, aMaxScalar, mask);
-    cv::bitwise_not(mask, mask);
+    int tempBkack, tmpWhite;
+    if(!blackLessWhite(mask, tempBkack, tmpWhite))
+        cv::bitwise_not(mask, mask);
     QString sText;
     if(asLang == "ru") {
         myOCRRus->SetImage( (uchar*)mask.data, mask.size().width, mask.size().height, mask.channels(), mask.step1());
@@ -2128,7 +2130,7 @@ QString CaptureWindow::getTextApproximBoundingRect(cv::Rect aRect, cv::Point &aP
     sText = sText.simplified();
     sText = sText.toLower();
 //    deleteCharExtra(sText);
-    qDebug() << sText;
+    qDebug() << "getTextApproximBoundingRect" << sText;
 //    emit signalSaveImageForDebug(dst,  QString("dst-") + QDateTime::currentDateTime().toString("mmsszz"));
 //    emit signalSaveImageForDebug(recognizMask, QString("recoginezMask-") + QDateTime::currentDateTime().toString("mmsszz"));
 //    emit signalSaveImageForDebug(edgeMat,  QString("edgeMat-") + QDateTime::currentDateTime().toString("mmsszz"));
@@ -2327,6 +2329,10 @@ bool CaptureWindow::containTextApproximBoundingMat(cv::Mat aMat, QString asTextS
 
 bool CaptureWindow::containTextMat(cv::Rect aRect, cv::Point &aPoint, QString asTextSrch, QString asLang, int abApproxim)
 {
+    asTextSrch = asTextSrch.simplified();
+    asTextSrch = asTextSrch.toLower();
+    deleteCharExtra(asTextSrch);
+
     cv::Mat dst;
     win(aRect).copyTo(dst);
     cv::Mat mask;
@@ -2343,6 +2349,7 @@ bool CaptureWindow::containTextMat(cv::Rect aRect, cv::Point &aPoint, QString as
     QString sText;
     int minVal1 = 70;
     bool ret = false;
+    qDebug() << "asTextSrch =" << asTextSrch;
     while(minVal1 < 256 && !ret) {
 //        cv::threshold(gray, mask, minNumber, maxNumber, cv::THRESH_BINARY);
         cv::threshold(gray, mask, minVal1, 153, cv::THRESH_BINARY);
@@ -2355,6 +2362,10 @@ bool CaptureWindow::containTextMat(cv::Rect aRect, cv::Point &aPoint, QString as
             cv::bitwise_not(recognizMask, recognizMask);
         }
 
+
+        cv::imshow("win5", recognizMask);
+        QApplication::processEvents();
+//        QThread::msleep(1000);
         if(asLang == "ru") {
             myOCRRus->SetImage( (uchar*)recognizMask.data, recognizMask.size().width, recognizMask.size().height, recognizMask.channels(), recognizMask.step1());
             myOCRRus->Recognize(nullptr);
@@ -2364,22 +2375,26 @@ bool CaptureWindow::containTextMat(cv::Rect aRect, cv::Point &aPoint, QString as
             myOCREng->Recognize(nullptr);
             sText = myOCREng->GetUTF8Text();
         }
-        minVal1 += 70;
+        minVal1 += 15;
+        qDebug() << "1>>>" << sText;
         sText = sText.simplified();
         sText = sText.toLower();
         deleteCharExtra(sText);
+//        qDebug() << "2>>>" << sText;
         if(abApproxim == 0) {
             if(sText.contains(asTextSrch))
                 ret = true;
         } else {
             if(comparisonStr(sText, asTextSrch) <= abApproxim)
                 ret = true;
+            if(sText.contains(asTextSrch))
+                ret = true;
         }
     }
 
     if(sText.isEmpty())
         sText = "not recognized";
-//    qDebug() << "minVal1 =" << minVal1 << "text: " << sText;
+    qDebug() << "containTextMat minVal1 =" << minVal1 << "text: " << sText;
 //    cv::imshow("win3", mask);
     cv::imshow("win5", recognizMask);
 //    cv::imshow("win4", gray);
@@ -4219,7 +4234,7 @@ void CaptureWindow::freeze()
     win.copyTo(m_srcWin);
 }
 
-bool CaptureWindow::blackLessWhite(cv::Mat &aBinMat, int &anWhite, int &anBlack)       // Только для бинарных матриц
+bool CaptureWindow::blackLessWhite(cv::Mat &aBinMat, int &anWhite, int &anBlack)       // Только для бинарных матриц, anWhite anBlack возврат результата если нужно
 {
     if(DEBUG2)
         qDebug() << ".";

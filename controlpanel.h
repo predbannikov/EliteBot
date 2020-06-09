@@ -40,12 +40,23 @@ class FlyToTarget;
 class ControlPanel : public QMainWindow
 {
     Q_OBJECT
+
+//    enum CURRENT_MARK {STATE_setCursorSystem, STATE_dockAutoStart, STATE_flyToSystem, STATE_checkCurSystem,
+//      STATE_setCursorStation, STATE_flytoStation, STATE_waitFlyToStation, STATE_landing, STATE_prepScript };
+    enum STATE_DELIVERY {STATE_FROM_STATION, STATE_TO_STATION} state_delivery;
     EngineScript *m_engine;
     QQueue<QStringList> queue;
-    QString     m_sSystemTarget;
-    QString     m_sStationTarget;
-    QString     m_actionRefuel;
-    QString     m_actionDelivery;
+//    QString     m_sSystemTarget;
+//    QString     m_sStationTarget;
+    QString     m_sToSystemTarget;
+    QString     m_sToStationTarget;
+    QString     m_sFromSystemTarget;
+    QString     m_sFromStationTarget;
+    QString     m_sRefuel;
+    QString     m_sTypeCargoUpload;
+    QString     m_sCountCargo;
+    QString     m_sFromNameActionCargo;
+    QString     m_sToNameActionCargo;
 //    QString     m_action
     QJsonObject m_jObject;
 //    QStringList slistSystems;
@@ -71,6 +82,7 @@ public:
     void landing();
     void setTrack();
     void init();
+    void initKeyNames();
     void checkCurSystem();
     void performList();
     void prepScript();
@@ -85,6 +97,7 @@ private slots:
     void addConfig();
     void loadData();
     void saveData();
+    QJsonObject takeJsonObj();
 
     void on_checkBox_2_clicked();
 
@@ -117,6 +130,8 @@ private slots:
     void on_pushButton_6_clicked();
 
     void on_pushButton_7_clicked();
+
+    void on_pushButton_8_clicked();
 
 private:
     Ui::ControlPanel *ui;
@@ -183,6 +198,8 @@ class ConfDelivery : public QWidget
 public:
     ConfDelivery(QWidget *parent = nullptr): QWidget(parent) {
         this->setObjectName("ConfDelivery");
+        sNamesActionCargo << "Усилить систему" << "Укрепить для державы" << "Подготовить системы для державы" << "Подготовить систему";
+
 
         QHBoxLayout *hbl = new QHBoxLayout;
         setLayout(hbl);
@@ -209,14 +226,13 @@ public:
             cmbFromTargetStation->addItems(list);
         });
 
+//****
 
+        cmbFromNameActionCargo = new QComboBox;
+        cmbFromNameActionCargo->addItems(sNamesActionCargo);
+        cmbFromNameActionCargo->setMaximumWidth(150);
+        hbl->addWidget(cmbFromNameActionCargo);
 
-
-
-        sboxCountCargo = new QSpinBox;
-        sboxCountCargo->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
-        sboxCountCargo->setMaximumWidth(50);
-        hbl->addWidget(sboxCountCargo);
 
 
 
@@ -241,6 +257,20 @@ public:
             cmbToTargetStation->addItems(list);
         });
 
+        cmbToNameActionCargo = new QComboBox;
+        cmbToNameActionCargo->addItems(sNamesActionCargo);
+        cmbToNameActionCargo->setMaximumWidth(150);
+        hbl->addWidget(cmbToNameActionCargo);
+
+        sboxCountCargo = new QSpinBox;
+        sboxCountCargo->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
+        sboxCountCargo->setMaximumWidth(50);
+        sboxCountCargo->setMinimum(1);
+        hbl->addWidget(sboxCountCargo);
+
+
+
+
 
         groupRadioBtSide = new QGroupBox;
         radioType2 = new QRadioButton;
@@ -264,22 +294,16 @@ public:
         chboxRefuel->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
         hbl->addWidget(chboxRefuel);
 
-        QLabel *lblCount = new QLabel("\tcount");
+        QLabel *lblCount = new QLabel(" count");
         lblCount->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
         hbl->addWidget(lblCount);
         spinBoxCountDelivery = new QSpinBox;
+        spinBoxCountDelivery->setMinimum(1);
         spinBoxCountDelivery->setMaximumWidth(50);
         spinBoxCountDelivery->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
         hbl->addWidget(spinBoxCountDelivery);
     }
-//{
-//    "actionDeliver": "доставка",
-//    "actionRefuel": "заправиться",
-//    "station": "Johnson Orbital",
-//    "system": "Huichi",
-//    "typeAction": "Усилить систему",
-//    "typeDeliver": "разгрузка"
-//}
+
 
     QJsonObject getJsonObj() {
         QJsonObject jObj;
@@ -288,11 +312,13 @@ public:
         jObj["countCargo"] =            sboxCountCargo->value();
         jObj["toSystem"] =              cmbToTargetSystem->currentText();
         jObj["toStation"] =             cmbToTargetStation->currentText();
+        jObj["fromNameActionCargo"] =   cmbFromNameActionCargo->currentText();
+        jObj["toNameActionCargo"] =     cmbToNameActionCargo->currentText();
         if(radioType1->isChecked())
             jObj["typeCargoLoad"] =     0;
         else if(radioType2->isChecked())
             jObj["typeCargoLoad"] =     1;
-        jObj["actionRefuel"] =          chboxRefuel->isChecked() ? 1 : 0;
+        jObj["refuel"] =          chboxRefuel->isChecked() ? 1 : 0;
         jObj["countFlights"] =          spinBoxCountDelivery->value();
 
         return jObj;
@@ -303,17 +329,22 @@ public:
         sboxCountCargo->setValue(ajObj["countCargo"].toInt());
         cmbToTargetSystem->setCurrentText(ajObj["toSystem"].toString());
         cmbToTargetStation->setCurrentText(ajObj["toStation"].toString());
+        cmbFromNameActionCargo->setCurrentText(ajObj["fromNameActionCargo"].toString());
+        cmbToNameActionCargo->setCurrentText(ajObj["toNameActionCargo"].toString());
+
         if(ajObj["typeCargoLoad"].toInt() == 0)
             radioType1->setChecked(true);
         else if(ajObj["typeCargoLoad"].toInt() == 1)
             radioType2->setChecked(true);
-        chboxRefuel->setChecked(static_cast<bool>(ajObj["actionRefuel"].toInt()));
+        chboxRefuel->setChecked(static_cast<bool>(ajObj["refuel"].toInt()));
         spinBoxCountDelivery->setValue(ajObj["countFlights"].toInt());
     }
     QComboBox *cmbFromTargetSystem;
     QComboBox *cmbFromTargetStation;
     QComboBox *cmbToTargetSystem;
     QComboBox *cmbToTargetStation;
+    QComboBox *cmbFromNameActionCargo;
+    QComboBox *cmbToNameActionCargo;
     QSpinBox *spinBoxCountDelivery;
     QSpinBox *sboxCountCargo;
     QCheckBox *chboxRefuel;
@@ -321,6 +352,8 @@ public:
     QGroupBox    *groupRadioBtSide;
     QRadioButton *radioType1;
     QRadioButton *radioType2;
+
+    QStringList sNamesActionCargo;
 
 };
 
@@ -411,6 +444,7 @@ public:
                 // Доработать
         }
     }
+
     QJsonObject getJsonObj() {
         QJsonObject jObj;
         jObj["index"] = index;

@@ -116,7 +116,7 @@ bool MapSystem::logic(QStringList &asListParam)
         trans = TRANS_5;
         break;
 
-    case TRANS_4: {
+    case TRANS_4: {         // Не обрабатываемое состояние сейчас.
         cv::Point _p;
         QString sText = capture->getTextApproximBoundingRect(capture->getRect("fieldSearch"), _p, "eng");
         if(comparisonStr(asListParam[2], sText) <= 1) {
@@ -147,7 +147,16 @@ bool MapSystem::logic(QStringList &asListParam)
             trans = TRANS_7;
             timer.restart();
         } else {
-            trans = TRANS_1;
+//            trans = TRANS_1;
+
+
+            push_key("m");
+            QThread::msleep(3000);
+            asListParam[1] = "1";
+            asListParam[2] = "no cursor set system";
+            qDebug() << "TEST!!! -> setCursorSystem =" << asListParam;
+            return true;
+
         }
 
         break;
