@@ -265,6 +265,17 @@ bool AimpFlyAround::aimpSideWays()
             push_key(" ");
             QThread::msleep(MSEC_WAIT_INERT);
             aimpSideWaysTrans = AIMPSIDEWAY_TRANS_1;
+
+            //***************************************
+            //***************************************
+            // тест
+            for(int i = 0; i < 4; i++) {
+                push_key("x");
+                QThread::msleep(1000);
+            }
+            //***************************************
+            //***************************************
+
             return true;
         }
         if(abs(lastRadius) < (abs(radius))) {

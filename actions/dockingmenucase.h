@@ -5,6 +5,8 @@
 
 class DockingMenuCase : public BaseAction
 {
+    int countTry = 0;
+    bool readyDockingMenu = false;
 public:
     DockingMenuCase(CaptureWindow *aCapture, SocketIO *aSock);
     void init(QStringList &asListParam) override;

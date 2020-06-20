@@ -402,6 +402,9 @@ bool CaptureWindow::srchAreaOnceInRect(std::string asImageROI, double &coeff, QP
     cv::Rect cvRect = calcRectFromPartOfIndex(anCount, anStart, anEnd);
     win(cvRect).copyTo(_matXRoi);
     _roiMat = mp_dataSet->at(asImageROI).mat;
+    cv::imshow("win1", _matXRoi);
+    QApplication::processEvents();
+
     if(findPointRoi(_roiMat, _matXRoi, _point, coeff)) {
         aPoint.setX(_point.x + cvRect.x + _roiMat.size().width / 2);
         aPoint.setY(_point.y + cvRect.y + _roiMat.size().height / 2);
@@ -1892,6 +1895,7 @@ QString CaptureWindow::getTextApproximArea(cv::Rect aRect, cv::Point &aPoint, QS
     cv::Mat mask;
     cv::Mat edge;
     win(rect).copyTo(dst);
+//    cv::imshow("win1", dst);
 
     std::vector< std::vector< cv::Point> > contours2;
 
@@ -1907,7 +1911,8 @@ QString CaptureWindow::getTextApproximArea(cv::Rect aRect, cv::Point &aPoint, QS
     areas.resize(contours2.size());
     for(size_t i = 0; i < contours2.size(); i++) {
         idx[i] = i;
-        areas[i] = cv::contourArea(contours2[i], false);
+//        areas[i] = cv::contourArea(contours2[i], false);
+        areas[i] = cv::boundingRect(contours2[i]).area();
     }
     std::sort(idx.begin(), idx.end(), AreaCmp(areas));
     if(contours2.empty()) {
@@ -1917,8 +1922,10 @@ QString CaptureWindow::getTextApproximArea(cv::Rect aRect, cv::Point &aPoint, QS
 //    cv::rectangle(dst, foundRect, cvBlue, 1);
     cv::Mat recognizMat;
     dst(foundRect).copyTo(recognizMat);
-    aPoint.x = rect.x + (recognizMat.size().width / 2);
-    aPoint.y = rect.y + (recognizMat.size().height / 2);
+    qDebug() << "foundrect " << foundRect.x << foundRect.y << foundRect.width << foundRect.height;
+    qDebug() << "rect " << rect.x << rect.y << rect.width << rect.height;
+    aPoint.x = rect.x + foundRect.x + (recognizMat.size().width / 2);
+    aPoint.y = rect.y + foundRect.y + (recognizMat.size().height / 2);
 
 
     cv::Mat gray;
@@ -1928,6 +1935,11 @@ QString CaptureWindow::getTextApproximArea(cv::Rect aRect, cv::Point &aPoint, QS
 //    cv::adaptiveThreshold(gray, mask, 76, 153, cv::THRESH_BINARY);
     cv::inRange(mask, cv::Scalar(0, 0, 0), cv::Scalar(1, 1, 1), recognizMask);
 //    cv::inRange(mask, minScalar, maxScalar, recognizMask);
+
+
+    int tempBkack, tmpWhite;
+    if(!blackLessWhite(recognizMask, tempBkack, tmpWhite))
+        cv::bitwise_not(recognizMask, recognizMask);
 
 
     QString sText;
@@ -2012,7 +2024,7 @@ QString CaptureWindow::getTextArea(cv::Rect aRect, cv::Point &aPoint, QString as
     sText = sText.toLower();
     deleteCharExtra(sText);
     qDebug() << "text recognize: " << sText;
-//    cv::imshow("win2", edge);
+    cv::imshow("win2", dst);
     cv::imshow("win3", mask);
     cv::imshow("win5", recognizMask);
     cv::imshow("win4", gray);
@@ -4097,78 +4109,211 @@ CursorPanel *CaptureWindow::menuDocking()
         qDebug() << ".";
 
     m_cursorPan.activeMenuDocking = false;
+    m_cursorPan.sMenuDocking = "";
     cv::Mat hsv;
     cv::Mat dst;
-    win(cv::Rect(810, 805, 310, 130)).copyTo(dst);
+    win(cv::Rect(780, 730, 350, 180)).copyTo(dst);
     cv::cvtColor( dst, hsv, CV_BGR2HSV );
     cv::Mat mask;
 //    cv::inRange(hsv, cv::Scalar(10, 210, 230), cv::Scalar(50, 255, 255), mask);
     std::vector< std::vector< cv::Point> > vecRects;
+    double area = 0;
+    cv::Rect rectPush;
     int valMin2 = 220;
     int valMin3 = 230;
-    while(valMin2 > 130 && valMin3 > 150 && vecRects.empty()) {
-        cv::inRange(hsv, cv::Scalar(10, valMin2, valMin3), cv::Scalar(50, 255, 255), mask);
-//        cv::inRange(hsv, minScalar, maxScalar, mask);
-    //    imshow("win3", mask);
-    //    imshow("win2", dst);
-    //    return &m_cursorPan;
-        std::vector< std::vector< cv::Point> > contours2;
-        vecRects.clear();
-        cv::findContours(mask, contours2, cv::noArray(), cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-    //    cv::drawContours(dst, contours2, -1, cvGreen, 2);
-        for(size_t i = 0; i < contours2.size(); i++) {
-            cv::Rect rectPush = cv::boundingRect(contours2[i]);
-            double area = cv::contourArea(contours2[i]);
-            if(area > 8000 && area < 11000 && rectPush.width > 250 ) {
-//                qDebug() << rectPush.width << area;
-                cv::drawContours(dst, contours2, i, cvBlue);
-                vecRects.push_back(contours2[i]);
+    while(valMin3 > 150 && vecRects.empty()) {
+            cv::inRange(hsv, cv::Scalar(10, valMin2, valMin3), cv::Scalar(50, 255, 255), mask);
+            cv::imshow("win3", mask);
+            QApplication::processEvents();
+
+            std::vector< std::vector< cv::Point> > contours2;
+            vecRects.clear();
+            cv::findContours(mask, contours2, cv::noArray(), cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
+        //    cv::drawContours(dst, contours2, -1, cvGreen, 2);
+            for(size_t i = 0; i < contours2.size(); i++) {
+                rectPush = cv::boundingRect(contours2[i]);
+                area = cv::contourArea(contours2[i]);
+
+                if(area > 8000 && area < 13000 && rectPush.width > 250 ) {
+                    cv::drawContours(dst, contours2, i, cvBlue);
+                    vecRects.push_back(contours2[i]);
+                    break;
+                }
+//                qDebug() << "valMin2 =" << valMin2 << " valMin3 =" << valMin3 << " area=" << area << " width =" << rectPush.width;
             }
+//            qDebug() << "new cycle";
+//            qDebug() << "";
+//            if(vecRects.size() != 0)
+//                qDebug() << "stop";
+            if(valMin2 < 150) {
+                valMin3 -= 15;
+                valMin2 = 220;
+            }
+
+            valMin2 -= 15;
+//            QThread::msleep(100);
+    }
+//    qDebug() << "valMin2 =" << valMin2 << " valMin3 =" << valMin3 << area;
+
+
+    if(vecRects.size() != 1) {
+//        valMin2 = 0;
+//        valMin3 = 0;
+        int valNumMin = 150;
+
+        while(valNumMin <= 200 && vecRects.empty()) {
+//            cv::inRange(hsv, cv::Scalar(120, valMin2, valMin3), cv::Scalar(130, 255, 255), mask);
+
+
+//            cv::inRange(dst, minScalar, maxScalar, mask);
+            int valNumMax = valNumMin + 56;
+            cv::inRange(dst, cv::Scalar(valNumMin, valNumMin, valNumMin), cv::Scalar(valNumMax, valNumMax, valNumMax), mask);
+//            cv::inRange(hsv, minScalar, maxScalar, mask);
+
+
+
+
+            imshow("win3", mask);
+            imshow("win2", dst);
+            QApplication::processEvents();
+//            return &m_cursorPan;
+
+            std::vector< std::vector< cv::Point> > contours2;
+            vecRects.clear();
+            cv::findContours(mask, contours2, cv::noArray(), cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
+            //    cv::drawContours(dst, contours2, -1, cvGreen, 2);
+            for(size_t i = 0; i < contours2.size(); i++) {
+                rectPush = cv::boundingRect(contours2[i]);
+                area = cv::contourArea(contours2[i]);
+
+                if(area > 2400 && area < 3000 && rectPush.width > 60 && rectPush.width < 80) {
+                    cv::drawContours(dst, contours2, i, cvBlue);
+                    vecRects.push_back(contours2[i]);
+                    break;
+                }
+            }
+            valNumMin += 5;
+//            if(valMin2 > 210) {
+//                valMin3 += 15;
+//                valMin2 = 0;
+//            }
+
+//            valMin2 += 30;
+//            QThread::msleep(100);
+
         }
-        if(valMin2 < 150) {
-            valMin3 -= 15;
-            valMin2 = 220;
+        qDebug() << "2: valMin2 =" << valMin2 << " valMin3 =" << valMin3 << " area=" << area << " width =" << rectPush.width << " empty =" << vecRects.size();
+
+
+
+
+        valMin2 = 220;
+        valMin3 = 230;
+
+        while(valMin3 > 150 && vecRects.empty()) {
+                cv::inRange(hsv, cv::Scalar(10, valMin2, valMin3), cv::Scalar(50, 255, 255), mask);
+                cv::imshow("win3", mask);
+                QApplication::processEvents();
+
+                std::vector< std::vector< cv::Point> > contours2;
+                vecRects.clear();
+                cv::findContours(mask, contours2, cv::noArray(), cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
+            //    cv::drawContours(dst, contours2, -1, cvGreen, 2);
+                for(size_t i = 0; i < contours2.size(); i++) {
+                    rectPush = cv::boundingRect(contours2[i]);
+                    area = cv::contourArea(contours2[i]);
+
+                    if(area > 2300 && area < 3000 && rectPush.width > 60 && rectPush.width < 80) {
+                        cv::drawContours(dst, contours2, i, cvBlue);
+                        vecRects.push_back(contours2[i]);
+                        break;
+                    }
+    //                qDebug() << "valMin2 =" << valMin2 << " valMin3 =" << valMin3 << " area=" << area << " width =" << rectPush.width;
+                }
+                if(valMin2 < 150) {
+                    valMin3 -= 15;
+                    valMin2 = 220;
+                }
+
+                valMin2 -= 15;
+    //            QThread::msleep(100);
+        }
+//        qDebug() << "3: valMin2 =" << valMin2 << " valMin3 =" << valMin3 << " area=" << area << " width =" << rectPush.width << " empty =" << vecRects.size();
+
+
+
+        if(vecRects.size() != 1) {
+            cv::imshow("win3", mask);
+            cv::imshow("win2", dst);
+            qDebug() << "Шаблон прямоугольника dock menu не найден";
+            return &m_cursorPan;
         }
 
-        valMin2 -= 15;
+
+
+        int _x = rectPush.x + (rectPush.width / 2);
+
+
+        int widthField = dst.size().width;
+        if(_x > 0 && (_x < widthField / 4)) {                                    // Первый квадрат
+            m_cursorPan.sMenuDocking = "menu_docking_one";
+            m_cursorPan.activeMenuDocking = true;
+        } else if(_x > (widthField / 4) && (_x < (widthField / 4 * 2))) {                           // Второй квадрат
+            m_cursorPan.sMenuDocking = "menu_docking_two";
+            m_cursorPan.activeMenuDocking = true;
+        } else if(_x > (widthField / 4 * 2) && (_x < (widthField / 4 * 3))) {                           // Третий квадрат
+            m_cursorPan.sMenuDocking = "menu_docking_three";
+            m_cursorPan.activeMenuDocking = true;
+        } else if(_x > (widthField / 4 * 3) && (_x < (widthField / 4 * 4))) {                           // Четвёртый квадрат
+            m_cursorPan.sMenuDocking = "menu_docking_angar";
+            m_cursorPan.activeMenuDocking = true;
+
+        }
+//        qDebug() << m_cursorPan.sMenuDocking;
+//        qDebug() << " x =" << _x ;
+
+
+
+
+
+    } else {
+        cv::Rect rectToRecogniz(cv::boundingRect(vecRects.front()));
+        rectToRecogniz = cv::Rect(rectToRecogniz.x + 2, rectToRecogniz.y + 2, rectToRecogniz.width - 4, rectToRecogniz.height -4);
+        cv::Mat maskToRecognize;
+        mask(rectToRecogniz).copyTo(maskToRecognize);
+
+        myOCRRus->SetImage( (uchar*)maskToRecognize.data, maskToRecognize.size().width, maskToRecognize.size().height, maskToRecognize.channels(), maskToRecognize.step1());
+        myOCRRus->Recognize(nullptr);
+        m_cursorPan.sMenuDocking = myOCRRus->GetUTF8Text();
+        if(m_cursorPan.sMenuDocking.isEmpty())
+            m_cursorPan.sMenuDocking = "not recognized";
+        m_cursorPan.sMenuDocking = m_cursorPan.sMenuDocking.simplified();
+        m_cursorPan.sMenuDocking = m_cursorPan.sMenuDocking.toLower();
+        deleteCharExtra(m_cursorPan.sMenuDocking);
+        if(comparisonStr(m_cursorPan.sMenuDocking, "службыкосмопорта") <= 2) {
+            m_cursorPan.sMenuDocking = "menu_docking_service";
+            m_cursorPan.activeMenuDocking = true;
+        } else if(comparisonStr(m_cursorPan.sMenuDocking, "наповерхность") <= 2) {
+            m_cursorPan.sMenuDocking = "menu_docking_angar";
+            m_cursorPan.activeMenuDocking = true;
+        } else if(comparisonStr(m_cursorPan.sMenuDocking, "вангар") <= 2) {
+            m_cursorPan.sMenuDocking = "menu_docking_angar";
+            m_cursorPan.activeMenuDocking = true;
+        } else if(comparisonStr(m_cursorPan.sMenuDocking, "автозапуск") <= 2) {
+            m_cursorPan.sMenuDocking = "menu_docking_autostart";
+            m_cursorPan.activeMenuDocking = true;
+        }
     }
-//    qDebug() << "valMin2 =" << valMin2 << " valMin3 =" << valMin3;
-    if(vecRects.empty() || vecRects.size() > 2) {
-        cv::imshow("win3", mask);
-        cv::imshow("win2", dst);
-
-        qDebug() << "Шаблон прямоугольника dock menu не найден";
-        return &m_cursorPan;
-    }
 
 
-    cv::Rect rectToRecogniz(cv::boundingRect(vecRects.front()));
-    rectToRecogniz = cv::Rect(rectToRecogniz.x + 2, rectToRecogniz.y + 2, rectToRecogniz.width - 4, rectToRecogniz.height -4);
-    cv::Mat maskToRecognize;
-    mask(rectToRecogniz).copyTo(maskToRecognize);
 
-    myOCRRus->SetImage( (uchar*)maskToRecognize.data, maskToRecognize.size().width, maskToRecognize.size().height, maskToRecognize.channels(), maskToRecognize.step1());
-    myOCRRus->Recognize(nullptr);
-    m_cursorPan.sMenuDocking = myOCRRus->GetUTF8Text();
-    if(m_cursorPan.sMenuDocking.isEmpty())
-        m_cursorPan.sMenuDocking = "not recognized";
-    m_cursorPan.sMenuDocking = m_cursorPan.sMenuDocking.simplified();
-    m_cursorPan.sMenuDocking = m_cursorPan.sMenuDocking.toLower();
-    deleteCharExtra(m_cursorPan.sMenuDocking);
-    if(comparisonStr(m_cursorPan.sMenuDocking, "службыкосмопорта") <= 2) {
-        m_cursorPan.sMenuDocking = "menu_docking_service";
-        m_cursorPan.activeMenuDocking = true;
-    } else if(comparisonStr(m_cursorPan.sMenuDocking, "наповерхность") <= 2) {
-        m_cursorPan.sMenuDocking = "menu_docking_angar";
-        m_cursorPan.activeMenuDocking = true;
-    } else if(comparisonStr(m_cursorPan.sMenuDocking, "вангар") <= 2) {
-        m_cursorPan.sMenuDocking = "menu_docking_angar";
-        m_cursorPan.activeMenuDocking = true;
-    } else if(comparisonStr(m_cursorPan.sMenuDocking, "автозапуск") <= 2) {
-        m_cursorPan.sMenuDocking = "menu_docking_autostart";
-        m_cursorPan.activeMenuDocking = true;
-    }
-//    qDebug() << m_cursorPan.sMenuDocking;
+//    if(area < 1)
+//        qDebug() << "stop";
+
+//    qDebug() << rectPush.width << area;
+
+
+    qDebug() << m_cursorPan.sMenuDocking;
     imshow("win3", mask);
     imshow("win2", dst);
     return &m_cursorPan;

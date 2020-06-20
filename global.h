@@ -15,13 +15,14 @@
 
 #define     PATH_TO_TESSERACT   ".\\tesseract4.1\\tessdata"
 
-#define     M_PI                3.1415926535
-#define     PATH_CONFIG         ".\\config"
-#define     PATH_LOG            ".\\log"
-#define     PATH_SAVE           ".\\save"
-#define     PATH_VIDEO_LOG      ".\\videolog"
-#define     PATH_IMAGE_LOG      ".\\imagelog"
-#define     PATH_CONFIG_DISPLAY ".\\config\\display.json"
+#define     M_PI                    3.1415926535
+#define     PATH_CONFIG             ".\\config"
+#define     PATH_LOG                ".\\log"
+#define     PATH_SAVE               ".\\save"
+#define     PATH_VIDEO_LOG          ".\\videolog"
+#define     PATH_IMAGE_LOG          ".\\imagelog"
+#define     PATH_DATA_MAP_SYSTEM    ".\\mapSystemData"
+#define     PATH_CONFIG_DISPLAY     ".\\config\\display.json"
 
 #define     DEBUG1               0
 #define     DEBUG2               0

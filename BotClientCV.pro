@@ -51,6 +51,30 @@ win32-msvc* {
 #    debug:LIBS += "F:\projects\vcpkg\installed\x86-windows\debug\lib\tesseract41d.lib"
 #    else:LIBS += "F:\projects\vcpkg\installed\x86-windows\lib\tesseract41.lib"
 
+#    CONFIG(debug, debug|release) {
+#            LIBS += "F:\projects\vcpkg\installed\x86-windows\debug\lib\tesseract41d.lib"
+#            LIBS += "F:\projects\vcpkg\installed\x86-windows\debug\lib\leptonica-1.78.0d.lib"
+
+#            LIBS += "F:\projects\opencv\opencv\build2\install\lib\opencv_core$${VERSION_BUILD}d.lib"
+#            LIBS += "F:\projects\opencv\opencv\build2\install\lib\opencv_highgui$${VERSION_BUILD}d.lib"
+#            LIBS += "F:\projects\opencv\opencv\build2\install\lib\opencv_imgcodecs$${VERSION_BUILD}d.lib"
+#            LIBS += "F:\projects\opencv\opencv\build2\install\lib\opencv_imgproc$${VERSION_BUILD}d.lib"
+#            LIBS += "F:\projects\opencv\opencv\build2\install\lib\opencv_features2d$${VERSION_BUILD}d.lib"
+#            LIBS += "F:\projects\opencv\opencv\build2\install\lib\opencv_calib3d$${VERSION_BUILD}d.lib"
+#            LIBS += "F:\projects\opencv\opencv\build2\install\lib\opencv_videoio$${VERSION_BUILD}d.lib"
+#    }
+#    CONFIG(release, debug|release) {
+#            LIBS += "F:\projects\vcpkg\installed\x86-windows\lib\tesseract41.lib"
+#            LIBS += "F:\projects\vcpkg\installed\x86-windows\lib\leptonica-1.78.0.lib"
+
+#            LIBS += "F:\projects\opencv\opencv\build2\install\lib\opencv_core$${VERSION_BUILD}.lib"
+#            LIBS += "F:\projects\opencv\opencv\build2\install\lib\opencv_highgui$${VERSION_BUILD}.lib"
+#            LIBS += "F:\projects\opencv\opencv\build2\install\lib\opencv_imgcodecs$${VERSION_BUILD}.lib"
+#            LIBS += "F:\projects\opencv\opencv\build2\install\lib\opencv_imgproc$${VERSION_BUILD}.lib"
+#            LIBS += "F:\projects\opencv\opencv\build2\install\lib\opencv_features2d$${VERSION_BUILD}.lib"
+#            LIBS += "F:\projects\opencv\opencv\build2\install\lib\opencv_calib3d$${VERSION_BUILD}.lib"
+#            LIBS += "F:\projects\opencv\opencv\build2\install\lib\opencv_videoio$${VERSION_BUILD}.lib"
+#    }
     CONFIG(debug, debug|release) {
             LIBS += "F:\projects\vcpkg\installed\x86-windows\debug\lib\tesseract41d.lib"
             LIBS += "F:\projects\vcpkg\installed\x86-windows\debug\lib\leptonica-1.78.0d.lib"
@@ -111,6 +135,7 @@ SOURCES += \
     baseaction.cpp \
     capturewindow.cpp \
     controlpanel.cpp \
+    createmapsystem.cpp \
     displays.cpp \
     enginescript.cpp \
     guiinfo.cpp \
@@ -150,6 +175,7 @@ HEADERS += \
     baseaction.h \
     capturewindow.h \
     controlpanel.h \
+    createmapsystem.h \
     displays.h \
     enginescript.h \
     global.h \
@@ -161,9 +187,9 @@ HEADERS += \
     socketio.h
 
 # Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
+#qnx: target.path = /tmp/$${TARGET}/bin
+#else: unix:!android: target.path = /opt/$${TARGET}/bin
+#!isEmpty(target.path): INSTALLS += target
 
 FORMS += \
     controlpanel.ui

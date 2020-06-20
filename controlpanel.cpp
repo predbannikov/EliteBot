@@ -19,10 +19,7 @@ ControlPanel::ControlPanel(EngineScript *aEngine, QWidget *parent) :
     connect(this, &ControlPanel::signalSetSide, m_engine, &EngineScript::slotSetSide, Qt::QueuedConnection);
     connect(m_engine, &EngineScript::signalReturnCommand, this, &ControlPanel::slotReceivReturnCommand, Qt::QueuedConnection);
 
-    connect(ui->comboBox_2,SIGNAL(currentIndexChanged(const QString&)),
-            this,SLOT(slotCmbSystem(const QString&)));
 
-    init();
 
     QWidget *mainWidgte = new QWidget;
 
@@ -42,10 +39,7 @@ ControlPanel::ControlPanel(EngineScript *aEngine, QWidget *parent) :
 
 
     centralWidget()->layout()->addWidget(mainWidgte);
-//    this->layout()->addWidget(mainWidgte);
-//    setCentralWidget(mainWidgte);
 
-//    setCentralWidget(scrollArea);
     wgt->setLayout(vblayout);
 
     QPushButton *pushAddFlyConfig = new QPushButton("+");
@@ -140,7 +134,7 @@ void ControlPanel::dockAutoStart()
     qDebug() << "dockAutoStart";
     queue.enqueue(QStringList {"DOCKINGMENUCASE",           "0", "menu_docking_autostart"});
     queue.enqueue(QStringList {"ACTIONWAIT",                "0", "20000"});
-    queue.enqueue(QStringList {"IMAGEEXPECTEDCLOSE",        "0", "pic_autoPilot", "10000", "0.80", "17", "92", "128"});
+    queue.enqueue(QStringList {"IMAGEEXPECTEDCLOSE",        "0", "pic_autoPilot", "10000", "0.80", "17", "92", "128", ""});
 //    queue.enqueue(QStringList {"IMAGEEXPECTEDCLOSE",        "0", "pic_warningRadTriangle", "9000", "0.83", "19", "123", "143"});
 //    queue.enqueue(QStringList {"STOPAFTERAUTOSTART",        "0"});
     queue.enqueue(QStringList {"PICKUPSPEED",               "0", "15000"});
@@ -157,6 +151,14 @@ void ControlPanel::flyToSystem()
     queue.enqueue(QStringList {"AIMPFLYAROUND",             "0", "system"});
     queue.enqueue(QStringList {"PICKUPSPEED",               "0", "6500"});
     queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "push_key", "k" });
+
+    queue.enqueue(QStringList {"ACTIONWAIT",                "0", "25000"});
+    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "push_key", "x" });
+    queue.enqueue(QStringList {"ACTIONWAIT",                "0", "1000"});
+    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "push_key", "x" });
+    queue.enqueue(QStringList {"ACTIONWAIT",                "0", "1000"});
+    queue.enqueue(QStringList {"SENDEVENTCONTROL",          "0", "push_key", "x" });
+
     queue.enqueue(QStringList {"IMAGEEXPECTED",             "0", "pic_hypermodResetPull", "0.93", "9", "6", "26"});
     queue.enqueue(QStringList {"MARKER",                    "0", "flyToSystem"});
 }
@@ -175,16 +177,18 @@ void ControlPanel::flytoStation()
     } else if(state_delivery == STATE_TO_STATION) {
         queue.enqueue(QStringList {"PANEL1CASEMENUNAV",         "0", m_sToStationTarget, m_sToSystemTarget});
     }
+
     queue.enqueue(QStringList {"PANEL1SUBNAV",              "0", "enable_hypermode_helper"});
     queue.enqueue(QStringList {"PANEL1ENABLE",              "0", "0"});
+    queue.enqueue(QStringList {"PICKUPSPEED",               "0", "6500"});      // !!!!!!!!!!!!!!!!
     queue.enqueue(QStringList {"MARKER",                    "0", "flytoStation"});
 }
 
 void ControlPanel::waitFlyToStation()
 {
     qDebug() << "waitFlyToStation";
-    queue.enqueue(QStringList {"IMAGEEXPECTEDCLOSE",        "0", "pic_autoPilot", "10000", "0.80", "11", "38", "49"});
-    queue.enqueue(QStringList {"IMAGEEXPECTEDCLOSE",        "0", "pic_warningRadTriangle", "2000", "0.75", "10", "34", "35"});
+    queue.enqueue(QStringList {"IMAGEEXPECTEDCLOSE",        "0", "pic_autoPilot", "10000", "0.80", "11", "38", "49", "flyToStation"});
+    queue.enqueue(QStringList {"IMAGEEXPECTEDCLOSE",        "0", "pic_warningRadTriangle", "2000", "0.75", "10", "34", "35", ""});
     queue.enqueue(QStringList {"MARKER",                    "0", "waitFlyToStation"});
 }
 
@@ -259,15 +263,6 @@ void ControlPanel::setTrack()
 
 }
 
-void ControlPanel::init()
-{
-    mMapSystems = mapSystemsAndStationLoad;
-    QStringList systems = mMapSystems.keys();
-    systems.removeDuplicates();
-    ui->comboBox_2->clear();
-    ui->comboBox_2->addItems(systems);
-}
-
 void ControlPanel::checkCurSystem()
 {
     queue.clear();
@@ -289,20 +284,7 @@ void ControlPanel::checkCurSystem()
 void ControlPanel::prepScript()
 {
     qDebug() << "Чтение очереди ";
-//    if(ui->listWidget->count() == 0) {
-//        qDebug() << "Очередь пуста";
-//        ui->checkBox_2->setChecked(false);
-//        started = false;
-//        return;
-//    }
-//    QListWidgetItem *item = ui->listWidget->takeItem(0);
-//    QByteArray array = item->text().toUtf8();
-//    QJsonDocument jDoc = QJsonDocument::fromJson(array);
 
-
-
-
-//    m_jObject = jDoc.object();
     m_jObject = takeJsonObj();
     qDebug() << m_jObject;
 
@@ -340,57 +322,6 @@ void ControlPanel::prepScript()
     }
 
     qDebug() << "m_jObject " << m_jObject;
-}
-
-QJsonObject ControlPanel::textOutInfo()
-{
-    QJsonObject jObj;
-    jObj["system"] = ui->comboBox_2->currentText();
-    jObj["station"] = ui->comboBox->currentText();
-    jObj["actionRefuel"] = ui->checkBox->isChecked() ? "заправиться": "ничего не делать";
-    jObj["actionDeliver"] = ui->checkBox_4->isChecked() ? "доставка": "без доставки";
-    if(jObj["actionDeliver"].toString() == "доставка") {
-        jObj["typeAction"] = ui->comboBox_3->currentText();
-        if(ui->checkBox_5->isChecked())
-            jObj["typeDeliver"] = "разгрузка";
-    }
-//    QJsonArray jArr;
-//    QJsonObject jAction;
-//    jAction["action"] = ui->checkBox->isChecked() ? "заправиться": "ничего не делать";
-//    jArr.append(jAction);
-//    jAction["action"] = ui->checkBox_4->isChecked() ? "доставка": "без доставки";
-//    jArr.append(jAction);
-//    jObj["actions"] = jArr;
-    QString str = QString("Цель: \nСистема: %1 \n станция: %2 \n действие: %3 \n действие: %4 \n тип: %5 %6")
-            .arg(jObj["system"].toString())
-            .arg(jObj["station"].toString())
-            .arg(jObj["actionRefuel"].toString())
-            .arg(jObj["actionDeliver"].toString())
-            .arg(jObj["typeAction"].toString())
-            .arg(jObj["typeDeliver"].toString());
-//    jArr = jObj["actions"].toArray();
-//    for(auto jObj_: jArr) {
-//        str.append("\n действие: " + jObj_.toObject()["action"].toString());
-//    }
-    ui->label->setText(str);
-    return jObj;
-}
-
-void ControlPanel::setGroupBox(const QJsonObject &ajObject)
-{
-    ui->comboBox_2->setCurrentText(ajObject["system"].toString());
-    ui->comboBox->setCurrentText(ajObject["station"].toString());
-    if(ajObject["actionRefuel"].toString() == "заправиться") {
-        ui->checkBox->setChecked(true);
-    } else {
-        ui->checkBox->setChecked(false);
-    }
-    if(ajObject["actionDeliver"].toString() == "доставка"){
-        ui->checkBox_4->setChecked(true);
-    } else {
-        ui->checkBox_4->setChecked(false);
-    }
-
 }
 
 void ControlPanel::slotReceivReturnCommand(QStringList aList)
@@ -508,21 +439,6 @@ void ControlPanel::slotReceivReturnCommand(QStringList aList)
         }
     }
 
-}
-
-void ControlPanel::slotCmbSystem(const QString &str)
-{
-    QStringList listStation;
-    QMultiMap<QString, QString>::iterator it = mMapSystems.begin();
-    while(it != mMapSystems.end()) {
-        if(it.key() == str)
-        {
-            listStation.append(it.value());
-        }
-        ++it;
-    }
-    ui->comboBox->clear();
-    ui->comboBox->addItems(listStation);
 }
 
 void ControlPanel::initKeyNames()
@@ -771,111 +687,48 @@ void ControlPanel::on_pushButton_clicked()          //  ТЕСТ
         queue.enqueue(QStringList {"ACTIONDELIVERYPAPER",       "0", m_sToNameActionCargo, m_sCountCargo, "разгрузка", m_sTypeCargoUpload});
     }
 
+//    queue.enqueue(QStringList {"DOCKINGMENUCASE",           "0", "menu_docking_autostart"});
 
 
     queue.prepend(QStringList {"RESTORGAME",                "0" });
     emit signalSetQueue(queue);
 }
 
-void ControlPanel::on_comboBox_currentIndexChanged(const QString &arg1)
-{
-    textOutInfo();
-}
-
-void ControlPanel::on_checkBox_clicked(bool checked)
-{
-    textOutInfo();
-}
-
-void ControlPanel::on_pushButton_2_clicked()
-{
-    ui->listWidget->addItem(QJsonDocument(textOutInfo()).toJson());
-}
-
-//void ControlPanel::on_listWidget_currentRowChanged(int currentRow)
+//void ControlPanel::on_pushButton_7_clicked()
 //{
-//    if(currentRow < 0)
-//        return;
-//    QListWidgetItem *item = ui->listWidget->item(currentRow);
-//    QByteArray array = item->text().toUtf8();
+//    saveData();
 //}
 
-void ControlPanel::on_pushButton_3_clicked()
-{
-    if(ui->listWidget->currentRow() < 0)
-        return;
-    ui->listWidget->takeItem(ui->listWidget->currentRow());
-}
+//void ControlPanel::on_pushButton_8_clicked()
+//{
+//    qDebug() << qPrintable(QByteArray(QJsonDocument(takeJsonObj()).toJson()));
+//}
 
-void ControlPanel::on_pushButton_4_clicked()
-{
-    if(ui->listWidget->currentRow() >= 0) {
-        QListWidgetItem *item = ui->listWidget->item(ui->listWidget->currentRow());
-        item->setText(QJsonDocument(textOutInfo()).toJson());
-    }
-}
-
-void ControlPanel::on_listWidget_itemClicked(QListWidgetItem *item)
-{
-
-    QByteArray array = item->text().toUtf8();
-    QJsonDocument jDoc = QJsonDocument::fromJson(array);
-    QJsonObject jObj = jDoc.object();
-    setGroupBox(jObj);
-}
-
-void ControlPanel::on_checkBox_2_clicked(bool checked)
-{
-
-}
-
-void ControlPanel::on_checkBox_4_clicked()
-{
-    textOutInfo();
-}
-
-void ControlPanel::on_pushButton_5_clicked()
-{
-    if(ui->listWidget->count() == 2) {
-        if(ui->spinBox->value() >= 2) {
-            QListWidgetItem *item1 = ui->listWidget->takeItem(0);
-            QListWidgetItem *item2 = ui->listWidget->takeItem(0);
-            QByteArray array1 = item1->text().toUtf8();
-            QByteArray array2 = item2->text().toUtf8();
-            QJsonDocument jDoc1 = QJsonDocument::fromJson(array1);
-            QJsonDocument jDoc2 = QJsonDocument::fromJson(array2);
-            for(int i = 0; i < ui->spinBox->value(); i++) {
-                ui->listWidget->addItem(jDoc1.toJson());
-                ui->listWidget->addItem(jDoc2.toJson());
-            }
-        }
-    }
-}
-
-void ControlPanel::on_comboBox_3_currentIndexChanged(const QString &arg1)
-{
-    textOutInfo();
-}
-
-void ControlPanel::on_checkBox_5_clicked()
-{
-    textOutInfo();
-}
-
-void ControlPanel::on_pushButton_6_clicked()
-{
-    if(listFlyAction.size() > ui->spinBox_2->value()) {
-        QByteArray str = QJsonDocument(listFlyAction[ui->spinBox_2->value()]->getJsonObj()).toJson();
-        qDebug() << qPrintable(str);
-    }
-}
-
-void ControlPanel::on_pushButton_7_clicked()
+void ControlPanel::on_pushButton_2_clicked()
 {
     saveData();
 }
 
-void ControlPanel::on_pushButton_8_clicked()
+void ControlPanel::on_pushButton_3_clicked()
 {
-    qDebug() << qPrintable(QByteArray(QJsonDocument(takeJsonObj()).toJson()));
+
+    QMessageBox msgBox;
+    msgBox.setText("Загрузка систем и станций");
+    msgBox.setInformativeText("Процесс загрузки может занять несколько минут, согласны?");
+    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+    int ret = msgBox.exec();
+    if(ret == QMessageBox::Ok) {
+        CreateMapSystem *wid;
+        wid = new CreateMapSystem;
+        wid->setModal(true);
+
+        wid->exec();
+    } else if( ret == QMessageBox::Cancel) {
+        qDebug() << "cancle";
+    }
+
+
+
+
+
 }

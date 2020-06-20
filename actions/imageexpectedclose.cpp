@@ -14,6 +14,7 @@ void ImageExpectedClose::init(QStringList &asListParam)
     nCount = asListParam[5].toInt();
     iStart = asListParam[6].toInt();
     iEnd = asListParam[7].toInt();
+    sModeAutoPilot = asListParam[8];
 
     lastElapse = 0;
 }
@@ -36,6 +37,9 @@ bool ImageExpectedClose::logic(QStringList &asListParam)
             if(timer.elapsed() > whileWaitMSec) {
                 return true;
             }
+            qDebug() << "sSearchImage =" << sSearchImage << " sModeAutoPilot =" << sModeAutoPilot;
+            if(sModeAutoPilot == "flyToStation")
+                push_key("x");
         } else {
             timer.restart();
         }

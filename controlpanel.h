@@ -23,6 +23,7 @@
 #include <QLabel>
 #include "enginescript.h"
 #include "global.h"
+#include "createmapsystem.h"
 
 namespace Ui {
 class ControlPanel;
@@ -81,16 +82,16 @@ public:
     void waitFlyToStation();
     void landing();
     void setTrack();
-    void init();
+//    void init();
     void initKeyNames();
     void checkCurSystem();
     void performList();
     void prepScript();
-    QJsonObject textOutInfo();
-    void setGroupBox(const QJsonObject &ajObject);
+//    QJsonObject textOutInfo();
+//    void setGroupBox(const QJsonObject &ajObject);
 public slots:
     void slotReceivReturnCommand(QStringList aList);
-    void slotCmbSystem(const QString &str);
+//    void slotCmbSystem(const QString &str);
 private slots:
 
     void deleteConfig(int anIndex);
@@ -105,33 +106,9 @@ private slots:
 
     void on_pushButton_clicked();
 
-    void on_comboBox_currentIndexChanged(const QString &arg1);
-
-    void on_checkBox_clicked(bool checked);
-
     void on_pushButton_2_clicked();
 
     void on_pushButton_3_clicked();
-
-    void on_pushButton_4_clicked();
-
-    void on_listWidget_itemClicked(QListWidgetItem *item);
-
-    void on_checkBox_2_clicked(bool checked);
-
-    void on_checkBox_4_clicked();
-
-    void on_pushButton_5_clicked();
-
-    void on_comboBox_3_currentIndexChanged(const QString &arg1);
-
-    void on_checkBox_5_clicked();
-
-    void on_pushButton_6_clicked();
-
-    void on_pushButton_7_clicked();
-
-    void on_pushButton_8_clicked();
 
 private:
     Ui::ControlPanel *ui;
@@ -230,6 +207,9 @@ public:
 
         cmbFromNameActionCargo = new QComboBox;
         cmbFromNameActionCargo->addItems(sNamesActionCargo);
+//        QFont font("times", 24);
+//        QFontMetrics fm(font);
+//        QString elidedText= fm.elidedText("a very long long long long long long text ",Qt::ElideRight, 80);
         cmbFromNameActionCargo->setMaximumWidth(150);
         hbl->addWidget(cmbFromNameActionCargo);
 

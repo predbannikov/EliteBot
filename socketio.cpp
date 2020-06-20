@@ -1,10 +1,10 @@
 #include "socketio.h"
 
 
-#define     WAIT_MSEC_PUSH_KEY      90
-#define     WAIT_MSEC_PRESS_KEY     50
-#define     WAIT_MSEC_RELEASE_KEY   50
-#define     WAIT_MSEC_MOUSE_EVENT   50
+#define     WAIT_MSEC_PUSH_KEY      110
+#define     WAIT_MSEC_PRESS_KEY     55
+#define     WAIT_MSEC_RELEASE_KEY   55
+#define     WAIT_MSEC_MOUSE_EVENT   55
 #define     WAIT_MSEC_MOUSE_CLICK   110
 
 SocketIO::SocketIO(QPoint aPointOffset)
@@ -14,6 +14,7 @@ SocketIO::SocketIO(QPoint aPointOffset)
     m_pointOffset = aPointOffset;
 //    sock->connectToHost("192.168.16.128", 10101);
     sock->connectToHost("127.0.0.1", 10101);
+    m_timeElapse.restart();
 }
 
 void SocketIO::send(QByteArray a_data)
@@ -41,6 +42,8 @@ void SocketIO::push_key(QString aChar)
     jMsg["code"] = aChar;
     send(QJsonDocument(jMsg).toJson());
     QThread::msleep(WAIT_MSEC_PUSH_KEY);
+    qDebug() << "time elapse" << m_timeElapse.elapsed();
+    m_timeElapse.restart();
 }
 
 void SocketIO::press_key(QString aChar)

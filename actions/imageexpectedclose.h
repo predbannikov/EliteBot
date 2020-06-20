@@ -5,6 +5,7 @@
 
 class ImageExpectedClose : public BaseAction
 {
+    QString sModeAutoPilot;
 public:
     ImageExpectedClose(CaptureWindow *aCapture, SocketIO *aSock);
     void init(QStringList &asListParam) override;

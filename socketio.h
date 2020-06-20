@@ -4,11 +4,13 @@
 #include <QThread>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QElapsedTimer>
 
 class SocketIO
 {
     QTcpSocket      *sock;
     QPoint          m_pointOffset;
+    QElapsedTimer   m_timeElapse;
 public:
     SocketIO(QPoint aPointOffset);
     void send(QByteArray a_data);
