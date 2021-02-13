@@ -42,11 +42,25 @@ unix: !macx {
     -lopencv_flann
 }
 
-VERSION_BUILD = 320
 
 win32-msvc* {
-    INCLUDEPATH += "F:\projects\opencv\opencv\opencv-build\install\include"
-    INCLUDEPATH += "F:\projects\vcpkg\installed\x86-windows\include"
+
+    VERSION_BUILD = 320
+    PATH_VERSION = 32      # 32 version path
+    VERSION_VS = 2017
+    DISK = E
+
+
+    temp = "$${DISK}:\projects\opencv\opencv\build$${VERSION_VS}-$${PATH_VERSION}\install\include"
+    message($$temp)
+
+
+
+    INCLUDEPATH += "$${DISK}:\projects\opencv\opencv\build$${VERSION_VS}-$${PATH_VERSION}\install\include"
+    INCLUDEPATH += "$${DISK}:\projects\vcpkg\installed\x86-windows\include"
+
+#    INCLUDEPATH += "F:\projects\opencv\opencv\opencv-build\install\include"    #For delete
+#    INCLUDEPATH += "F:\projects\vcpkg\installed\x86-windows\include"           #For delete
 
 #    debug:LIBS += "F:\projects\vcpkg\installed\x86-windows\debug\lib\tesseract41d.lib"
 #    else:LIBS += "F:\projects\vcpkg\installed\x86-windows\lib\tesseract41.lib"
@@ -75,31 +89,32 @@ win32-msvc* {
 #            LIBS += "F:\projects\opencv\opencv\build2\install\lib\opencv_calib3d$${VERSION_BUILD}.lib"
 #            LIBS += "F:\projects\opencv\opencv\build2\install\lib\opencv_videoio$${VERSION_BUILD}.lib"
 #    }
-    CONFIG(debug, debug|release) {
-            LIBS += "F:\projects\vcpkg\installed\x86-windows\debug\lib\tesseract41d.lib"
-            LIBS += "F:\projects\vcpkg\installed\x86-windows\debug\lib\leptonica-1.78.0d.lib"
 
-            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_core$${VERSION_BUILD}d.lib"
-            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_highgui$${VERSION_BUILD}d.lib"
-            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_imgcodecs$${VERSION_BUILD}d.lib"
-            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_imgproc$${VERSION_BUILD}d.lib"
-            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_features2d$${VERSION_BUILD}d.lib"
-            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_calib3d$${VERSION_BUILD}d.lib"
-            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_videoio$${VERSION_BUILD}d.lib"
+    CONFIG(debug, debug|release) {
+            LIBS += "$${DISK}:\projects\vcpkg\installed\x86-windows\debug\lib\tesseract41d.lib"
+            LIBS += "$${DISK}:\projects\vcpkg\installed\x86-windows\debug\lib\leptonica-1.78.0d.lib"
+
+            LIBS += "$${DISK}:\projects\opencv\opencv\build$${VERSION_VS}-$${PATH_VERSION}\install\lib\opencv_core$${VERSION_BUILD}d.lib"
+            LIBS += "$${DISK}:\projects\opencv\opencv\build$${VERSION_VS}-$${PATH_VERSION}\install\lib\opencv_highgui$${VERSION_BUILD}d.lib"
+            LIBS += "$${DISK}:\projects\opencv\opencv\build$${VERSION_VS}-$${PATH_VERSION}\install\lib\opencv_imgcodecs$${VERSION_BUILD}d.lib"
+            LIBS += "$${DISK}:\projects\opencv\opencv\build$${VERSION_VS}-$${PATH_VERSION}\install\lib\opencv_imgproc$${VERSION_BUILD}d.lib"
+            LIBS += "$${DISK}:\projects\opencv\opencv\build$${VERSION_VS}-$${PATH_VERSION}\install\lib\opencv_features2d$${VERSION_BUILD}d.lib"
+            LIBS += "$${DISK}:\projects\opencv\opencv\build$${VERSION_VS}-$${PATH_VERSION}\install\lib\opencv_calib3d$${VERSION_BUILD}d.lib"
+            LIBS += "$${DISK}:\projects\opencv\opencv\build$${VERSION_VS}-$${PATH_VERSION}\install\lib\opencv_videoio$${VERSION_BUILD}d.lib"
     }
     CONFIG(release, debug|release) {
-            LIBS += "F:\projects\vcpkg\installed\x86-windows\lib\tesseract41.lib"
-            LIBS += "F:\projects\vcpkg\installed\x86-windows\lib\leptonica-1.78.0.lib"
+            LIBS += "$${DISK}:\projects\vcpkg\installed\x86-windows\lib\tesseract41.lib"
+            LIBS += "$${DISK}:\projects\vcpkg\installed\x86-windows\lib\leptonica-1.78.0.lib"
 
-            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_core$${VERSION_BUILD}.lib"
-            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_highgui$${VERSION_BUILD}.lib"
-            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_imgcodecs$${VERSION_BUILD}.lib"
-            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_imgproc$${VERSION_BUILD}.lib"
-            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_features2d$${VERSION_BUILD}.lib"
-            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_calib3d$${VERSION_BUILD}.lib"
-            LIBS += "F:\projects\opencv\opencv\opencv-build\install\lib\opencv_videoio$${VERSION_BUILD}.lib"
+            LIBS += "$${DISK}:\projects\opencv\opencv\build$${VERSION_VS}-$${PATH_VERSION}\install\lib\opencv_core$${VERSION_BUILD}.lib"
+            LIBS += "$${DISK}:\projects\opencv\opencv\build$${VERSION_VS}-$${PATH_VERSION}\install\lib\opencv_highgui$${VERSION_BUILD}.lib"
+            LIBS += "$${DISK}:\projects\opencv\opencv\build$${VERSION_VS}-$${PATH_VERSION}\install\lib\opencv_imgcodecs$${VERSION_BUILD}.lib"
+            LIBS += "$${DISK}:\projects\opencv\opencv\build$${VERSION_VS}-$${PATH_VERSION}\install\lib\opencv_imgproc$${VERSION_BUILD}.lib"
+            LIBS += "$${DISK}:\projects\opencv\opencv\build$${VERSION_VS}-$${PATH_VERSION}\install\lib\opencv_features2d$${VERSION_BUILD}.lib"
+            LIBS += "$${DISK}:\projects\opencv\opencv\build$${VERSION_VS}-$${PATH_VERSION}\install\lib\opencv_calib3d$${VERSION_BUILD}.lib"
+            LIBS += "$${DISK}:\projects\opencv\opencv\build$${VERSION_VS}-$${PATH_VERSION}\install\lib\opencv_videoio$${VERSION_BUILD}.lib"
+
     }
-
 }
 
 

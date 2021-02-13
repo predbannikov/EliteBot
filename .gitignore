@@ -1,4 +1,5 @@
 .qmake.stash
+msvc_make.bat
 *-build-*
 *.autosave
 BotClientCV.*
